@@ -6,10 +6,10 @@
 **Owner Product Lead:** <name>
 **Peer Stakeholder POs:** <names of your 2 or 3 peer PO individuals>
 **Instructor / Sponsor:** Lucas Cordova (`LucasCordova` on GitHub)
-**GitHub repo:** <link to this repo>
-**GitHub Projects board:** <link>
-**Discord category:** `#<project>-*`
-**Studio Session:** <1, 2, or 3>
+**GitHub repo:** [<link>](https://github.com/Fiden-Supancich-McCord/data510-fire)
+**GitHub Projects board:** [<link>](https://github.com/orgs/Fiden-Supancich-McCord/projects/1/views/1)
+**Discord category:** `#<project>-5`
+**Studio Session:** 1
 **Studio formed:** <date>
 
 ## Vision
