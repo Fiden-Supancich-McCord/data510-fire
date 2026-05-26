@@ -3,14 +3,20 @@
 > Filled in live during the **Studio Charter** session in week 3. Every section below is committed in the same commit at the end of that class block. See [Studio Charter (single-session inception)](https://courses.lpcordova.phd/data510/project-framework/charter-inception.html) for the script and time-boxes.
 
 **Owner team:** Amaya Supancich-McCord, Spencer Fiden
+
 **Owner Product Lead:** <name>
+
 **Peer Stakeholder POs:** Brooke Proctor, Serena Walter, Siera Edwards
+
 **Instructor / Sponsor:** Lucas Cordova (`LucasCordova` on GitHub)
+
 **GitHub repo:** [<link>](https://github.com/Fiden-Supancich-McCord/data510-fire)
+
 **GitHub Projects board:** [<link>](https://github.com/orgs/Fiden-Supancich-McCord/projects/1/views/1)
+
 **Discord category:** `#Project-5: Amaya & Spencer`
 **Studio Session:** 1
-**Studio formed:** <date>
+**Studio formed:** 06/01/2026
 
 ## Vision
 
@@ -98,5 +104,5 @@ A PBI is done, and may be moved from `Analyze` into `Done`, when:
 
 ### How to reach us
 - Discord category: `#<project>-general` (day-to-day), `#<project>-studio` (Briefs and Critiques), `#<project>-blockers` (impediments)
-- GitHub repo: <link>
-- GitHub Projects board: <link>
+- GitHub repo: [link](https://github.com/Fiden-Supancich-McCord/data510-fire)
+- GitHub Projects board: [link](https://github.com/orgs/Fiden-Supancich-McCord/projects/1/views/1)
