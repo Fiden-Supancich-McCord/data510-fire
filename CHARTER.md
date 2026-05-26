@@ -4,7 +4,7 @@
 
 **Owner team:** Amaya Supancich-McCord, Spencer Fiden
 
-**Owner Product Lead:** <name>
+**Owner Product Lead:** Co-lead
 
 **Peer Stakeholder POs:** Brooke Proctor, Serena Walter, Siera Edwards
 
@@ -39,13 +39,13 @@ If successful, our project can help prioritize ecological restoration strategies
 - **M2, data summary (W7):** Descriptive statistics for all of our data sources & a solid plan for how to clean & bridge them.
 - **M3, poster rough draft (W10):** Most analytical findings agreed upon, a layout and plan for finalized graphics, and a shared understanding of limitations, interpretability, and future research/expansion. 
 - **M4, write-up rough draft (W12):** Have a well-considered answer for our research question & analysis to support our interpretation. 
-- **M5, final write-up and poster (W14):** <measurable criterion>
+- **M5, final write-up and poster (W14):** Win! Success! People are able to take our interpretations and move forward with them in their own departments, learning new information that would otherwise be difficult to find or compile.
 
 ## Working agreements (internal to owner team)
 
-- **Sync rhythm:** Have swim lanes decided (tentatively) by Saturday at noon. <e.g., one async standup per weekday in `#<project>-standup`>
-- **Code review:** <who reviews what, by when>
-- **Decision rule:** <how the team decides when it disagrees>
+- **Sync rhythm:** Have swim lanes decided (tentatively) by Saturday at noon. Check in on Thursday (async) and Saturday (tentatively in person), provide other async updates as needed. Project specific messages are DMs. 
+- **Code review:** Review before Saturday check-in. Otherwise, ensure we have good documentation and are on the same page before Monday class. 
+- **Decision rule:** Have a conversation, ensure both people are listening to each other's points of view (no immediate shut downs, consider constraints and possibilities). If a decision really can't be reached, talk to outside perspectives (peer POs and/or Prof Cordova). 
 
 ## Working agreements (triad with peer POs)
 
