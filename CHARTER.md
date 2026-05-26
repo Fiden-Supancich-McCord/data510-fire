@@ -66,7 +66,7 @@ A PBI is ready to be pulled out of `Backlog` and moved into `Create` when it has
 - A one-sentence hypothesis or user story.
 - A named **Create**, **Observe**, **Analyze** triple.
 - A milestone tag (`M1-proposal`, `M2-data-summary`, `M3-poster-draft`, `M4-writeup-draft`, `M5-final`, `infra`, `ethics`).
-- A T-shirt size estimate (S, M, L, XL).
+- A plant size estimate (Seed, Flower, Tree, Forest).
 - WIP slack on the board: `Create + Observe + Analyze` is below the team's WIP cap (owners + 1).
 
 ## Definition of Done (PBI)
@@ -89,12 +89,12 @@ A PBI is done, and may be moved from `Analyze` into `Done`, when:
 <two sentences from Vision and Mission>
 
 ### What we will deliver to peer POs every week
-- An Iteration Review in this `README.md` by <day / time>
+- An Iteration Review in this `README.md` by Saturday at 5pm.
 - A summary of which Studio Brief items we adopted, deferred, or declined and why
 
 ### What we need from peer POs every week
-- A Studio Brief by <day / time> next class (next iteration's requirements, questions, risks)
-- A Studio Critique by <day / time> next class (assessment of last week's delivery)
+- A Studio Brief by Sunday at 5pm next class (next iteration's requirements, questions, risks)
+- A Studio Critique by Wednesday at midnight next class (assessment of last week's delivery)
 
 ### How to reach us
 - Discord category: `#<project>-general` (day-to-day), `#<project>-studio` (Briefs and Critiques), `#<project>-blockers` (impediments)
