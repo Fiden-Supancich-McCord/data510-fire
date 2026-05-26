@@ -1,4 +1,4 @@
-# Studio Charter: <project name>
+# Studio Charter: Fire!
 
 > Filled in live during the **Studio Charter** session in week 3. Every section below is committed in the same commit at the end of that class block. See [Studio Charter (single-session inception)](https://courses.lpcordova.phd/data510/project-framework/charter-inception.html) for the script and time-boxes.
 
@@ -10,9 +10,9 @@
 
 **Instructor / Sponsor:** Lucas Cordova (`LucasCordova` on GitHub)
 
-**GitHub repo:** [<link>](https://github.com/Fiden-Supancich-McCord/data510-fire)
+**GitHub repo:** [link](https://github.com/Fiden-Supancich-McCord/data510-fire)
 
-**GitHub Projects board:** [<link>](https://github.com/orgs/Fiden-Supancich-McCord/projects/1/views/1)
+**GitHub Projects board:** [link](https://github.com/orgs/Fiden-Supancich-McCord/projects/1/views/1)
 
 **Discord category:** `#Project-5: Amaya & Spencer`
 **Studio Session:** 1
@@ -39,7 +39,7 @@ If successful, our project can help prioritize ecological restoration strategies
 - **M2, data summary (W7):** Descriptive statistics for all of our data sources & a solid plan for how to clean & bridge them.
 - **M3, poster rough draft (W10):** Most analytical findings agreed upon, a layout and plan for finalized graphics, and a shared understanding of limitations, interpretability, and future research/expansion. 
 - **M4, write-up rough draft (W12):** Have a well-considered answer for our research question & analysis to support our interpretation. 
-- **M5, final write-up and poster (W14):** Win! Success! People are able to take our interpretations and move forward with them in their own departments, learning new information that would otherwise be difficult to find or compile.
+- **M5, final write-up and poster (W14):** Win! Succeed! People are able to take our interpretations and move forward with them in their own departments, learning new information that would otherwise be difficult to find or compile.
 
 ## Working agreements (internal to owner team)
 
@@ -59,11 +59,11 @@ A **Service Level Agreement** is a written promise the triad makes about *how fa
 
 | When this signal arrives... | Who responds | By when |
 |-----------------------------|--------------|---------|
-| Peer PO files a **Studio Brief** (commits to `studio/briefs/...`, links in `#<project>-studio`) | Owner team | By Monday before 6pm |
+| Peer PO files a **Studio Brief** (commits to `studio/briefs/...`, links in `#project-5-studio`) | Owner team | By Monday before 6pm |
 | Peer PO files a **Studio Critique** | Owner team | By Saturday at noon |
 | Owner team posts an **Iteration Review** in `README.md` | Both peer POs | read before filing the next Brief and Critique |
-| Owner team flags a **blocker** in `#<project>-blockers` | Instructor, plus any tagged peer PO | (owner team sends a gchat if you want quick response) responds by the next Studio Session at the latest; faster if online |
-| Anyone asks a clarifying question in `#<project>-general` | Whoever is tagged (default: owner team) | ownder team must send a text for quick response, reply within 48 hours, even if the reply is "we will look at this next iteration" |
+| Owner team flags a **blocker** in `#project-5-blockers` | Instructor, plus any tagged peer PO | (owner team sends a gchat if you want quick response) responds by the next Studio Session at the latest; faster if online |
+| Anyone asks a clarifying question in `#project-5-general` | Whoever is tagged (default: owner team) | ownder team must send a text for quick response, reply within 48 hours, even if the reply is "we will look at this next iteration" |
 
 ## Definition of Ready (PBI)
 
@@ -82,7 +82,7 @@ A PBI is done, and may be moved from `Analyze` into `Done`, when:
 - The Create artifact is in the repo or linked from the issue.
 - The Observe results are recorded somewhere referenceable (notebook output, processed dataset, draft results section).
 - The Analyze writeup names a next step (continue, pivot, kill, or decompose into new PBIs).
-- A peer PO has either signed off in `#<project>-studio` or filed a Studio Critique covering it.
+- A peer PO has either signed off in `#project-5studio` or filed a Studio Critique covering it.
 - The card is linked under *Completed PBIs* in the next Iteration Review in `README.md`.
 
 ## Context map
