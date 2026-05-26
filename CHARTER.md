@@ -8,43 +8,43 @@
 **Instructor / Sponsor:** Lucas Cordova (`LucasCordova` on GitHub)
 **GitHub repo:** [<link>](https://github.com/Fiden-Supancich-McCord/data510-fire)
 **GitHub Projects board:** [<link>](https://github.com/orgs/Fiden-Supancich-McCord/projects/1/views/1)
-**Discord category:** `#<project>-5`
+**Discord category:** `#Project-5: Amaya & Spencer`
 **Studio Session:** 1
 **Studio formed:** <date>
 
 ## Vision
 
-One or two sentences. The world (or organization, or domain) if this project succeeds.
+Existing wildfire and forest resilience studies often examine vegetation structure or fire severity independently, while fewer accessible data science projects integrate Indigenous stewardship geography, biodiversity indicators, and wildfire outcomes into a reproducible geospatial analysis framework for the West Coast and PNW. Our vision a world with more integrated biodiversity, stewardship, and fire prevention methods.
 
 ## Mission
 
-One or two sentences. What the owner team will actually do this semester.
+If successful, our project can help prioritize ecological restoration strategies and identify landscape characteristics associated with reduced fire severity.
 
 ## Context
 
-- **Users / affected parties:** who benefits, who is at risk, who might use the result.
-- **Data sources (proposed):** named sources, access status, license / ethics notes.
-- **Constraints:** time, compute, access, skills, scope.
-- **Ethics risks:** consent, retention, PII, fairness, deployment risk.
+- **Users / affected parties:** local communities, wildfire-prone regions, Indigenous leadership/fire strategists, state/federal land management agencies, and researchers in forestry, ecology, and wildfire resilience planners. 
+- **Data sources (proposed):** USGS, USDA, Wildfire Risk to Communities (USDA associated), direct contact with tribes (send email).
+- **Constraints:** no GIS experience (lots of data is just GIS data). 
+- **Ethics risks:** Using CARE & FAIR principles for Indigenous data governance as relevant frameworks. Acknowledge depth & often qualitative nature of Indigenous ecological knowledge and that tribal knowledge may be restricted, contextual, or not intended for outside use/extraction. 
 
 ## Success criteria by milestone
 
-- **M1, proposal (W4):** <measurable criterion>
-- **M2, data summary (W7):** <measurable criterion>
-- **M3, poster rough draft (W10):** <measurable criterion>
-- **M4, write-up rough draft (W12):** <measurable criterion>
+- **M1, proposal (W4):** Knowing all/most data sources & a solid plan for ingestion (ideally tabular format). 
+- **M2, data summary (W7):** Descriptive statistics for all of our data sources & a solid plan for how to clean & bridge them.
+- **M3, poster rough draft (W10):** Most analytical findings agreed upon, a layout and plan for finalized graphics, and a shared understanding of limitations, interpretability, and future research/expansion. 
+- **M4, write-up rough draft (W12):** Have a well-considered answer for our research question & analysis to support our interpretation. 
 - **M5, final write-up and poster (W14):** <measurable criterion>
 
 ## Working agreements (internal to owner team)
 
-- **Sync rhythm:** <e.g., one async standup per weekday in `#<project>-standup`>
+- **Sync rhythm:** Have swim lanes decided (tentatively) by Saturday at noon. <e.g., one async standup per weekday in `#<project>-standup`>
 - **Code review:** <who reviews what, by when>
 - **Decision rule:** <how the team decides when it disagrees>
 
 ## Working agreements (triad with peer POs)
 
-- **Studio Brief due:** <example: by 5 pm the day before class, committed to `studio/briefs/W<NN>-<peer>.md` and linked in `#<project>-studio` on Discord>. If the owner team needs the peer POs to read or review something specific *before* the Studio Session (a data preview, model results, a draft figure), file the Brief earlier so the peer POs actually have time to do that homework. Otherwise the default is "before the Studio Session starts."
-- **Studio Critique due:** <example: by the end of class for the in-person discussion, or at an agreed-upon time within one day after class (e.g., 5 pm the next day) if the peer PO needs extra time to draft a thoughtful write-up>.
+- **Studio Brief due:** 5pm Sunday before class, committed to `studio/briefs/W<NN>-<peer>.md` and linked in `#<project>-studio` on Discord. 
+- **Studio Critique due:** Midnight Wednesday or earlier if possible, committed to `studio/critiques/W<NN>-<peer>.md` and linked in `#<project>-studio` on Discord.
 - **Priority conflict resolution:** owner team integrates briefs in good faith; the instructor arbitrates (as Process Expert) if peer POs and owner team disagree.
 
 ## Response SLAs (Service Level Agreements)
@@ -53,11 +53,11 @@ A **Service Level Agreement** is a written promise the triad makes about *how fa
 
 | When this signal arrives... | Who responds | By when |
 |-----------------------------|--------------|---------|
-| Peer PO files a **Studio Brief** (commits to `studio/briefs/...`, links in `#<project>-studio`) | Owner team | <e.g., acknowledge in `#<project>-studio` within 24 hours, with a first-pass adopt / defer / decline call for each item> |
-| Peer PO files a **Studio Critique** | Owner team | <e.g., respond in `#<project>-studio` within 24 hours and capture follow-up items into the backlog> |
-| Owner team posts an **Iteration Review** in `README.md` | Both peer POs | <e.g., read before filing the next Brief and Critique> |
-| Owner team flags a **blocker** in `#<project>-blockers` | Instructor, plus any tagged peer PO | <e.g., responds by the next Studio Session at the latest; faster if online> |
-| Anyone asks a clarifying question in `#<project>-general` | Whoever is tagged (default: owner team) | <e.g., reply within 48 hours, even if the reply is "we will look at this next iteration"> |
+| Peer PO files a **Studio Brief** (commits to `studio/briefs/...`, links in `#<project>-studio`) | Owner team | By Monday before 6pm |
+| Peer PO files a **Studio Critique** | Owner team | By Saturday at noon |
+| Owner team posts an **Iteration Review** in `README.md` | Both peer POs | read before filing the next Brief and Critique |
+| Owner team flags a **blocker** in `#<project>-blockers` | Instructor, plus any tagged peer PO | (owner team sends a gchat if you want quick response) responds by the next Studio Session at the latest; faster if online |
+| Anyone asks a clarifying question in `#<project>-general` | Whoever is tagged (default: owner team) | ownder team must send a text for quick response, reply within 48 hours, even if the reply is "we will look at this next iteration" |
 
 ## Definition of Ready (PBI)
 
