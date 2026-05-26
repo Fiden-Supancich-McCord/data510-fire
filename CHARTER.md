@@ -2,9 +2,9 @@
 
 > Filled in live during the **Studio Charter** session in week 3. Every section below is committed in the same commit at the end of that class block. See [Studio Charter (single-session inception)](https://courses.lpcordova.phd/data510/project-framework/charter-inception.html) for the script and time-boxes.
 
-**Owner team:** <names>
+**Owner team:** Amaya Supancich-McCord, Spencer Fiden
 **Owner Product Lead:** <name>
-**Peer Stakeholder POs:** <names of your 2 or 3 peer PO individuals>
+**Peer Stakeholder POs:** Brooke Proctor, Serena Walter, Siera Edwards
 **Instructor / Sponsor:** Lucas Cordova (`LucasCordova` on GitHub)
 **GitHub repo:** [<link>](https://github.com/Fiden-Supancich-McCord/data510-fire)
 **GitHub Projects board:** [<link>](https://github.com/orgs/Fiden-Supancich-McCord/projects/1/views/1)
