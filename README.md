@@ -6,13 +6,13 @@
 
 | Field | Value |
 |-------|-------|
-| Owner team | <names> |
-| Owner Product Lead | <name> |
-| Peer Stakeholder POs | <names of your 2 or 3 peer PO individuals> |
-| Studio Session | <1, 2, or 3> |
-| GitHub repo | <link to this repo> |
-| GitHub Projects board | <link> |
-| Discord category | `#<project>-*` |
+| Owner team | Amaya Supancich-McCord & Spencer Fiden |
+| Owner Product Lead | Spencer Fiden |
+| Peer Stakeholder POs | Brooke Proctor, Serenna Walter, & Siera Edwards |
+| Studio Session | 1 |
+| GitHub repo | https://github.com/Fiden-Supancich-McCord/data510-fire |
+| GitHub Projects board | https://github.com/orgs/Fiden-Supancich-McCord/projects/1 |
+| Discord category | `#5` |
 | Instructor / Sponsor | Lucas Cordova (`LucasCordova` on GitHub) |
 
 ## What this repo contains
