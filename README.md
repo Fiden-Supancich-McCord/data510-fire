@@ -40,24 +40,31 @@ One subsection per class week. The owner team commits the new section **before e
 
 ## Week 4 -- Proposal milestone (M1)
 
-**Iteration ending:** <date>
+**Iteration ending:** 5/29
+
 **Milestone tag in focus:** `M1-proposal`
 
 **Completed PBIs**
-- ...
+- Contact Jason Henry (note: decided against GIS route, no longer applicable)
 
 **In-flight (carrying across the boundary)**
-- ...
+- Decide on top three datasets (Analyze)
+- Research working with shape files (Create)
+- Acquire and document our prioritized datasets (Create)
+- Data sources and access plan (Create)
 
 **Stakeholder response log**
 - Studio Brief from <peer PO 1>: adopted = ..., deferred = ..., declined (with reason) = ...
 - Studio Brief from <peer PO 2>: adopted = ..., deferred = ..., declined (with reason) = ...
 
 **Plan for next iteration**
-- Top PBIs (with milestone tags): ...
-
+- Top PBIs (with milestone tags):
+    - Acquire/document LandMark, GBIF data
+    - handle data sources and access plan
+    - plan our analysis
+  
 **Risks and impediments**
-- ...
+- busy (wedding, one member out of town Thurs-Sun next week)
 
 ## Week 5
 
