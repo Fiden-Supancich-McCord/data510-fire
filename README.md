@@ -54,8 +54,9 @@ One subsection per class week. The owner team commits the new section **before e
 - Data sources and access plan (Create)
 
 **Stakeholder response log**
-- Studio Brief from <peer PO 1>: adopted = ..., deferred = ..., declined (with reason) = ...
-- Studio Brief from <peer PO 2>: adopted = ..., deferred = ..., declined (with reason) = ...
+- Studio Brief from Serenna: adopted = Shapefiles, deferred = Ethics on Indigenous Data & Underbrush and Debris Data
+- Studio Brief from Brooke: adopted = Prioritized Datasets & Data Cleaning Breakdown, deferred = Prioritized Ethics
+- Studio Brief from Siera: adopted = Keep Focusing on data that will answer your research question & Decide on your project scope & Break into the shape file data (if any) early
 
 **Plan for next iteration**
 - Top PBIs (with milestone tags):
