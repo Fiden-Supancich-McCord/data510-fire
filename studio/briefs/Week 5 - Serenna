@@ -1,0 +1,31 @@
+# Studio Brief -- Week 5
+
+**From:** Serenna Walter
+**To:** Amaya and Spencer
+**Filed:** Sun 5/31 10:32pm - Project access permissions issues. We discussed in chat and made the deadline midnight tonight.
+**For iteration starting:** Mon June 1st
+**Milestone tag in focus:** M1-proposal 
+
+## What I want you to consider for the next iteration
+
+1. **Underbrush and Debris Data** -- why it matters: I think a huge part of wildfire is not only landcover but also underbrush (if this isn't already covered in the landcover dataset you use). If there is a specific dataset that had amounts of underbrush and also the amounts of dead debris in the forest, that would probably be super helpful for you. I feel like this has got to exist somewhere because this is a huge part of forestry jobs, but I don't know if this is accessible.
+2. **Ethics on Indigenous Data** -- why it matters: It would be awesome to use tribal data! But, I know sometimes they don't want it to be open accessible because they have ownership to their data. If you need a lead for this, I would definently talk to Jason Henry! I did a GIS class with him last fall where we focused a lot on the local tribes. He has connections and knows a lot about ethics of data stuff with the tribes.
+3. **Shapefiles** -- why it matters: I just wanted to note that if you need any help with shapefiles in R I can send you some things that I did for data viz. Also Smalley knows a lot about this.
+
+## Why now
+
+I feel like a lot of my suggestions are more M2 focused on data cleaning. Apologies about that! Some of the data accessibility might shift your project proposal, however. 
+
+## What I am not asking for
+
+Your project seems EPIC and I don't think that you will have accessibility issues with data at all, just tribal data potentially! I'm not sure how much you wanted to focus on that piece of it.
+
+## Suggested priority
+
+1. Ethics on Indigenous Data 
+2. Underbrush and Debris Data
+3. Shapefiles
+---
+
+> After committing this file, drop the link in `#<project>-studio` on Discord.
+> The owner team's SLA for responding to a Brief is defined in [`../../CHARTER.md`](../../CHARTER.md).
