@@ -92,7 +92,7 @@ A PBI is done, and may be moved from `Analyze` into `Done`, when:
 ## Stakeholder alignment memo (one-page summary)
 
 ### Why we exist
-<two sentences from Vision and Mission>
+Few accessible data science projects integrate Indigenous stewardship geography, biodiversity indicators, and wildfire outcomes into a reproducible geospatial analysis framework for the West Coast or PNW. If successful, our project can help prioritize ecological restoration strategies and identify landscape characteristics associated with reduced fire severity.
 
 ### What we will deliver to peer POs every week
 - An Iteration Review in this `README.md` by Saturday at 5pm.
