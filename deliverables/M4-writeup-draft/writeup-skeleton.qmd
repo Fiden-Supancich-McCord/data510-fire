@@ -1,0 +1,200 @@
+---
+title: "Capstone Project Write-Up"
+subtitle: "Forest Composition, Biodiversity, and Wildfire Resilience: Analyzing Biodiversity and Wildfire Outcomes on Indigenous and Non-Indigenous Lands Across Oregon"
+author:
+  - "Spencer Fiden"
+  - "Amaya Supancich-McCord"
+date: today
+bibliography: refs.bib
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+  pdf:
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+<!--
+  DATA 510 write-up skeleton (Week 5 Quarto lecture).
+
+  Copy this file to your DS3 repo:
+    deliverables/M4-writeup-draft/writeup.qmd
+
+  Week 5: paste prose from your M1 proposal into Introduction, Data, Ethics, Methods.
+  Week 7+: replace stubs with real results from notebooks/ and src/.
+  Week 12 (M4): methods and findings should be stable; render PDF + HTML for submission.
+-->
+
+# Title, Team, and Affiliations
+
+**Project title:** Forest Composition, Biodiversity, and Wildfire Resilience: Analyzing Biodiversity and Wildfire Outcomes on Indigenous and Non-Indigenous Lands Across Oregon
+
+| Name | Role | Willamette email |
+|------|------|------------------|
+| Spencer Fiden | Owner Product Lead | nefiden@willamette.edu |
+| Amaya Supancich-McCord | Owner Product Lead | asupancichmccord@willamette.edu |
+
+**Peer Stakeholder POs:** Siera Edwards, Brooke Proctor, Serenna Walter (*Shared Theme: Pacific Northwest forest and environmental health.*)
+
+**Repository:** `https://github.com/Fiden-Supancich-McCord/data510-fire/tree/main`
+
+# Abstract
+
+*(150 to 250 words after you have results. Summarize: problem, approach, key finding, impact, limitation. Write this section last.)*
+
+# Introduction: Problem and Research Questions
+
+<!-- Paste and revise from M1 proposal Section 2. Note any changes since M1. -->
+
+**Problem statement:** Wildfires continue to threaten and impact Oregon residents and forests, and are exacerbated by climate change and the presence of landscape fuels created by fire-exclusion policies (Lundeberg, 2026). The continued loss of mature and old-growth forests would impact the wider Oregon ecological landscape, and unchecked wildfires will impact Oregon residents through loss of homes and potentially increasing mortality rates and fire severity increases. A method to see continuing change in forest composition and wildfire severity through open-source data and answers to our research questions below that are easily interpretable for our stakeholders with less technical backgrounds.
+
+**Primary research question:** To what extent are federally recognized Indigenous lands characterized by different forest composition and wildfire severity outcomes compared with nearby ecologically similar non-Indigenous lands across the Pacific Northwest and Western United States?
+
+**Secondary questions:** 
+
+- Sub-RQ1A: Are Indigenous lands associated with greater forest compositional diversity than nearby non-Indigenous lands?
+- Sub-RQ1B: Are Indigenous lands associated with lower wildfire severity after controlling for forest type, climate region, and fire size?
+- Sub-RQ1C: Which ecological features (tree diversity, understory diversity, keystone species presence) are most predictive of wildfire severity?
+
+**Changes since M1 proposal:** *(none yet, or explain pivot)*
+
+# Impact and Stakeholders
+
+<!-- Paste from M1 proposal Section 3. -->
+
+**Who benefits:**
+
+- Indigenous community leaders in the PNW
+- Those living on tribal lands and hoping to gain a better understanding of their wildfire risk
+- PNW residents at high risk of wildfires
+- Communities with compounding risks (i.e. social vulnerabilities, other environmental hazards)
+- Forest management & fire prevention officials
+- Environmental hazard preparedness organizations
+
+**Impact:** Our stakeholders will have a more comprehensive understanding of wildfire risks and forest composition across Oregon in reference to Indigenous lands. We will also create a pipeline using publicly available data that will continue to be updated that future researchers can reference for up-to-date analysis. 
+
+**Shared Theme and peer PO influence:** Our peer POs are also exploring Pacific Northwest forest and environmental health. They will help guide our metrics of forest composition and wildfire severity, as well as pushing us to ensure our results sufficiently benefit our stakeholders. 
+
+# Related Work and Background
+
+<!-- Brief cited context. Example: -->
+
+Tribes in the Pacific Northwest have been stewarding forests for millennia. These practices were (and still are) interrupted by American colonialism, which in turn impacted forest health and worsened outcomes from wildfires (Gleason, 2025). While there is momentum toward co-stewardship, issues such as federal funding gaps between tribes and the Forest Service impede effective fire stewardship (Gleason, 2025). Before policies against fire were in place, frequent low-severity fires were an important part of Indigenous fire stewardship, and without them, forest structures have shifted–the PNW’s mature and old-growth forests are at increased risk of more severe wildfires (Lundeberg, 2026). Increasingly frequent and extreme wildfires are threatening Oregon residents, the majority of whom live west of the Cascades, which are at heightened risk of fires, and rely on Cascadian watersheds for water and electrical power @coughlan2024.
+
+# Data and Data Engineering
+
+<!-- Paste from M1 Sections 4 and 5; update with actual pipeline state after M2. -->
+
+**Sources:**
+
+| Source | Role | Access |
+|--------|------|--------|
+| | | |
+
+**Engineering summary:** Raw data in `data/raw/`; processed panel in `data/processed/`; ingest scripts in `src/ingest/`.
+
+```{r}
+#| label: tbl-data-qc
+#| tbl-cap: "Example QC summary (replace with your panel)"
+#| echo: true
+
+# Replace with your project data when ready:
+# panel <- readRDS(here::here("data/processed/analysis_panel.rds"))
+# nrow(panel)
+knitr::kable(data.frame(
+  check = c("Rows", "Counties", "Date range"),
+  status = c("stub", "stub", "stub")
+))
+```
+
+# Ethics and Responsible Use
+
+<!-- Paste from M1 Section 8; expand with project-specific limits. -->
+
+- **Privacy:**
+- **Fairness / equity:**
+- **Limitations of setting:**
+- **Non-causal framing:** *(if observational)*
+
+# Methods and Evaluation
+
+<!-- Paste from M1 Section 6; tighten once analysis is fixed. -->
+
+**Design:**
+
+**Primary analysis:**
+
+**Evaluation metrics:**
+
+**Train / validation / holdout:**
+
+```{r}
+#| label: fig-methods-placeholder
+#| fig-cap: "Replace with a methods diagram or exploratory plot"
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "Replace after M2/M3")
+```
+
+# Results and Visualizations
+
+<!-- Fill after M2 data summary and M3 poster figures. -->
+
+*(Stub: key findings with @fig-methods-placeholder and tables.)*
+
+# Discussion, Limitations, and Future Work
+
+**Interpretation:**
+
+**Limitations:** *(tie to actual data and design)*
+
+**Future work:**
+
+# Conclusions and Recommendations
+
+*(Short, stakeholder-facing takeaways.)*
+
+# Reproducibility and References
+
+**Reproduce main results:**
+
+```bash
+cd your-repo
+quarto render deliverables/M4-writeup-draft/writeup.qmd
+```
+
+**Dependencies:** `requirements.txt` or `renv.lock` in repo root.
+
+**Data:** URLs and approval status documented in `docs/data-dictionary.md`.
+
+# References
+
+::: {#refs}
+:::
+
+<!-- Create refs.bib alongside this file. Example entries: -->
+
+<!--
+@article{liu2016,
+  title={Wildfire-specific fine particulate matter and risk of hospital admissions in urban and rural counties},
+  author={Liu, J. C. and others},
+  journal={Epidemiology},
+  year={2016}
+}
+
+@article{reid2016,
+  title={Critical review of health impacts of wildfire smoke exposure},
+  author={Reid, C. E. and others},
+  journal={Environmental Health Perspectives},
+  year={2016}
+}
+-->
