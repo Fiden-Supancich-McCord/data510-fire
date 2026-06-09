@@ -40,7 +40,7 @@ One subsection per class week. The owner team commits the new section **before e
 
 ## Week 4 -- Proposal milestone (M1)
 
-**Iteration ending:** 5/29
+**Iteration ending:** 5/31
 
 **Milestone tag in focus:** `M1-proposal`
 
@@ -69,20 +69,25 @@ One subsection per class week. The owner team commits the new section **before e
 
 ## Week 5
 
-**Iteration ending:** <date>
+**Iteration ending:** 6/7
 **Milestone tag in focus:** `M1-proposal` / `M2-data-summary`
 
 **Completed PBIs**
-- ...
+- Write up project proposal
+    - Data sources and access plan
+    - Ethics and risk notes
+    - Create data engineering plan
+    - Draft research question and frame as a testable claim
 
 **Stakeholder response log**
 - ...
 
 **Plan for next iteration**
-- ...
+- Acquire/document data
+- Research working with shapefiles/develop workflow for shapefiles
 
 **Risks and impediments**
-- ...
+- Shapefiles scary, workflow may be complex (espeically if we move between R and Python)
 
 ## Week 6
 
