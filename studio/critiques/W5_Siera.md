@@ -1,9 +1,13 @@
 # Studio Critique -- Week 5
 
 **From:** Siera
+
 **To:** Amaya and Spencer
+
 **Filed:** 6/9/2026
+
 **Reviewing iteration ending:** 6/15/2026
+
 **Milestone tag the iteration was aimed at:** M1-proposal
 
 ## What you delivered
