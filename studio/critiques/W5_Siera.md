@@ -1,10 +1,10 @@
-# Studio Critique -- Week <NN>
+# Studio Critique -- Week 5
 
-**From:** <peer PO first name>
-**To:** <owner team>
-**Filed:** <date and time>
-**Reviewing iteration ending:** <date>
-**Milestone tag the iteration was aimed at:** <M1-proposal | M2-data-summary | M3-poster-draft | M4-writeup-draft | M5-final>
+**From:** Siera
+**To:** Amaya and Spencer
+**Filed:** 6/9/2026
+**Reviewing iteration ending:** 6/15/2026
+**Milestone tag the iteration was aimed at:** M1-proposal
 
 ## What you delivered
 
