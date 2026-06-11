@@ -1,0 +1,138 @@
+---
+title: "capstone test"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+# LandMark data
+
+Initial test of LandMark polygon data:
+
+```{r}
+shp <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
+class(shp)
+head(shp)
+names(shp)
+st_geometry(shp[1, ])[[1]][[1]]
+plot(st_geometry(shp[1, ]))
+```
+
+All looks good, example shape plots appropriately.
+
+```{r}
+# checking dtype for each col for docs
+str(shp)
+```
+
+Limiting the data to the USA, removing some Alaska Native Allotment, and plotting again (takes a lot longer to run). Looks good, plotted appropriately. 
+
+```{r}
+us_shp <- shp %>% filter(iso_code == "USA")
+head(us_shp)
+head(us_shp %>% filter(category != "Alaska Native Allotment"), 3)
+
+unique(us_shp$category)
+
+st_zm(us_shp) %>% filter(!st_is_empty(geometry), category != "Alaska Native Allotment") %>% ggplot() + geom_sf()
+
+
+head(us_shp %>% filter(!st_is_empty(geometry), category != "Alaska Native Allotment"))
+```
+
+Plotting with the sf native function instead of ggplot - also works. 
+
+```{r}
+plot(st_geometry(us_shp))
+```
+
+## LandMark Point Data
+
+LandMark also has point data, which will be far less relevant to us, but can confirm it works as expected. 
+
+```{r}
+shppt <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_pt_public_v202509.shp")
+class(shppt)
+head(shppt)
+st_geometry(shppt[1, ])[[1]][[1]]
+plot(st_geometry(shppt[1, ]))
+```
+
+```{r}
+us_shppt <- shppt %>% filter(iso_code == "USA")
+head(us_shppt)
+unique(us_shppt$category)
+#ggplot(data=us_shp) + geom_sf()
+
+us_shppt %>% filter(!st_is_empty(geometry)) %>% ggplot() + geom_sf()
+```
+
+# Interagency Fire Perimeter History
+
+Moving on to IFPH data, which covers many years where the LM data is relatively static. 
+
+```{r}
+iafp <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
+class(iafp)
+head(iafp)
+st_geometry(iafp[1, ])[[1]][[1]]
+plot(st_geometry(iafp[1, ]))
+names(iafp)
+```
+
+Cols include a lot of things! Explained in the IAFP documentation. 
+
+```{r}
+iafp_hist <- iafp %>% filter(FIRE_YEAR_ <= 1900)
+class(iafp_hist)
+
+lengths(iafp_hist)
+
+```
+
+```{r}
+
+unique(iafp$SOURCE)
+
+iafp %>% filter(FIRE_YEAR_ == 2022) %>% ggplot() + geom_sf()
+
+```
+
+## st_contains
+
+```{r}
+states<-usmap::us_map()
+or = states %>% filter(abbr=="OR")
+or %>% 
+    ggplot()+
+    geom_sf()
+
+```
+
+
+```{r}
+iafp2020 <- iafp %>% filter(FIRE_YEAR_ == 2020)
+
+or = st_transform(or, crs=st_crs(iafp2020))
+
+con = st_contains(or, iafp2020)
+con_sparse = st_contains(or, iafp2020, sparse=F)
+
+iafp2020_or = iafp2020[unlist(con),]
+head(iafp2020_or)
+
+iafp2020_or %>% ggplot() + geom_sf()
+
+
+```
