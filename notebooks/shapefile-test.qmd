@@ -51,7 +51,7 @@ st_zm(us_shp) %>% filter(!st_is_empty(geometry), category != "Alaska Native Allo
 head(us_shp %>% filter(!st_is_empty(geometry), category != "Alaska Native Allotment"))
 ```
 
-Plotting with the sf native function instead of ggplot - also works. 
+Plotting with the sf `plot` function instead of ggplot - also works. 
 
 ```{r}
 plot(st_geometry(us_shp))
@@ -83,6 +83,7 @@ us_shppt %>% filter(!st_is_empty(geometry)) %>% ggplot() + geom_sf()
 Moving on to IFPH data, which covers many years where the LM data is relatively static. 
 
 ```{r}
+# i don't know why I called it IAFP instead of IFPH. don't worry about it
 iafp <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
 class(iafp)
 head(iafp)
@@ -91,25 +92,28 @@ plot(st_geometry(iafp[1, ]))
 names(iafp)
 ```
 
-Cols include a lot of things! Explained in the IAFP documentation. 
+Cols include a lot of things! Explained in the IFPH documentation. 
 
 ```{r}
-iafp_hist <- iafp %>% filter(FIRE_YEAR_ <= 1900)
-class(iafp_hist)
-
-lengths(iafp_hist)
+lengths(iafp %>% filter(FIRE_YEAR_ <= 1900))
+lengths(iafp %>% filter(FIRE_YEAR_ >= 2050))
 
 ```
 
-```{r}
+2494 fires are listed at before 1900 - some are historical record, some were unknown so marked with an indicator. 268 fires are listed as later than 2050. 
 
+```{r}
 unique(iafp$SOURCE)
 
+# Testing with FIRE_YEAR_ == 2022
 iafp %>% filter(FIRE_YEAR_ == 2022) %>% ggplot() + geom_sf()
-
 ```
 
-## st_contains
+All looks good, that's the US!
+
+# st_contains
+
+Getting just OR from `usmap` to filter fires/native land to our area of interest with `st_contains`. 
 
 ```{r}
 states<-usmap::us_map()
@@ -120,8 +124,8 @@ or %>%
 
 ```
 
-
 ```{r}
+# Filtering fires to 2020 for testing purposes (otherwise it is a lot of data)
 iafp2020 <- iafp %>% filter(FIRE_YEAR_ == 2020)
 
 or = st_transform(or, crs=st_crs(iafp2020))
@@ -134,5 +138,42 @@ head(iafp2020_or)
 
 iafp2020_or %>% ggplot() + geom_sf()
 
+```
+
+As far as I can tell, that's the fires in Oregon in 2020!
+
+```{r}
+or = st_transform(or, crs=st_crs(iafp))
+
+con = st_contains(or, iafp)
+con_sparse = st_contains(or, iafp, sparse=F)
+
+iafp_or = iafp[unlist(con),]
+
+iafp_or <- iafp_or %>% filter(FIRE_YEAR_ >= 2000, FIRE_YEAR_ <= 2030)
+
+lengths(iafp_or)
+
+drop_na(as.data.frame(iafp_or$FIRE_YEAR_)) %>% summary
 
 ```
+
+There are many fires! A lot of them are between 1981 and 2011, which is less relevant for our purposes, but that's ok. Limited to between 2000-2030 (max is 2024 anyway), and there are 4139. 
+
+```{r}
+intersects = st_intersects(or, iafp)
+
+iafp_or_int = iafp[unlist(intersects),]
+
+iafp_or_int <- iafp_or_int %>% filter(FIRE_YEAR_ >= 2000, FIRE_YEAR_ <= 2030)
+
+iafp_or_int %>% filter(FIRE_YEAR_ == 2020) %>% ggplot() + geom_sf()
+
+lengths(iafp_or_int)
+
+drop_na(as.data.frame(iafp_or$FIRE_YEAR_)) %>% summary
+
+```
+
+This version includes slightly more fires, as it includes those that intersect but are not entirely contained within Oregon's border. We'll have to decide on our operational definitions for what cells contain fire/Indigenous land. 
+
