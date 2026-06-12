@@ -40,13 +40,13 @@ Limiting the data to the USA, removing some Alaska Native Allotment, and plottin
 
 ```{r}
 us_shp <- shp %>% filter(iso_code == "USA")
+
 head(us_shp)
 head(us_shp %>% filter(category != "Alaska Native Allotment"), 3)
 
 unique(us_shp$category)
 
 st_zm(us_shp) %>% filter(!st_is_empty(geometry), category != "Alaska Native Allotment") %>% ggplot() + geom_sf()
-
 
 head(us_shp %>% filter(!st_is_empty(geometry), category != "Alaska Native Allotment"))
 ```
@@ -177,3 +177,19 @@ drop_na(as.data.frame(iafp_or$FIRE_YEAR_)) %>% summary
 
 This version includes slightly more fires, as it includes those that intersect but are not entirely contained within Oregon's border. We'll have to decide on our operational definitions for what cells contain fire/Indigenous land. 
 
+Checking number of rows & date range for all data (for the data summary).
+
+```{r}
+lengths(shp)
+lengths(us_shp)
+
+as.data.frame(shp) %>% summary
+
+lengths(iafp)
+lengths(iafp_or)
+lengths(iafp_or_int)
+
+as.data.frame(iafp) %>% filter(FIRE_YEAR_ < 9999, FIRE_YEAR_ > 1600) %>% summary
+
+
+```

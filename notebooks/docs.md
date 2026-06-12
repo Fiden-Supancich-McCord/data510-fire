@@ -1,3 +1,7 @@
+# Data Documentation
+
+This covers the original data format (not including transformations or any cleaning steps).
+
 # LandMark
 
 [LandMark documentation](https://communityland.s3.amazonaws.com/LandMark_public/LandMark_Data_Quality_v202408.pdf)

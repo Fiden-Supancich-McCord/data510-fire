@@ -1,0 +1,154 @@
+---
+title: "Data ingestion & validations"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+# Ingestion from download
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+```{r}
+landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
+
+ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
+
+```
+
+# Limiting to OR
+
+Getting just OR from `usmap` to filter fires/native land to our area of interest with `st_intersects`. 
+
+```{r}
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs=st_crs(landmark))
+
+or %>% 
+    ggplot() +
+    geom_sf() + 
+    theme_minimal()
+```
+
+## LandMark 
+
+```{r}
+# issue with dimensions, removing z
+landmark <- st_zm(landmark)
+# limiting to just US first so it doesn't take as long to run
+us_lm <- landmark %>% filter(iso_code == "USA")
+
+lengths(us_lm)
+head(us_lm)
+
+# creating intersection list for all polygons that intersect with OR border
+# then selecting only those polygons
+lm_int = st_intersects(or, us_lm)
+dim(lm_int)
+
+or_lm = us_lm[unlist(lm_int),]
+dim(or_lm)
+
+or_lm %>% ggplot() + geom_sf()
+lengths(or_lm)
+```
+
+## IFPH
+```{r}
+lengths(ifph)
+
+# creating intersection list for all polygons that intersect with OR border
+# then selecting only those polygons
+ifph_int = st_intersects(or, ifph)
+dim(ifph_int)
+
+or_ifph = ifph[unlist(ifph_int),]
+dim(or_ifph)
+
+# this is every recorded fire in OR over time - may take a second
+or_ifph %>% ggplot() + geom_sf()
+lengths(or_ifph)
+```
+
+# Overview
+
+```{r}
+# ifph overview
+class(or_ifph)
+head(or_ifph)
+names(or_ifph)
+str(or_ifph)
+as.data.frame(or_ifph) %>% summary
+
+# landmark overview
+class(or_lm)
+head(or_lm)
+names(or_lm)
+str(or_lm)
+as.data.frame(or_lm) %>% summary
+```
+
+Lots of characters, so hard to see initially. There will be many conversions/transformations I think. IFPH years all look weird because they have historic data and unknowns marked as 9999. 
+
+```{r}
+# creating dataframes for each
+ifph_df <- as.data.frame(or_ifph)
+lm_df <- as.data.frame(or_lm)
+```
+
+```{r}
+ifph_missing <- ifph_df %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is_missing = is.na(val)) %>%
+    group_by(key, is_missing) %>%
+    summarize(num_missing = n()) %>%
+    filter(is_missing==T) %>%
+    select(-is_missing) %>%
+    arrange(desc(num_missing))
+    
+```
+
+```{r}
+ifph_missing %>% 
+    ggplot(aes(reorder(key, -num_missing), num_missing)) +
+    geom_bar(stat="identity") +
+    geom_hline(yintercept=pull(count(ifph_df))) +
+    theme_minimal()
+```
+
+
+```{r}
+ifph_missing_pct <- ifph_df %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is_missing = is.na(val)) %>%
+    group_by(key) %>%
+    mutate(total = n()) %>%
+    group_by(key, total, is_missing) %>%
+    summarise(num_na = n()) %>%
+    mutate(pct = num_na / total * 100)
+```
+
+
+```{r}
+
+levels <-
+    (ifph_missing_pct %>% filter(is_missing == T) %>% arrange(desc(pct)))$key
+
+ifph_missing_pct %>%
+    ggplot(aes(key, pct, fill=is_missing)) +
+    geom_bar(stat="identity") +
+    scale_x_discrete(limits=levels) +
+    scale_fill_manual(name = "", values = c('steelblue', 'tomato3'), labels = c("Present", "Missing")) +
+    coord_flip()
+```
