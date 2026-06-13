@@ -21,11 +21,14 @@ library(sf)
 Initial test of LandMark polygon data:
 
 ```{r}
+#| label: LandMark test
 shp <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
+shp = st_zm(shp) # removing z-coordinate as it is not needed for our purposes
 class(shp)
 head(shp)
 names(shp)
-st_geometry(shp[1, ])[[1]][[1]]
+#st_geometry(shp[1, ])[[1]][[1]] 
+# can run but output is very long
 plot(st_geometry(shp[1, ]))
 ```
 
@@ -39,6 +42,7 @@ str(shp)
 Limiting the data to the USA, removing some Alaska Native Allotment, and plotting again (takes a lot longer to run). Looks good, plotted appropriately. 
 
 ```{r}
+#| label: LandMark US test
 us_shp <- shp %>% filter(iso_code == "USA")
 
 head(us_shp)
@@ -46,7 +50,9 @@ head(us_shp %>% filter(category != "Alaska Native Allotment"), 3)
 
 unique(us_shp$category)
 
-st_zm(us_shp) %>% filter(!st_is_empty(geometry), category != "Alaska Native Allotment") %>% ggplot() + geom_sf()
+us_shp %>% 
+    filter(!st_is_empty(geometry), category != "Alaska Native Allotment") %>% 
+    ggplot() + geom_sf()
 
 head(us_shp %>% filter(!st_is_empty(geometry), category != "Alaska Native Allotment"))
 ```
@@ -54,6 +60,7 @@ head(us_shp %>% filter(!st_is_empty(geometry), category != "Alaska Native Allotm
 Plotting with the sf `plot` function instead of ggplot - also works. 
 
 ```{r}
+#| label: plot LandMark US with sf
 plot(st_geometry(us_shp))
 ```
 
@@ -65,7 +72,8 @@ LandMark also has point data, which will be far less relevant to us, but can con
 shppt <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_pt_public_v202509.shp")
 class(shppt)
 head(shppt)
-st_geometry(shppt[1, ])[[1]][[1]]
+#st_geometry(shppt[1, ])[[1]][[1]]
+# again can run but output is very long
 plot(st_geometry(shppt[1, ]))
 ```
 
@@ -83,11 +91,13 @@ us_shppt %>% filter(!st_is_empty(geometry)) %>% ggplot() + geom_sf()
 Moving on to IFPH data, which covers many years where the LM data is relatively static. 
 
 ```{r}
+#| label: IFPH test
 # i don't know why I called it IAFP instead of IFPH. don't worry about it
 iafp <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
 class(iafp)
 head(iafp)
-st_geometry(iafp[1, ])[[1]][[1]]
+#st_geometry(iafp[1, ])[[1]][[1]]
+# can run but output is long
 plot(st_geometry(iafp[1, ]))
 names(iafp)
 ```
@@ -97,7 +107,6 @@ Cols include a lot of things! Explained in the IFPH documentation.
 ```{r}
 lengths(iafp %>% filter(FIRE_YEAR_ <= 1900))
 lengths(iafp %>% filter(FIRE_YEAR_ >= 2050))
-
 ```
 
 2494 fires are listed at before 1900 - some are historical record, some were unknown so marked with an indicator. 268 fires are listed as later than 2050. 
@@ -105,8 +114,10 @@ lengths(iafp %>% filter(FIRE_YEAR_ >= 2050))
 ```{r}
 unique(iafp$SOURCE)
 
-# Testing with FIRE_YEAR_ == 2022
-iafp %>% filter(FIRE_YEAR_ == 2022) %>% ggplot() + geom_sf()
+# Testing with FIRE_YEAR_ == 2022 and limiting to large fires (so it doens't take forever to run)
+iafp %>% 
+    filter(FIRE_YEAR_ == 2022, GIS_ACRES > 25) %>% 
+    ggplot() + geom_sf()
 ```
 
 All looks good, that's the US!
@@ -116,6 +127,7 @@ All looks good, that's the US!
 Getting just OR from `usmap` to filter fires/native land to our area of interest with `st_contains`. 
 
 ```{r}
+#| label: OR map
 states<-usmap::us_map()
 or = states %>% filter(abbr=="OR")
 or %>% 
@@ -125,6 +137,7 @@ or %>%
 ```
 
 ```{r}
+#| label: IFPH 2020 in OR
 # Filtering fires to 2020 for testing purposes (otherwise it is a lot of data)
 iafp2020 <- iafp %>% filter(FIRE_YEAR_ == 2020)
 
@@ -143,8 +156,7 @@ iafp2020_or %>% ggplot() + geom_sf()
 As far as I can tell, that's the fires in Oregon in 2020!
 
 ```{r}
-or = st_transform(or, crs=st_crs(iafp))
-
+#| label: IFPH in OR 
 con = st_contains(or, iafp)
 con_sparse = st_contains(or, iafp, sparse=F)
 
@@ -161,6 +173,7 @@ drop_na(as.data.frame(iafp_or$FIRE_YEAR_)) %>% summary
 There are many fires! A lot of them are between 1981 and 2011, which is less relevant for our purposes, but that's ok. Limited to between 2000-2030 (max is 2024 anyway), and there are 4139. 
 
 ```{r}
+#| label: IFPH in OR intersection
 intersects = st_intersects(or, iafp)
 
 iafp_or_int = iafp[unlist(intersects),]
