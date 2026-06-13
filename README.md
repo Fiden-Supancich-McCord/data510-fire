@@ -1,6 +1,4 @@
-# <Project Name>
-
-> One-sentence description of what this project is about. Replace this entire block before week 3.
+# <Analyzing Biodiversity and Wildfire Outcomes on Indigenous and Non-Indigenous Lands Across Oregon>
 
 ## Quick reference
 
@@ -91,17 +89,25 @@ One subsection per class week. The owner team commits the new section **before e
 
 ## Week 6
 
-**Iteration ending:** <date>
+**Iteration ending:** 6/14
 **Milestone tag in focus:** `M2-data-summary`
 
 **Completed PBIs**
-- ...
+- Decide on our top three datasets (we have 4)
+- Research working with shapefiles
+
+**In Progress**
+- Acquire/document datasets
+    - Interagency Fire Perimiter History is done
+    - LandMark is done
+- Research which land cover species are most applicable
+- Data cleaning
 
 **Stakeholder response log**
 - ...
 
 **Plan for next iteration**
-- ...
+- Continue acquiring/documenting datasets
 
 **Risks and impediments**
 - ...
