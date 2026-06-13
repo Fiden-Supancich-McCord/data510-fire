@@ -215,7 +215,12 @@ ifph_df %>%
     count()
 # FIRE_YEAR always = FIRE_YEAR_, can be removed
 
+# GlobalID
+# it bothers me that this one is not in all caps but whatever
+length(unique(ifph_df$GlobalID))
+summary(is.na(ifph_df$GlobalID)) # none missing, all unique
 
+# last is geometry column which I will not be touching
 ```
 
 ```{r}
@@ -252,7 +257,6 @@ ifph_df <- ifph_df %>%
 ifph_df%>%
     select(FIRE_YEAR_) %>%
     summary()
-
 ```
 
 ```{r}
