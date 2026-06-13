@@ -41,7 +41,7 @@ or %>%
     theme_minimal()
 ```
 
-## LandMark 
+## LandMark for OR
 
 ```{r}
 # issue with dimensions, removing z
@@ -64,7 +64,7 @@ or_lm %>% ggplot() + geom_sf()
 lengths(or_lm)
 ```
 
-## IFPH
+## IFPH for OR
 ```{r}
 lengths(ifph)
 
@@ -78,6 +78,9 @@ dim(or_ifph)
 
 # this is every recorded fire in OR over time - may take a second
 or_ifph %>% ggplot() + geom_sf()
+or_ifph %>% 
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) %>%
+    ggplot() + geom_sf()
 lengths(or_ifph)
 ```
 
@@ -106,6 +109,10 @@ Lots of characters, so hard to see initially. There will be many conversions/tra
 ifph_df <- as.data.frame(or_ifph)
 lm_df <- as.data.frame(or_lm)
 ```
+
+# Missingness
+
+## IFPH Missingness
 
 ```{r}
 ifph_missing <- ifph_df %>%
@@ -136,19 +143,112 @@ ifph_missing_pct <- ifph_df %>%
     mutate(total = n()) %>%
     group_by(key, total, is_missing) %>%
     summarise(num_na = n()) %>%
-    mutate(pct = num_na / total * 100)
+    mutate(pct = num_na / total)
+
 ```
 
 
 ```{r}
-
 levels <-
-    (ifph_missing_pct %>% filter(is_missing == T) %>% arrange(desc(pct)))$key
+    (ifph_missing_pct %>% filter(is_missing == F) %>% arrange(pct))$key
 
 ifph_missing_pct %>%
     ggplot(aes(key, pct, fill=is_missing)) +
     geom_bar(stat="identity") +
     scale_x_discrete(limits=levels) +
+    scale_y_continuous(labels=scales::percent) +
     scale_fill_manual(name = "", values = c('steelblue', 'tomato3'), labels = c("Present", "Missing")) +
-    coord_flip()
+    coord_flip() +
+    theme_minimal()
+
 ```
+
+Majority missing values for `IRWINID`, `COMMENTS`, `FORID`, `POO_RESP_I`. Significant missing values for `UNIT_ID`, `LOCAL_NUM`, and `UNQE_FIRE_`. I'll limit to 2015-2025 (our target timeframe) and test again. 
+
+```{r}
+ifph_missing_pct_current <- ifph_df %>%
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is_missing = is.na(val)) %>%
+    group_by(key) %>%
+    mutate(total = n()) %>%
+    group_by(key, total, is_missing) %>%
+    summarise(num_na = n()) %>%
+    mutate(pct = num_na / total)
+
+levels_current <-
+    (ifph_missing_pct_current %>% filter(is_missing == F) %>% arrange(pct))$key
+
+ifph_missing_pct_current %>%
+    ggplot(aes(key, pct, fill=is_missing)) +
+    geom_bar(stat="identity") +
+    scale_x_discrete(limits=levels_current) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(name = "", values = c('steelblue', 'tomato3'), labels = c("Present", "Missing")) +
+    coord_flip() +
+    theme_minimal()
+```
+
+Only majority missingness in comments, which is totally fine. Significant to moderate missingness for `POO_RESP_I`, `IRWINID`, `FORID`, `UNIT_ID`, `MAP_METHOD`, and `LOCAL_NUM`. Everything else looks pretty good within this timeframe. 
+
+```{r}
+dim(ifph_df %>%
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025))
+
+```
+
+There are 1683 records within this time limit! That's a pretty decent showing. 
+
+## LandMark Missingness
+
+```{r}
+lm_missing <- lm_df %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is_missing = is.na(val)) %>%
+    group_by(key, is_missing) %>%
+    summarize(num_missing = n()) %>%
+    filter(is_missing==T) %>%
+    select(-is_missing) %>%
+    arrange(desc(num_missing))
+
+```
+
+```{r}
+lm_missing %>% 
+    ggplot(aes(reorder(key, -num_missing), num_missing)) +
+    geom_bar(stat="identity") +
+    theme_minimal()
+```
+
+Not a particularly helpful graph, but it looks like there's minimal missing information. 
+
+```{r}
+lm_missing_pct <- lm_df %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is_missing = is.na(val)) %>%
+    group_by(key) %>%
+    mutate(total = n()) %>%
+    group_by(key, total, is_missing) %>%
+    summarise(num_na = n()) %>%
+    mutate(pct = num_na / total)
+
+```
+
+
+```{r}
+lm_missing_pct %>%
+    ggplot(aes(key, pct, fill=is_missing)) +
+    geom_bar(stat="identity") +
+    #scale_x_discrete(limits=levels) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(name = "", values = c('steelblue', 'tomato3'), labels = c("Present", "Missing")) +
+    coord_flip() +
+    theme_minimal()
+
+```
+
+No partial missingness, there are only 11 records and all are missing `stat_note`, `stat_date`, `scale`, `pop_source`, `method`, `ethncty_1`, and `add_note`. The rest of the information is present for all records. For our purposes, this is totally fine. 
+
+# Conclusion
+
+In my opinion, these are in great shape for our purposes. The next major check will be to ensure the IFPH data plays nicely with the fire occurence records (but considering we're sourcing them from the same location, I have no reason to believe we'll face significant challenges there). LandMark only has 11 OR records, but given the nature of the information, I believe it is accurate and completely sufficient. 

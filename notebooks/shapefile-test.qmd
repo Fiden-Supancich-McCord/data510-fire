@@ -177,19 +177,3 @@ drop_na(as.data.frame(iafp_or$FIRE_YEAR_)) %>% summary
 
 This version includes slightly more fires, as it includes those that intersect but are not entirely contained within Oregon's border. We'll have to decide on our operational definitions for what cells contain fire/Indigenous land. 
 
-Checking number of rows & date range for all data (for the data summary).
-
-```{r}
-lengths(shp)
-lengths(us_shp)
-
-as.data.frame(shp) %>% summary
-
-lengths(iafp)
-lengths(iafp_or)
-lengths(iafp_or_int)
-
-as.data.frame(iafp) %>% filter(FIRE_YEAR_ < 9999, FIRE_YEAR_ > 1600) %>% summary
-
-
-```
