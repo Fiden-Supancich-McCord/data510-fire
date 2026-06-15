@@ -61,3 +61,66 @@ This covers the original data format (not including transformations or any clean
 | `FIRE_YEAR` | Calendar year in which the fire started. Example: 2013. Value is of type integer (FIRE_YEAR_INT) | `chr` |
 | `GlobalID` | Presumably global identifier | `chr` |
 | `geometry` | Multipolygon of area | `sfc_MULTIPOLYGON of length 116337` |
+
+# InFORM Fire Occurrence Data
+
+[InFORM documentation](https://data-nifc.opendata.arcgis.com/datasets/nifc::inform-fire-occurrence-data-records/about)
+
+| Col | Description | dtype |
+|-----|-------------|-------|
+| `OBJECTID` | | numeric |
+| ABCDMisc | A FireCode used by USDA FS to track and compile cost information for emergency initial attack fire suppression expenditures. for A, B, C & D size class fires on FS lands. | |
+| ADSPermissionState | Indicates the permission hierarchy that is currently being applied when a system utilizes the UpdateIncident operation. | |
+| CalculatedAcres | A measure of acres calculated (i.e., infrared) from a geospatial perimeter of a fire.  More specifically, the number of acres within the current perimeter of a specific, individual incident, including unburned and unburnable islands.  The minimum size must be 0.1. | |
+| ContainmentDateTime | The date and time a wildfire was declared contained. | |
+| ControlDateTime | The date and time a wildfire was declared under control. | |
+| CreatedBySystem | ArcGIS Server Username of system that created the IRWIN Incident record. | |
+| CreatedOnDateTime | Date/time that the Incident record was created. | |
+| IncidentSize | Reported for a fire. The minimum size is 0.1. | |
+| DiscoveryAcres | An estimate of acres burning upon the discovery of the fire. More specifically when the fire is first reported by the first person that calls in the fire.  The estimate should include number of acres within the current perimeter of a specific, individual incident, including unburned and unburnable islands. | |
+| DispatchCenterID | A unique identifier for a dispatch center responsible for supporting the incident. | |
+| EstimatedCostToDate | The total estimated cost of the incident to date. | |
+| FinalAcres | Reported final acreage of incident. | |
+| FinalFireReportApprovedByTitle | The title of the person that approved the final fire report for the incident. | |
+| FinalFireReportApprovedByUnit | NWCG Unit ID associated with the individual who approved the final report for the incident. | |
+| FinalFireReportApprovedDate | The date that the final fire report was approved for the incident. | | 
+| FireBehaviorGeneral | A general category describing the manner in which the fire is currently reacting to the influences of fuel, weather, and topography.  | |
+| FireCode | A code used within the interagency wildland fire community to track and compile cost information for emergency fire suppression expenditures for the incident.  | |
+| FireDepartmentID | The U.S. Fire Administration (USFA) has created a national database of Fire Departments.  Most Fire Departments do not have an NWCG Unit ID and so it is the intent of the IRWIN team to create a new field that includes this data element to assist the National Association of State Foresters (NASF) with data collection. | |
+| FireDiscoveryDateTime | The date and time a fire was reported as discovered or confirmed to exist.  May also be the start date for reporting purposes. | |
+| FireMgmtComplexity | The highest management level utilized to manage a wildland fire event. | |
+| FireOutDateTime | The date and time when a fire is declared out. | |
+| FSJobCode | A code use to indicate the Forest Service job accounting code for the incident.  This is specific to the Forest Service.  Usually displayed as 2 char prefix on FireCode. | |
+| FSOverrideCode | A code use to indicate the Forest Service job accounting code for the incident.  This is specific to the Forest Service.  Usually displayed as 2 char prefix on FireCode. | |
+| GACC | A code that identifies one of the wildland fire geographic area coordination center at the point of origin for the incident. A geographic area coordination center is a facility that is used for the coordination of agency or jurisdictional resources in support of one or more incidents within a geographic coordination area.| |
+| IncidentName | The name assigned to an incident. | |
+| IncidentShortDescription | General descriptive location of the incident such as the number of miles from an identifiable town. | |
+| IncidentTypeCategory | The Event Category is a sub-group of the Event Kind code and description. The Event Category further breaks down the Event Kind into more specific event categories. | |
+| IncidentTypeKind | A general, high-level code and description of the types of incidents and planned events to which the interagency wildland fire community responds.| |
+| InitialLatitude | The latitude location of the initial reported point of origin specified in decimal degrees. | |
+| InitialLongitude | The longitude location of the initial reported point of origin specified in decimal degrees. | |
+| InitialResponseDateTime | The date/time of the initial response to the incident. More specifically when the IC arrives and performs initial size up. | |
+| IsFireCauseInvestigated | Indicates if an investigation is underway or was completed to determine the cause of a fire. | |
+| IsFSAssisted | Indicates if the Forest Service provided assistance on an incident outside their jurisdiction. | |
+| IsReimbursable | | |
+| IsTresspass | | |
+| LocalIncidentIdentifier | | |
+| ModifiedBySystem | | |
+| ModifiedOnDateTime | | |
+| PercentContained | | |
+| POOCity | | |
+| POOCounty | | |
+| POODispatchCenterID | | |
+| POOFips | | |
+| POOJurisdictionalAgency | | |
+| POOJurisdictionalUnit | | |
+| POOJurisdictionalUnitParentUnit | | |
+| POOLandownerCategory | | |
+| POOLandownerKind | | |
+| POOProtectingAgency | | |
+| POOProtectingUnit | | |
+| POOState | | |
+| PredominantFuelGroup | | |
+| PredominantFuelModel | | |
+| UniqueFireIdentifier | | |
+| FORID | | |

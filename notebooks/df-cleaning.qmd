@@ -23,6 +23,8 @@ landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v
 
 ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
 
+inform <- read_csv("/Users/nikolefiden/Desktop/DATA-510/InFORM_FireOccurrence_Public.csv")
+
 ```
 
 # Limiting to OR
@@ -90,7 +92,7 @@ ifph_df <- as.data.frame(or_ifph)
 lm_df <- as.data.frame(or_lm)
 ```
 
-# Data types
+# IFPH
 
 ## IFPH data types
 ```{r}
@@ -223,6 +225,8 @@ summary(is.na(ifph_df$GlobalID)) # none missing, all unique
 # last is geometry column which I will not be touching
 ```
 
+## IFPH Cleaning
+
 ```{r}
 # converting INCIDENT = UNNAMED, UNKNOWN to NA
 ifph_df %>%
@@ -302,3 +306,48 @@ ifph_df <- ifph_df %>%
 ifph_df <- ifph_df %>%
     select(-FIRE_YEAR)
 ```
+
+# InFORM
+
+## InFORM Data Types
+
+```{r}
+# replacing spaces in col names with "." (i want it to be nothing or _ but alas. this function exists already)
+inform <- inform %>% dplyr::rename_all(funs(make.names(.)))
+
+```
+
+```{r}
+str(inform)
+class(inform)
+dim(inform)
+# hey what's a spec_tbl_df. what is all of this. huh
+names(inform) # that's a lot of columns. that's a LOT of columns
+summary(inform)
+
+head(inform %>% arrange(desc(`Calendar Year`)) %>% select(`Calendar Year`))
+
+# OBJECTID
+class(inform$OBJECTID) # numeric
+length(unique(inform$OBJECTID)) # all unique
+summary(is.na(inform$OBJECTID)) # none missing
+
+# ABCD.Misc
+class(inform$ABCD.Misc)
+length(unique(inform$ABCD.Misc))
+head(inform %>%
+    group_by(ABCD.Misc) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n)))
+
+# ADS Permission States
+
+# Calculated Acres
+
+# Containment Date Time
+
+# Control Date Time
+
+```
+
+
