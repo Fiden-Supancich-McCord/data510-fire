@@ -104,13 +104,16 @@ One subsection per class week. The owner team commits the new section **before e
 - Data cleaning
 
 **Stakeholder response log**
-- ...
+- NA
 
 **Plan for next iteration**
 - Continue acquiring/documenting datasets
+- Make progress on data cleaning!
+- Begin at least masterminding the grid cells
 
 **Risks and impediments**
-- ...
+- Data quality issues (missingness, few entries for certain species in GBIF, etc.)
+- Engineering grid cells (and their respective tables) may be challenging
 
 ## Week 7 -- Data summary milestone (M2)
 
