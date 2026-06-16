@@ -68,10 +68,10 @@ This covers the original data format (not including transformations or any clean
 
 | Col | Description | dtype |
 |-----|-------------|-------|
-| `OBJECTID` | | numeric |
-| ABCDMisc | A FireCode used by USDA FS to track and compile cost information for emergency initial attack fire suppression expenditures. for A, B, C & D size class fires on FS lands. | |
-| ADSPermissionState | Indicates the permission hierarchy that is currently being applied when a system utilizes the UpdateIncident operation. | |
-| CalculatedAcres | A measure of acres calculated (i.e., infrared) from a geospatial perimeter of a fire.  More specifically, the number of acres within the current perimeter of a specific, individual incident, including unburned and unburnable islands.  The minimum size must be 0.1. | |
+| `OBJECTID` | | `numeric` |
+| `ABCD.Misc` | A FireCode used by USDA FS to track and compile cost information for emergency initial attack fire suppression expenditures. for A, B, C & D size class fires on FS lands. | `chr` |
+| `ADS.Permission.State` | Indicates the permission hierarchy that is currently being applied when a system utilizes the UpdateIncident operation. | `chr` |
+| `Calculated.Acres` | A measure of acres calculated (i.e., infrared) from a geospatial perimeter of a fire.  More specifically, the number of acres within the current perimeter of a specific, individual incident, including unburned and unburnable islands.  The minimum size must be 0.1. | `numeric` |
 | ContainmentDateTime | The date and time a wildfire was declared contained. | |
 | ControlDateTime | The date and time a wildfire was declared under control. | |
 | CreatedBySystem | ArcGIS Server Username of system that created the IRWIN Incident record. | |

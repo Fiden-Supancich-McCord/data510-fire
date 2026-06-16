@@ -228,6 +228,16 @@ summary(is.na(ifph_df$GlobalID)) # none missing, all unique
 ## IFPH Cleaning
 
 ```{r}
+# limiting FIRE_YEAR_ to 2015-2025 (inclusive)
+ifph_df <- ifph_df %>%
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
+    
+ifph_df%>%
+    select(FIRE_YEAR_) %>%
+    summary()
+```
+
+```{r}
 # converting INCIDENT = UNNAMED, UNKNOWN to NA
 ifph_df %>%
     mutate(INCIDENT = toupper(INCIDENT)) %>%
@@ -251,16 +261,9 @@ ifph_df %>%
 # not sure what the timezone is. but it probably doesn't matter for our purposes
 ifph_df <- ifph_df %>%
     mutate(DATE_CUR = lubridate::ymd_hms(DATE_CUR))
-```
 
-```{r}
-# limiting FIRE_YEAR_ to 2015-2025 (inclusive)
-ifph_df <- ifph_df %>%
-    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
-    
-ifph_df%>%
-    select(FIRE_YEAR_) %>%
-    summary()
+# shows an error for the NAs that they "failed to parse" - it's fine
+summary(is.na(ifph_df$DATE_CUR))
 ```
 
 ```{r}
@@ -300,7 +303,6 @@ ifph_df <- ifph_df %>%
 
 ```
 
-
 ```{r}
 # removing FIRE_YEAR col
 ifph_df <- ifph_df %>%
@@ -325,8 +327,12 @@ dim(inform)
 names(inform) # that's a lot of columns. that's a LOT of columns
 summary(inform)
 
-head(inform %>% arrange(desc(`Calendar Year`)) %>% select(`Calendar Year`))
+head(inform %>% arrange(desc(`Calendar.Year`)) %>% select(`Calendar.Year`))
+# one year marked as 2121 - probably actually 2021, but I feel like I should flag it somehow
+# for now it will just be removed in the limiting to 2015-2026
+```
 
+``` {r}
 # OBJECTID
 class(inform$OBJECTID) # numeric
 length(unique(inform$OBJECTID)) # all unique
@@ -334,20 +340,114 @@ summary(is.na(inform$OBJECTID)) # none missing
 
 # ABCD.Misc
 class(inform$ABCD.Misc)
-length(unique(inform$ABCD.Misc))
+summary(is.na(inform$ABCD.Misc)) # LOT of missing values
+length(unique(inform$ABCD.Misc)) 
 head(inform %>%
     group_by(ABCD.Misc) %>%
     summarize(n = n()) %>%
     arrange(desc(n)))
+# 682 unique, a LOT of NAs, seems fine
 
 # ADS Permission States
+class(inform$ADS.Permission.State)
+summary(is.na(inform$ADS.Permission.State)) # no missing values
+length(unique(inform$ADS.Permission.State))
+inform %>% 
+    group_by(ADS.Permission.State) %>% 
+    summarize(n=n())
+# should be a factor
 
-# Calculated Acres
+# Calculated.Acres
+class(inform$Calculated.Acres) # numeric
+summary(inform$Calculated.Acres) # no missing values
+summary(is.na(inform$Calculated.Acres))
+head(inform %>%
+    group_by(Calculated.Acres) %>%
+    summarize(n=n()) %>%
+    arrange(Calculated.Acres))
+# apparently one fire burned -1 acres. I dont think that's right and perhaps we should just remove that one
 
-# Containment Date Time
+# Containment.Date.Time
+class(inform$Containment.Date.Time) # character
+head(inform %>% select(Containment.Date.Time)) # looks like a character
+summary(is.na(inform$Containment.Date.Time)) # MANY missing values
 
-# Control Date Time
+# Control.Date.Time
+
+# Creted.By.System
+
+# Created.On.Date.Time
+
+# Incident.Size
+
+# Discovery.Acres
+
+# Dispatch.Center.ID
+
+# Estimated.Cost.To.Date
+
+# Final.Acres
+
+# 
+
+# Fire Managemnet Complexity
+length(unique(inform$Fire.Mgmt.Complexity))
+unique(inform$Fire.Mgmt.Complexity)
+inform %>%
+    group_by(Fire.Mgmt.Complexity) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# 9 options, a lot of NA - should look into NA sizes (maybe small ones aren't rated like this)
+# should be a factor
 
 ```
 
+## InFORM Cleaning
 
+```{r}
+# limiting Calendar.Year to just 2015-2026
+inform <- inform %>%
+    filter(Calendar.Year >= 2015, Calendar.Year <= 2026)
+
+inform %>%
+    group_by(Calendar.Year) %>%
+    summarize(n = n())
+```
+
+```{r}
+# changing ADS.Permission.State to a factor
+inform <- inform %>%
+    mutate(ADS.Permission.State = as_factor(ADS.Permission.State))
+```
+
+
+```{r}
+# removing anomaly -1 acres burned fire
+inform <- inform %>%
+    filter(Calculated.Acres >= 0)
+```
+
+```{r}
+# converting Containment.Date.Time to a date
+inform <- inform %>%
+    mutate(Containment.Date.Time = lubridate::mdy_hms(Containment.Date.Time))
+
+summary(inform$Containment.Date.Time)
+# hey why is there one for 1970. hey.
+inform %>% select(Containment.Date.Time, Calendar.Year, Fire.Discovery.Date.Time) %>% 
+    group_by(Containment.Date.Time, Calendar.Year) %>%
+    filter(!is.na(Containment.Date.Time)) %>%
+    summarize(n=n()) %>%
+    arrange(Containment.Date.Time)
+
+# 1970-01-01 has to be a placeholder. changing to NA
+inform %>% 
+    mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00"))) %>%
+    group_by(Containment.Date.Time) %>%
+    summarize(n=n()) %>%
+    arrange(Containment.Date.Time)
+
+inform <- inform %>% 
+    mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00")))
+
+```
