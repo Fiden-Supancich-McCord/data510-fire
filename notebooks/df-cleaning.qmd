@@ -369,14 +369,29 @@ head(inform %>%
 
 # Containment.Date.Time
 class(inform$Containment.Date.Time) # character
-head(inform %>% select(Containment.Date.Time)) # looks like a character
+head(inform %>% select(Containment.Date.Time)) # looks like a date/time
 summary(is.na(inform$Containment.Date.Time)) # MANY missing values
 
 # Control.Date.Time
+class(inform$Control.Date.Time) # character
+summary(is.na(inform$Control.Date.Time)) # many missing values
+head(inform %>% select(Control.Date.Time)) # also looks like a date/time
 
-# Creted.By.System
+# Created.By.System
+class(inform$Created.By.System)
+length(unique(inform$Created.By.System))
+inform %>% 
+    #mutate(Created.By.System = toupper(Created.By.System)) %>%
+    group_by(Created.By.System) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# should be a factor
 
 # Created.On.Date.Time
+class(inform$Created.On.Date.Time) # numeric??? ok
+head(inform$Created.On.Date.Time) # is this like the posix thing? i will try lubridate
+summary(is.na(inform$Created.On.Date.Time)) # none missing
+length(unique(inform$Created.On.Date.Time)) # mostly unique, good
 
 # Incident.Size
 
@@ -449,5 +464,30 @@ inform %>%
 
 inform <- inform %>% 
     mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00")))
+
+```
+
+```{r}
+# converting Control.Date.Time to a date
+inform <- inform %>%
+    mutate(Control.Date.Time = lubridate::mdy_hms(Control.Date.Time))
+
+summary(inform$Control.Date.Time)
+# these are not marked 1970! go team
+```
+
+```{r}
+# Created.By.System -> factor
+inform <- inform %>%
+    mutate(Created.By.System = as_factor(Created.By.System))
+```
+
+```{r}
+# converting Created.On.Date.Time to datetime
+inform <- inform %>%
+    mutate(Created.On.Date.Time = as_datetime(Created.On.Date.Time/1000)) 
+
+inform %>%
+    select(Created.On.Date.Time)
 
 ```

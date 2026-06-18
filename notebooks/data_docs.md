@@ -72,10 +72,10 @@ This covers the original data format (not including transformations or any clean
 | `ABCD.Misc` | A FireCode used by USDA FS to track and compile cost information for emergency initial attack fire suppression expenditures. for A, B, C & D size class fires on FS lands. | `chr` |
 | `ADS.Permission.State` | Indicates the permission hierarchy that is currently being applied when a system utilizes the UpdateIncident operation. | `chr` |
 | `Calculated.Acres` | A measure of acres calculated (i.e., infrared) from a geospatial perimeter of a fire.  More specifically, the number of acres within the current perimeter of a specific, individual incident, including unburned and unburnable islands.  The minimum size must be 0.1. | `numeric` |
-| ContainmentDateTime | The date and time a wildfire was declared contained. | |
-| ControlDateTime | The date and time a wildfire was declared under control. | |
-| CreatedBySystem | ArcGIS Server Username of system that created the IRWIN Incident record. | |
-| CreatedOnDateTime | Date/time that the Incident record was created. | |
+| `Containment.Date.Time` | The date and time a wildfire was declared contained. | `chr` |
+| `Control.Date.Time` | The date and time a wildfire was declared under control. | `chr` |
+| `Created.By.System` | ArcGIS Server Username of system that created the IRWIN Incident record. | `chr` |
+| `Created.On.Date.Time` | Date/time that the Incident record was created. | `numeric` |
 | IncidentSize | Reported for a fire. The minimum size is 0.1. | |
 | DiscoveryAcres | An estimate of acres burning upon the discovery of the fire. More specifically when the fire is first reported by the first person that calls in the fire.  The estimate should include number of acres within the current perimeter of a specific, individual incident, including unburned and unburnable islands. | |
 | DispatchCenterID | A unique identifier for a dispatch center responsible for supporting the incident. | |
