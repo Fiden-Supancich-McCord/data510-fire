@@ -394,18 +394,84 @@ summary(is.na(inform$Created.On.Date.Time)) # none missing
 length(unique(inform$Created.On.Date.Time)) # mostly unique, good
 
 # Incident.Size
+class(inform$Incident.Size) # numeric
+summary(is.na(inform$Incident.Size)) # decent number of NA
+summary(inform$Incident.Size)
 
 # Discovery.Acres
+class(inform$Discovery.Acres) # logical?
+summary(inform$Discovery.Acres) # all. missing. hm. 
+# not sure what to do about this?
 
 # Dispatch.Center.ID
+class(inform$Dispatch.Center.ID) # char
+summary(is.na(inform$Dispatch.Center.ID)) # about split NA
+head(inform$Dispatch.Center.ID)
+length(unique(inform$Dispatch.Center.ID)) # only 241 unique, should probably be factor
 
 # Estimated.Cost.To.Date
+class(inform$Estimated.Cost.To.Date) # logical?
+summary(is.na(inform$Estimated.Cost.To.Date)) # also all NA
+# don't know what to do about this either
 
 # Final.Acres
+class(inform$Final.Acres) # logical?
+summary(is.na(inform$Final.Acres)) # once again all NA
 
-# 
+# Final.Fire.Report.Approved.By.Title
+class(inform$Final.Fire.Report.Approved.By.Title) # char
+summary(is.na(inform$Final.Fire.Report.Approved.By.Title)) # many NA
+length(unique(inform$Final.Fire.Report.Approved.By.Title)) # abt 1000 unique
+inform %>% 
+    group_by(Final.Fire.Report.Approved.By.Title) %>% 
+    summarize(n=n()) %>% 
+    arrange(desc(n))
+# should be a factor, needs to be cleaned as well (AFMO <- Acting FMO, etc.)
+# the cleaning is deeply difficult. will return later if relevant
 
-# Fire Managemnet Complexity
+# Final.Fire.Report.Approved.By.Unit
+class(inform$Final.Fire.Report.Approved.By.Unit) # logical?
+summary(is.na(inform$Final.Fire.Report.Approved.By.Unit)) # all NA
+# idk, probably remove
+
+# Final.Fire.Report.Approved.Date
+class(inform$Final.Fire.Report.Approved.Date) # char
+summary(is.na(inform$Final.Fire.Report.Approved.Date)) # pretty split NA
+head(inform$Final.Fire.Report.Approved.Date)
+# should be turned into date format
+
+# Fire.Behavior.General
+class(inform$Fire.Behavior.General) # logical
+summary(is.na(inform$Fire.Behavior.General)) # all NA
+
+# FireCode
+class(inform$FireCode) # char
+summary(is.na(inform$FireCode)) # many NA
+length(unique(inform$FireCode)) # why are they mostly unique. hey now.
+inform %>% 
+    group_by(FireCode) %>% 
+    summarize(n=n()) %>% 
+    arrange(desc(n))
+# I don't really know what's going on here
+# apparently it's something to do with cost information? but don't have a way to decode
+
+# FireDepartmentID
+class(inform$FireDepartmentID) # char
+summary(is.na(inform$FireDepartmentID)) # mostly NA
+length(unique(inform$FireDepartmentID)) # 831 unique
+inform %>% 
+    group_by(FireDepartmentID) %>% 
+    summarize(n=n()) %>% 
+    arrange(desc(n))
+# should probably be factor, but seems lowkey useless
+
+# Fire.Discovery.Date.Time
+class(inform$Fire.Discovery.Date.Time) # char
+summary(is.na(inform$Fire.Discovery.Date.Time)) # no NA
+head(inform$Fire.Discovery.Date.Time)
+# convert to datetime
+
+# Fire.Mgmt.Complexity
 length(unique(inform$Fire.Mgmt.Complexity))
 unique(inform$Fire.Mgmt.Complexity)
 inform %>%
@@ -414,6 +480,87 @@ inform %>%
     arrange(desc(n))
 # 9 options, a lot of NA - should look into NA sizes (maybe small ones aren't rated like this)
 # should be a factor
+
+# FireOutDateTime
+class(inform$FireOutDateTime) # char
+summary(is.na(inform$FireOutDateTime)) # about half NA
+head(inform$FireOutDateTime)
+# should be converted to datet
+
+# FS.Job.Code 
+class(inform$FS.Job.Code) # char
+summary(is.na(inform$FS.Job.Code)) # mostly NA
+length(unique(inform$FS.Job.Code)) # only 78 unique, probably factor
+inform %>%
+    group_by(FS.Job.Code) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+
+# FS.Override.Code
+class(inform$FS.Override.Code) # char
+summary(is.na(inform$FS.Override.Code)) # mostly NA
+length(unique(inform$FS.Override.Code)) # only 221, probably factor
+inform %>%
+    group_by(FS.Override.Code) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+
+# GACC
+class(inform$GACC) # char
+summary(is.na(inform$GACC)) # only 27 NA
+inform %>% 
+    group_by(GACC) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# should be factor
+
+# Incident.Name
+class(inform$Incident.Name) # char
+summary(is.na(inform$Incident.Name)) # no NA
+inform %>% 
+    group_by(Incident.Name) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# should not be a factor
+
+# Incident.Short.Description
+class(inform$Incident.Short.Description) # logical
+summary(is.na(inform$Incident.Short.Description)) # all NA
+# idk what to do with her
+
+# Incident.Type.Category
+class(inform$Incident.Type.Category) # char
+length(unique(inform$Incident.Type.Category))
+inform %>% 
+    group_by(Incident.Type.Category) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# should be factor - only WF or RX
+
+# Incident.Type.Kind
+class(inform$Incident.Type.Kind) # char
+length(unique(inform$Incident.Type.Kind)) # only 1?
+summary(is.na(inform$Incident.Type.Kind)) # no NA
+inform %>% 
+    group_by(Incident.Type.Kind) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# it's only FI, presumably for fire. possibly some of the excluded columns have another value. 
+
+# Initial.Latitude
+class(inform$Initial.Latitude) # numeric
+summary(inform$Initial.Latitude) # 30k NA, range -32 to 123
+
+# Initial.Longitude
+class(inform$Initial.Longitude) # numeric
+summary(inform$Initial.Longitude) # 30k NA, range -180 to 114
+
+# Initial.Response.Date.Time
+class(inform$Initial.Response.Date.Time) # char
+summary(is.na(inform$Initial.Response.Date.Time)) # many NA
+head(inform$Initial.Response.Date.Time)
+# should be converted to datetime
+
 
 ```
 
@@ -489,5 +636,234 @@ inform <- inform %>%
 
 inform %>%
     select(Created.On.Date.Time)
+
+```
+
+```{r}
+# converting Dispatch.Center.ID to factor
+inform <- inform %>% 
+    mutate(Dispatch.Center.ID = as_factor(Dispatch.Center.ID))
+
+inform %>% 
+    group_by(Dispatch.Center.ID) %>% 
+    summarize(n = n()) %>% 
+    arrange(desc(n))
+```
+
+```{r}
+# IN PROGRESS
+# this is taking a long long long time
+# so. going to move on for now
+
+inform_report_title <- interim_inform %>% 
+    #mutate(Final.Fire.Report.Approved.By.Title = toupper(Final.Fire.Report.Approved.By.Title)) %>%
+    group_by(Final.Fire.Report.Approved.By.Title) %>% 
+    summarize(n=n()) %>% 
+    arrange(Final.Fire.Report.Approved.By.Title)
+
+print(inform_report_title[60:200, 1:2], n=100)
+length(unique(inform_report_title$Final.Fire.Report.Approved.By.Title))
+length(unique(inform$Final.Fire.Report.Approved.By.Title))
+
+interim_inform <- inform %>%
+    mutate(
+        # (Supervisory) Range Tech
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            Final.Fire.Report.Approved.By.Title %in% c(
+                "(Supervisor) Range Tech", 
+                "(Supervisory Range Tech", 
+                "(Supervisory) Range Tech)", 
+                "(Supervsory) Range Tech"
+            ), 
+            "(Supervisory) Range Tech", Final.Fire.Report.Approved.By.Title),
+        # Acting AFMO
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
+                "ACTING AFMO", 
+                "ACTING  AFMO",
+                "AFMO (ACTING)", 
+                "ACT AFMO",
+                "ACTING ASSISTANT FMO", 
+                "ACTING ASST. FMO",
+                "ACTINT AFMO"
+            ),
+            "Acting AFMO", Final.Fire.Report.Approved.By.Title
+        ),
+        # Acting FMO
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
+                "ACT FMO", 
+                "ACTIG FIRE MANAGEMENT OFFICER", 
+                "ACTING FMMO", 
+                "ACTING FIRE MANAGEMENT OFFICE", 
+                "ACTING FIRE MANAGEMENT OFFICER", 
+                "ACTING FIRE MANAGEMENT OFFIER", 
+                "ACTING FIRE MANAGEMTN", 
+                "ACTING FIRE MANAGEMTN OFICER", 
+                "ACTING FIRE MANAGMENT OFFICER", 
+                "ACTING FIRE MGMT OFFICER", 
+                "ACTING FMO", 
+                "ACTING FIRE MANAGEMTN OFFICER", 
+                "ACTING FRIE MANAGEMENT OFFICER", 
+                "ACTING-FMO"
+            ),
+            "Acting FMO", Final.Fire.Report.Approved.By.Title
+        ),
+        # Acting Superintendent
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
+                "ACTING SUPERINTENDENT", 
+                "ACTING SUPT", 
+                "ACTING SUPT."
+            ),
+            "Acting Superintendent", Final.Fire.Report.Approved.By.Title
+        ),
+        # Acting Zone FMO
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
+                "ACTING ZONE FMO", 
+                "ACTING ZONE FIRE MANAGEMENT OFFICER", 
+                "ACTING ZONE FIRE MGMT OFFICER",
+                "ACTING ZONE FIRE MGT OFFICER",
+                "ACTING ZONE FRIE MGMT OFFICER"
+            ),
+            "Acting Zone FMO", Final.Fire.Report.Approved.By.Title
+        ),
+        # AFMO (Assistant Fire Management Officer)
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
+                "AFMO",
+                "AMFO",
+                "ASSIST FMO",
+                "ASSISTANT FMO",
+                "ASSISTANT FIRE MANAGEMENT OFFI",
+                "ASST FIRE MANAGEMENT OFFICER",
+                "ASST. FIRE MANAGEMENT OFFICER"
+            ),
+            "AFMO", Final.Fire.Report.Approved.By.Title
+        ),
+        # AFMO Ops
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
+                "AFMO OPS",
+                "AFMO  OPS",
+                "AFMO OPS.",
+                "AFMO OPERATIONS",
+                "AFMO. OPS",
+                "AFMO - OPERATIONS"
+            ),
+            "AFMO Ops", Final.Fire.Report.Approved.By.Title
+        ),
+        # Asst. District Forester
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
+                "ASST DISCT. FORESTER",
+                "ASST DISTRICT FORESTER",
+                "ASST. DISTRICT FORESTER",
+                "ASST, DISPTRICT FORESTER",
+                "ASST, DISTC FORESTER",
+                "ASST, DISTRICT FORESTER",
+                "ASST. DISC FORESTER",
+                "ASST. DISCTRIC FORESTER",
+                "ASST. DITRICT FORESTER",
+                "ASST, DISTRICT FOREST",
+                "ASST. DISCTRIC FORESTER"
+            ), "Asst. District Forester", Final.Fire.Report.Approved.By.Title
+        ),
+        # ASFT
+        Final.Fire.Report.Approved.By.Title = ifelse(
+            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
+                "A.S.F.T", 
+                "A.S.F.T.", 
+                "ASFT"
+            ),
+            "ASFT", Final.Fire.Report.Approved.By.Title
+        )
+    )
+
+```
+
+```{r}
+# converting Final.Fire.Report.Approved.Date to datetime
+inform %>% 
+    select(Final.Fire.Report.Approved.Date) 
+
+inform <- inform %>%
+    mutate(Final.Fire.Report.Approved.Date = mdy_hms(Final.Fire.Report.Approved.Date))
+```
+
+```{r}
+# converting Fire.Discovery.Date.Time to datetime
+inform %>% 
+    select(Fire.Discovery.Date.Time)
+
+inform <- inform %>%
+    mutate(Fire.Discovery.Date.Time = mdy_hms(Fire.Discovery.Date.Time))
+```
+
+```{r}
+# converting Fire.Mgmt.Complexity to factor
+inform %>% 
+    group_by(Fire.Mgmt.Complexity) %>%
+    summarize(n = n())
+
+inform <- inform %>%
+    mutate(Fire.Mgmt.Complexity = factor(Fire.Mgmt.Complexity, 
+        levels=c(
+            "Type 1 Incident",
+            "Type 1 Prescribed Fire",
+            "Type 2 Incident",
+            "Type 3 Incident", 
+            "Type 3 Prescribed Fire",
+            "Type 4 Incident",
+            "Type 5 Incident",
+            "Complex Incident"
+        ), ordered=TRUE))
+```
+
+```{r}
+# converting FireOutDateTime to datetime
+inform %>% 
+    select(FireOutDateTime)
+
+inform <- inform %>%
+    mutate(FireOutDateTime = mdy_hms(FireOutDateTime))
+```
+
+```{r}
+# converting FS.Job.Code to factor
+inform <- inform %>%
+    mutate(FS.Job.Code = as_factor(FS.Job.Code))
+
+```
+
+```{r}
+# converting FS.Override.Code to factor
+inform <- inform %>%
+    mutate(FS.Override.Code = as_factor(FS.Override.Code))
+
+```
+
+```{r}
+# converting GACC to factor
+inform <- inform %>%
+    mutate(GACC = as_factor(GACC))
+
+```
+
+```{r}
+# converting Incident.Type.Category to factor
+inform <- inform %>%
+    mutate(Incident.Type.Category = as_factor(Incident.Type.Category))
+
+```
+
+```{r}
+# converting Initial.Response.Date.Time to datetime
+inform %>%
+    select(Initial.Response.Date.Time)
+
+inform <- inform %>%
+    mutate(Initial.Response.Date.Time = mdy_hms(Initial.Response.Date.Time))
 
 ```
