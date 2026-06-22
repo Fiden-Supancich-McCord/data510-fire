@@ -853,46 +853,96 @@ inform %>%
 # factor - Incomplete, Certified, Complete
 
 # AcresBIA
+class(inform$AcresBIA) # numeric
+summary(inform$AcresBIA)
 
 # AcresBLM
+class(inform$AcresBLM) # numeric
+summary(inform$AcresBLM)
 
 # AcresBOR
+class(inform$AcresBOR) # numeric
+summary(inform$AcresBOR)
 
 # AcresDOD
+class(inform$AcresDOD) # numeric
+summary(inform$AcresDOD)
 
 # AcresDOE
+class(inform$AcresDOE) # numeric
+summary(inform$AcresDOE)
 
 # AcresNPS
+class(inform$AcresNPS) # numeric
+summary(inform$AcresNPS)
 
 # AcresUSFS
+class(inform$AcresUSFS) # numeric
+summary(inform$AcresUSFS) # min -1? seems. wrong. 
 
 # AcresUSFWS
+class(inform$AcresUSFWS) # numeric
+summary(inform$AcresUSFWS) # min also -1
 
-# AcresForeign
+# AcresForeign 
+class(inform$AcresForeign) # numeric
+summary(inform$AcresForeign) 
 
 # AcresTribal
+class(inform$AcresTribal) # numeric
+summary(inform$AcresTribal) 
 
 # AcresCity
+class(inform$AcresCity) # numeric
+summary(inform$AcresCity) 
 
 # AcresCounty
+class(inform$AcresCounty) # numeric
+summary(inform$AcresCounty) 
 
 # AcresState
+class(inform$AcresState) # numeric
+summary(inform$AcresState) 
 
 # AcresPrivate
+class(inform$AcresPrivate) # numeric
+summary(inform$AcresPrivate) # min -0.6
 
 # AcresANCSA
+class(inform$AcresANCSA) # numeric
+summary(inform$AcresANCSA)
 
 # AcresOtherLocal
+class(inform$AcresOtherLocal) # numeric
+summary(inform$AcresOtherLocal)
 
 # AcresOtherFederal
+class(inform$AcresOtherFederal) # numeric
+summary(inform$AcresOtherFederal) # min -3.05
 
 # Fire.Cause.Comments
+class(inform$Fire.Cause.Comments) # char
+summary(is.na(inform$Fire.Cause.Comments)) # mostly NA
+length(unique(inform$Fire.Cause.Comments)) # nearly 10k unique
+inform %>%
+    group_by(Fire.Cause.Comments) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# needs to be cleaned badly - N/A, Unknown, unknown, etc. 
 
 # Calendar.Year
+summary(inform$Calendar.Year)
 
 # x
+class(inform$x) # numeric
+summary(is.na(inform$x)) # all present
+summary(inform$x)
+# clean. don't know what it means. 
 
 # y
+class(inform$y) # numeric
+summary(is.na(inform$y)) # all present
+summary(inform$y)
 
 ```
 
@@ -913,7 +963,6 @@ inform %>%
 inform <- inform %>%
     mutate(ADS.Permission.State = as_factor(ADS.Permission.State))
 ```
-
 
 ```{r}
 # removing anomaly -1 acres burned fire
@@ -1300,4 +1349,51 @@ inform <- inform %>%
 # converting Status to factor
 inform <- inform %>%
     mutate(Status = as_factor(Status))
+```
+
+```{r}
+# cleaning Fire.Cause.Comments
+inform %>%
+    group_by(Fire.Cause.Comments) %>%
+    summarize(n = n()) %>%
+    arrange(Fire.Cause.Comments)
+
+inform %>%
+    mutate(Fire.Cause.Comments = str_remove(Fire.Cause.Comments, "\n")
+    ) %>%
+    mutate(Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("N/A", "NA", "", "*", ".", "-", ".."), NA, Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c(
+                "UNKNOWN", 
+                "UNDETERMINED", 
+                "UNK", 
+                "UN", 
+                "UNKOWN", 
+                "UNKNOWN CAUSE",
+                "UK"
+           ), "Unknown", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("UNDER INVESTIGATION"), "Under investigation", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NOT INVESTIGATED"), "Not investigated", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
+    ) %>%
+    group_by(Fire.Cause.Comments) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n)) %>%
+    print(n=25)
+
+inform <- inform %>% 
+    mutate(Fire.Cause.Comments = str_remove(Fire.Cause.Comments, "\n")) %>%
+    mutate(Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("N/A", "NA", "", "*", ".", "-", ".."), NA, Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c(
+                "UNKNOWN", 
+                "UNDETERMINED", 
+                "UNK", 
+                "UN", 
+                "UNKOWN", 
+                "UNKNOWN CAUSE",
+                "UK"
+           ), "Unknown", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("UNDER INVESTIGATION"), "Under investigation", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NOT INVESTIGATED"), "Not investigated", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
+    )
 ```
