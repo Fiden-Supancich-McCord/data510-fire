@@ -100,27 +100,63 @@ This covers the original data format (not including transformations or any clean
 | `Initial.Latitude` | The latitude location of the initial reported point of origin specified in decimal degrees. | `numeric` |
 | `Initial.Longitude` | The longitude location of the initial reported point of origin specified in decimal degrees. | `numeric` |
 | `Initial.Response.Date.Time` | The date/time of the initial response to the incident. More specifically when the IC arrives and performs initial size up. | `char` |
-| IsFireCauseInvestigated | Indicates if an investigation is underway or was completed to determine the cause of a fire. | |
-| IsFSAssisted | Indicates if the Forest Service provided assistance on an incident outside their jurisdiction. | |
-| IsReimbursable | | |
-| IsTresspass | | |
-| LocalIncidentIdentifier | | |
+| `Is.Fire.Cause.Investigated` | Indicates if an investigation is underway or was completed to determine the cause of a fire. | `numeric` (bool) |
+| `Is.FS.Assisted` | Indicates if the Forest Service provided assistance on an incident outside their jurisdiction. | `logical` |
+| `Is.Reimbursable` | | `logical` |
+| `Is.Tresspass` | | `logical` |
+| `Local.Incident.Identifier` | | `char` |
 | ModifiedBySystem | | |
-| ModifiedOnDateTime | | |
-| PercentContained | | |
-| POOCity | | |
-| POOCounty | | |
-| POODispatchCenterID | | |
-| POOFips | | |
-| POOJurisdictionalAgency | | |
-| POOJurisdictionalUnit | | |
-| POOJurisdictionalUnitParentUnit | | |
-| POOLandownerCategory | | |
-| POOLandownerKind | | |
-| POOProtectingAgency | | |
-| POOProtectingUnit | | |
-| POOState | | |
-| PredominantFuelGroup | | |
-| PredominantFuelModel | | |
-| UniqueFireIdentifier | | |
-| FORID | | |
+| `Modified.On.Date.Time` | | `char` |
+| `Percent.Contained` | | `logical` |
+| `City` | | `char` |
+| `POO.County` | | `char` |
+| `POODispatchCenterID` | | `char` |
+| `POO.Fips` | | `numeric` |
+| `POO.Jurisdictional.Agency` | | `char` |
+| `POO.Jurisdictional.Unit` | | `char` |
+| `POO.Jurisdictional.Unit.Parent.Unit` | | `char` |
+| `POO.Landowner.Category` | | `char` |
+| `POO.Landowner.Kind` | | `char` |
+| `POO.Protecting.Agency` | | `char` |
+| `POO.Protecting.Unit` | | `char` |
+| `POO.State` | | `char` |
+| `Predominant.Fuel.Group` | | `char` |
+| `Predominant.Fuel.Model` | | `char` |
+| `UniqueFireIdentifier` | | `char` |
+| `FORID` | | `char` |
+
+Additional variables that were not listed in the documentation: 
+
+- Initial.Response.Agencies
+- Fire.Cause
+- Fire.Cause.General
+- Fire.Cause.Specific
+- Fire.Cause.Specific.Detail
+- Fire.Cause.Age.Category
+- Fire.Cause.Activity.Group
+- GlobalID
+- IsCauseProhibited
+- ModifiedBySystem
+- Related.Irwin.IDs
+- Status
+- AcresBIA
+- AcresBLM
+- AcresBOR
+- AcresDOD
+- AcresDOE
+- AcresNPS
+- AcresUSFS
+- AcresUSFWS
+- AcresForeign
+- AcresTribal
+- AcresCity
+- AcresCounty
+- AcresState
+- AcresPrivate
+- AcresANCSA
+- AcresOtherLocal
+- AcresOtherFederal
+- Fire.Cause.Comments
+- Calendar.Year
+- x
+- y

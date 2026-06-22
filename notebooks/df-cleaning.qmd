@@ -561,6 +561,338 @@ summary(is.na(inform$Initial.Response.Date.Time)) # many NA
 head(inform$Initial.Response.Date.Time)
 # should be converted to datetime
 
+# Is.Fire.Cause.Investigated
+class(inform$Is.Fire.Cause.Investigated) # numeric?
+summary(inform$Is.Fire.Cause.Investigated) # many NA, seems like a boolean
+unique(inform$Is.Fire.Cause.Investigated)
+# should be logical
+
+# Is.FS.Assisted
+class(inform$Is.FS.Assisted) # numeric
+summary(inform$Is.FS.Assisted) # many NA, also boolean
+unique(inform$Is.FS.Assisted)
+# should be logical
+
+# Is.Reimbursable
+class(inform$Is.Reimbursable) # logical
+summary(inform$Is.Reimbursable) # all NA
+
+# Is.Trespass
+class(inform$Is.Trespass) # numeric
+summary(inform$Is.Trespass) # also seems to be bool, many NA
+unique(inform$Is.Trespass)
+# should be logical
+
+# Local.Incident.Identifier
+class(inform$Local.Incident.Identifier) # char
+summary(is.na(inform$Local.Incident.Identifier)) # all present
+length(unique(inform$Local.Incident.Identifier)) # mostly unique, char is good
+
+# Modified.On.Date.Time
+class(inform$Modified.On.Date.Time) # char
+summary(is.na(inform$Modified.On.Date.Time)) # all present
+head(inform$Modified.On.Date.Time)
+# convert to datetime
+
+# Percent.Contained
+class(inform$Percent.Contained) # logical
+summary(is.na(inform$Percent.Contained)) # all NA
+
+# City
+class(inform$City) # char
+summary(is.na(inform$City)) # mostly missing
+length(unique(inform$City)) # motsly unique
+inform %>% 
+    group_by(City) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+
+# POO.County
+class(inform$POO.County) # char
+summary(is.na(inform$POO.County)) # only 16 NA
+length(unique(inform$POO.County))
+inform %>% 
+    group_by(POO.County) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+
+# POODispatchCenterID
+class(inform$POODispatchCenterID) # char
+summary(is.na(inform$POODispatchCenterID)) # only 89 NA
+length(unique(inform$POODispatchCenterID)) # only 172 unique
+inform %>% 
+    group_by(POODispatchCenterID) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+
+# POO.Fips
+class(inform$POO.Fips) # char
+summary(is.na(inform$POO.Fips)) # about half NA
+length(unique(inform$POO.Fips))
+inform %>% 
+    group_by(POO.Fips) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# 5 digits, likely county codes
+
+# POO.Jurisdictional.Agency
+class(inform$POO.Jurisdictional.Agency) # char
+summary(is.na(inform$POO.Jurisdictional.Agency)) # about half NA
+inform %>% 
+    group_by(POO.Jurisdictional.Agency) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# 64 unique, this may actually be useful!
+# should be a factor
+
+# POO.Jurisdictional.Unit
+class(inform$POO.Jurisdictional.Unit) # char
+summary(is.na(inform$POO.Jurisdictional.Unit)) # about half NA
+inform %>% 
+    group_by(POO.Jurisdictional.Unit) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# many unique
+
+# POO.Jurisdictional.Unit.Parent.Unit
+class(inform$POO.Jurisdictional.Unit.Parent.Unit) # logical
+summary(is.na(inform$POO.Jurisdictional.Unit.Parent.Unit)) # all NA
+
+# POOLandownerCategory
+class(inform$POOLandownerCategory) # char
+summary(is.na(inform$POOLandownerCategory)) # few NA
+length(unique(inform$POOLandownerCategory)) # 21 unique
+inform %>% 
+    group_by(POOLandownerCategory) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n)) %>%
+    print(n=21)
+# convert to factor, could be useful!
+
+# POOLandownerKind
+class(inform$POOLandownerKind) # char
+summary(is.na(inform$POOLandownerKind)) # ~400 missing
+length(unique(inform$POOLandownerKind)) # only 8
+inform %>% 
+    group_by(POOLandownerKind) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# convert to factor
+
+# POO.Protecting.Agency
+class(inform$POO.Protecting.Agency) # char
+summary(is.na(inform$POO.Protecting.Agency)) # many NA
+length(unique(inform$POO.Protecting.Agency)) # 58 unique
+inform %>% 
+    group_by(POO.Protecting.Agency) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# convert to factor
+
+# POO.Protecting.Unit
+class(inform$POO.Protecting.Unit) # char
+summary(is.na(inform$POO.Protecting.Unit)) # some NA
+length(unique(inform$POO.Protecting.Unit)) # ~1600 unique
+inform %>% 
+    group_by(POO.Protecting.Unit) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# I don't know what any of this means
+
+# POO.State
+class(inform$POO.State) # char
+length(unique(inform$POO.State)) # 58 unique
+inform %>% 
+    group_by(POO.State) %>%
+    summarize(n=n()) %>%
+    arrange(POO.State) # a few in MX
+# convert to factor
+
+# Predominant.Fuel.Group
+class(inform$Predominant.Fuel.Group) # char
+length(unique(inform$Predominant.Fuel.Group)) # 7 unique
+inform %>% 
+    group_by(Predominant.Fuel.Group) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n)) # many NA, could be useful though
+# convert to factor
+
+# Predominant.Fuel.Model
+class(inform$Predominant.Fuel.Model) # char
+length(unique(inform$Predominant.Fuel.Model)) # 46 unique
+inform %>% 
+    group_by(Predominant.Fuel.Model) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# i don't know what any of that means!
+
+# UniqueFireIdentifier
+class(inform$UniqueFireIdentifier) # char
+summary(is.na(inform$UniqueFireIdentifier)) # ALL PRESENT this is excellent news friends
+length(unique(inform$UniqueFireIdentifier)) # a few duplicates apparently?
+inform %>% 
+    group_by(UniqueFireIdentifier) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# not sure about the duplicates but otherwise this looks AWESOME
+
+# FORID
+class(inform$FORID) # char
+summary(is.na(inform$FORID)) # all present
+length(unique(inform$FORID)) # a few duplicates
+
+# Initial.Response.Agencies
+class(inform$Initial.Response.Agencies) # char
+summary(is.na(inform$Initial.Response.Agencies)) # lots missing
+length(unique(inform$Initial.Response.Agencies)) # ~1000
+inform %>% 
+    group_by(Initial.Response.Agencies) %>%
+    summarize(n=n()) %>%
+    arrange(Initial.Response.Agencies)
+# should be cleaned up if we're going to use it, comma separated for doubles but at least alphabetical
+
+# Fire.Cause
+class(inform$Fire.Cause) # numeric?
+summary(is.na(inform$Fire.Cause)) # some missing
+length(unique(inform$Fire.Cause)) # only 4
+inform %>% 
+    group_by(Fire.Cause) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# ok. well. wish i knew what that meant.
+
+# Fire.Cause.General
+class(inform$Fire.Cause.General) # numeric?
+summary(is.na(inform$Fire.Cause.General)) # many missing
+length(unique(inform$Fire.Cause.General)) # 14 unique
+inform %>% 
+    group_by(Fire.Cause.General) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# it's numbers! wish i knew what they meant!
+
+# Fire.Cause.Specific
+class(inform$Fire.Cause.Specific) # numeric?
+summary(is.na(inform$Fire.Cause.Specific)) # many missing
+length(unique(inform$Fire.Cause.Specific)) # 77 unique
+inform %>% 
+    group_by(Fire.Cause.Specific) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# once again saying I wish I knew what these numbers meant
+
+# Fire.Cause.Specific.Detail
+class(inform$Fire.Cause.Specific.Detail) # numeric?
+summary(is.na(inform$Fire.Cause.Specific.Detail)) # mostly missing
+length(unique(inform$Fire.Cause.Specific.Detail)) # 56 unique
+inform %>% 
+    group_by(Fire.Cause.Specific.Detail) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# again, wish I knew what it meant
+
+# Fire.Cause.Age.Category
+class(inform$Fire.Cause.Age.Category) # numeric
+summary(is.na(inform$Fire.Cause.Age.Category)) # many missing
+length(unique(inform$Fire.Cause.Age.Category)) # only 5
+inform %>% 
+    group_by(Fire.Cause.Age.Category) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# yep. wish I knew what it meant.
+
+# Fire.Cause.Activity.Group
+class(inform$Fire.Cause.Activity.Group) # numeric
+summary(is.na(inform$Fire.Cause.Activity.Group)) # mostly missing
+length(unique(inform$Fire.Cause.Activity.Group)) # 20 unique
+inform %>% 
+    group_by(Fire.Cause.Activity.Group) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# more meaningless undefined numbers. thanks NIFC this is awesome
+
+# GlobalID 
+class(inform$GlobalID) # char
+summary(is.na(inform$GlobalID)) # all present
+length(unique(inform$GlobalID)) # all unique!
+head(inform$GlobalID)
+# yep looks fine to me
+
+# IsCauseProhibited
+class(inform$IsCauseProhibited) # numeric
+inform %>% 
+    group_by(IsCauseProhibited) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n)) # mostly missing
+# convert to logical
+
+# ModifiedBySystem
+class(inform$ModifiedBySystem) # char
+summary(is.na(inform$ModifiedBySystem)) # about half NA
+length(unique(inform$ModifiedBySystem)) # 21 unique
+inform %>% 
+    group_by(ModifiedBySystem) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# convert to factor
+
+# Related.Irwin.IDs
+class(inform$Related.Irwin.IDs) # char
+summary(is.na(inform$Related.Irwin.IDs)) # about half NA
+length(unique(inform$Related.Irwin.IDs)) # mostly unique
+head(inform$Related.Irwin.IDs) # yep looks fine to me
+
+# Status
+class(inform$Status) # char
+summary(is.na(inform$Status)) # all present
+length(unique(inform$Status)) # 3 unique
+inform %>% 
+    group_by(Status) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# factor - Incomplete, Certified, Complete
+
+# AcresBIA
+
+# AcresBLM
+
+# AcresBOR
+
+# AcresDOD
+
+# AcresDOE
+
+# AcresNPS
+
+# AcresUSFS
+
+# AcresUSFWS
+
+# AcresForeign
+
+# AcresTribal
+
+# AcresCity
+
+# AcresCounty
+
+# AcresState
+
+# AcresPrivate
+
+# AcresANCSA
+
+# AcresOtherLocal
+
+# AcresOtherFederal
+
+# Fire.Cause.Comments
+
+# Calendar.Year
+
+# x
+
+# y
 
 ```
 
@@ -866,4 +1198,106 @@ inform %>%
 inform <- inform %>%
     mutate(Initial.Response.Date.Time = mdy_hms(Initial.Response.Date.Time))
 
+```
+
+```{r}
+# convert Is.Fire.Cause.Investigated to bool
+inform %>% 
+    select(Is.Fire.Cause.Investigated) 
+
+inform <- inform %>% 
+    mutate(Is.Fire.Cause.Investigated = as.logical(Is.Fire.Cause.Investigated))
+
+```
+
+```{r}
+# convert Is.FS.Assisted to bool
+inform %>% 
+    select(Is.FS.Assisted) 
+
+inform <- inform %>% 
+    mutate(Is.FS.Assisted = as.logical(Is.FS.Assisted))
+
+```
+
+```{r}
+# convert Is.Trespass to bool
+inform %>% 
+    select(Is.Trespass) 
+
+inform <- inform %>% 
+    mutate(Is.Trespass = as.logical(Is.Trespass))
+
+```
+
+```{r}
+# converting Modified.On.Date.Time to datetime
+inform %>%
+    select(Modified.On.Date.Time)
+
+inform <- inform %>%
+    mutate(Modified.On.Date.Time = mdy_hms(Modified.On.Date.Time))
+
+```
+
+```{r}
+# converting POO.Fips to numeric
+inform <- inform %>%
+    mutate(POO.Fips = as.numeric(POO.Fips)) 
+
+```
+
+```{r}
+# converting POO.Jurisdictional.Agency to factor
+inform <- inform %>%
+    mutate(POO.Jurisdictional.Agency = as_factor(POO.Jurisdictional.Agency))
+
+```
+
+```{r}
+# converting POOLandownerCategory to factor
+inform <- inform %>%
+    mutate(POOLandownerCategory = as_factor(POOLandownerCategory))
+```
+
+```{r}
+# converting POOLandownerKind to factor
+inform <- inform %>%
+    mutate(POOLandownerKind = as_factor(POOLandownerKind))
+```
+
+```{r}
+# converting POO.Protecting.Agency to factor
+inform <- inform %>%
+    mutate(POO.Protecting.Agency = as_factor(POO.Protecting.Agency))
+```
+
+```{r}
+# converting POO.State to factor
+inform <- inform %>%
+    mutate(POO.State = as_factor(POO.State))
+```
+
+```{r}
+# converting Predominant.Fuel.Group to factor
+inform <- inform %>%
+    mutate(Predominant.Fuel.Group = as_factor(Predominant.Fuel.Group))
+```
+
+```{r}
+# convert IsCauseProhibited to bool
+inform <- inform %>% 
+    mutate(IsCauseProhibited = as.logical(IsCauseProhibited))
+```
+
+```{r}
+# converting ModifiedBySystem to factor
+inform <- inform %>%
+    mutate(ModifiedBySystem = as_factor(ModifiedBySystem))
+```
+
+```{r}
+# converting Status to factor
+inform <- inform %>%
+    mutate(Status = as_factor(Status))
 ```
