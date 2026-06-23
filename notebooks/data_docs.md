@@ -102,28 +102,28 @@ This covers the original data format (not including transformations or any clean
 | `Initial.Response.Date.Time` | The date/time of the initial response to the incident. More specifically when the IC arrives and performs initial size up. | `char` |
 | `Is.Fire.Cause.Investigated` | Indicates if an investigation is underway or was completed to determine the cause of a fire. | `numeric` (bool) |
 | `Is.FS.Assisted` | Indicates if the Forest Service provided assistance on an incident outside their jurisdiction. | `logical` |
-| `Is.Reimbursable` | | `logical` |
-| `Is.Tresspass` | | `logical` |
-| `Local.Incident.Identifier` | | `char` |
-| ModifiedBySystem | | |
-| `Modified.On.Date.Time` | | `char` |
-| `Percent.Contained` | | `logical` |
-| `City` | | `char` |
-| `POO.County` | | `char` |
-| `POODispatchCenterID` | | `char` |
-| `POO.Fips` | | `numeric` |
-| `POO.Jurisdictional.Agency` | | `char` |
-| `POO.Jurisdictional.Unit` | | `char` |
-| `POO.Jurisdictional.Unit.Parent.Unit` | | `char` |
-| `POO.Landowner.Category` | | `char` |
-| `POO.Landowner.Kind` | | `char` |
-| `POO.Protecting.Agency` | | `char` |
-| `POO.Protecting.Unit` | | `char` |
-| `POO.State` | | `char` |
-| `Predominant.Fuel.Group` | | `char` |
-| `Predominant.Fuel.Model` | | `char` |
-| `UniqueFireIdentifier` | | `char` |
-| `FORID` | | `char` |
+| `Is.Reimbursable` | Indicates the cost of an incident may be another agency’s responsibility. | `logical` |
+| `Is.Tresspass` | Indicates if the incident is a trespass claim or if a bill will be pursued. | `logical` |
+| `Local.Incident.Identifier` | A number or code that uniquely identifies an incident for a particular local fire management organization within a particular calendar year. | `char` |
+| `ModifiedBySystem` | ArcGIS Server username of system that last modified the IRWIN Incident record. | `char` |
+| `Modified.On.Date.Time` | Date/time that the Incident record was last modified. | `char` |
+| `Percent.Contained` | Indicates the percent of incident area that is no longer active. Reference definition in fire line handbook when developing standard. | `logical` |
+| `City` | The closest city to the incident point of origin. | `char` |
+| `POO.County` | The County Name identifying the county or equivalent entity at point of origin designated at the time of collection. | `char` |
+| `POODispatchCenterID` | A unique identifier for the dispatch center that intersects with the incident point of origin. | `char` |
+| `POO.Fips` | The code which uniquely identifies counties and county equivalents. The first two digits are the FIPS State code and the last three are the county code within the state. | `numeric` |
+| `POO.Jurisdictional.Agency` | The agency having land and resource management responsibility for a incident as provided by federal, state or local law. | `char` |
+| `POO.Jurisdictional.Unit` | NWCG Unit Identifier to identify the unit with jurisdiction for the land where the point of origin of a fire falls. | `char` |
+| `POO.Jurisdictional.Unit.Parent.Unit` | The unit ID for the parent entity, such as a BLM State Office or USFS Regional Office, that resides over the Jurisdictional Unit. | `char` |
+| `POO.Landowner.Category` | More specific classification of land ownership within land owner kinds identifying the deeded owner at the point of origin at the time of the incident. | `char` |
+| `POO.Landowner.Kind` | Broad classification of land ownership identifying the deeded owner at the point of origin at the time of the incident. | `char` |
+| `POO.Protecting.Agency` | Indicates the agency that has protection responsibility at the point of origin. | `char` |
+| `POO.Protecting.Unit` | NWCG Unit responsible for providing direct incident management and services to a an incident pursuant to its jurisdictional responsibility or as specified by law, contract or agreement. (Definition Extension: Protection can be re-assigned by agreement. The nature and extent of the incident determines protection (for example Wildfire vs. All Hazard.)) | `char` |
+| `POO.State` | The State alpha code identifying the state or equivalent entity at point of origin. | `char` |
+| `Predominant.Fuel.Group` | The fuel majority fuel model type that best represents fire behavior in the incident area, grouped into one of seven categories. | `char` |
+| `Predominant.Fuel.Model` | Describes the type of fuels found within the  majority of the incident area. | `char` |
+| `UniqueFireIdentifier` | Unique identifier assigned to each wildland fire.  yyyy = calendar year, SSUUUU = POO protecting unit identifier (5 or 6 characters), xxxxxx = local incident identifier (6 to 10 characters) | `char` |
+| `FORID` | Unique identifier assigned to each incident record in the FODR database. | `char` |
 
 Additional variables that were not listed in the documentation: 
 
