@@ -318,15 +318,19 @@ inform <- inform %>%
 # limiting Calendar.Year to just 2015-2026
 # missing values for Calendar.Year are all present for Fire.Discovery.Date.Time - can impute
 
+
 inform <- inform %>%
     mutate(
+        # imputing values that are off by 100 - can assume 1922 -> 2022 and 2121 -> 2021
         Calendar.Year = ifelse(abs(year(Fire.Discovery.Date.Time) - Calendar.Year)==100, 
                         date(Fire.Discovery.Date.Time), 
                         Calendar.Year),
+        # imputing missing values 
         Calendar.Year = ifelse(is.na(Calendar.Year), 
                         date(Fire.Discovery.Date.Time), 
                         Calendar.Year)
     ) %>%
+    # removing all where Fire.Discovery.Date.Time and Calendar.Year are misaligned by more than one year
     filter(abs(year(Fire.Discovery.Date.Time) - Calendar.Year) <= 1) %>%
     filter(Calendar.Year >= 2015, Calendar.Year <= 2026)
 
@@ -344,7 +348,7 @@ inform <- inform %>%
 ### Parsing/changing specific entry types to NA
 
 ```{r}
-# 1970-01-01 has to be a placeholder. changing to NA
+# 1970-01-01 is to be a placeholder, changing to NA
 inform %>% 
     mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00"))) %>%
     group_by(Containment.Date.Time) %>%
@@ -356,7 +360,55 @@ inform <- inform %>%
 
 ```
 
+
 ```{r}
+# cleaning Fire.Cause.Comments
+inform %>%
+    group_by(Fire.Cause.Comments) %>%
+    summarize(n = n()) %>%
+    arrange(Fire.Cause.Comments)
+
+inform %>%
+    mutate(Fire.Cause.Comments = str_remove(Fire.Cause.Comments, "\n")
+    ) %>%
+    mutate(Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("N/A", "NA", "", "*", ".", "-", ".."), NA, Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c(
+                "UNKNOWN", 
+                "UNDETERMINED", 
+                "UNK", 
+                "UN", 
+                "UNKOWN", 
+                "UNKNOWN CAUSE",
+                "UK"
+           ), "Unknown", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("UNDER INVESTIGATION"), "Under investigation", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NOT INVESTIGATED"), "Not investigated", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
+    ) %>%
+    group_by(Fire.Cause.Comments) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n)) %>%
+    print(n=25)
+
+inform <- inform %>% 
+    mutate(Fire.Cause.Comments = str_remove(Fire.Cause.Comments, "\n")) %>%
+    mutate(Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("N/A", "NA", "", "*", ".", "-", ".."), NA, Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c(
+                "UNKNOWN", 
+                "UNDETERMINED", 
+                "UNK", 
+                "UN", 
+                "UNKOWN", 
+                "UNKNOWN CAUSE",
+                "UK"
+           ), "Unknown", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("UNDER INVESTIGATION"), "Under investigation", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NOT INVESTIGATED"), "Not investigated", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
+    )
+```
+
+```{}
 # IN PROGRESS
 # this is taking a long long long time
 # so. going to move on for now
@@ -487,52 +539,4 @@ interim_inform <- inform %>%
         )
     )
 
-```
-
-
-```{r}
-# cleaning Fire.Cause.Comments
-inform %>%
-    group_by(Fire.Cause.Comments) %>%
-    summarize(n = n()) %>%
-    arrange(Fire.Cause.Comments)
-
-inform %>%
-    mutate(Fire.Cause.Comments = str_remove(Fire.Cause.Comments, "\n")
-    ) %>%
-    mutate(Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("N/A", "NA", "", "*", ".", "-", ".."), NA, Fire.Cause.Comments),
-           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c(
-                "UNKNOWN", 
-                "UNDETERMINED", 
-                "UNK", 
-                "UN", 
-                "UNKOWN", 
-                "UNKNOWN CAUSE",
-                "UK"
-           ), "Unknown", Fire.Cause.Comments),
-           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("UNDER INVESTIGATION"), "Under investigation", Fire.Cause.Comments),
-           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NOT INVESTIGATED"), "Not investigated", Fire.Cause.Comments),
-           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
-    ) %>%
-    group_by(Fire.Cause.Comments) %>%
-    summarize(n = n()) %>%
-    arrange(desc(n)) %>%
-    print(n=25)
-
-inform <- inform %>% 
-    mutate(Fire.Cause.Comments = str_remove(Fire.Cause.Comments, "\n")) %>%
-    mutate(Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("N/A", "NA", "", "*", ".", "-", ".."), NA, Fire.Cause.Comments),
-           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c(
-                "UNKNOWN", 
-                "UNDETERMINED", 
-                "UNK", 
-                "UN", 
-                "UNKOWN", 
-                "UNKNOWN CAUSE",
-                "UK"
-           ), "Unknown", Fire.Cause.Comments),
-           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("UNDER INVESTIGATION"), "Under investigation", Fire.Cause.Comments),
-           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NOT INVESTIGATED"), "Not investigated", Fire.Cause.Comments),
-           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
-    )
 ```
