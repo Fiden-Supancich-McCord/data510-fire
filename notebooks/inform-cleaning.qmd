@@ -48,21 +48,18 @@ head(inform %>% arrange(desc(`Calendar.Year`)) %>% select(`Calendar.Year`))
 
 ## Cleaning
 
-```{r}
-# limiting Calendar.Year to just 2015-2026
-# two missing values for Calendar.Year, but can impute from Fire.Discovery.Date.Time
-inform <- inform %>%
-    mutate(
-        Calendar.Year = ifelse(is.na(Calendar.Year), 
-                        date(Fire.Discovery.Date.Time), 
-                        Calendar.Year)
-    ) %>%
-    filter(Calendar.Year >= 2015, Calendar.Year <= 2026)
+### Data type conversion
 
-inform %>%
-    group_by(Calendar.Year) %>%
-    summarize(n = n())
+#### Numeric 
+
+```{r}
+# converting POO.Fips to numeric
+inform <- inform %>%
+    mutate(POO.Fips = as.numeric(POO.Fips)) 
+
 ```
+
+#### Factor
 
 ```{r}
 # changing ADS.Permission.State to a factor
@@ -71,33 +68,167 @@ inform <- inform %>%
 ```
 
 ```{r}
-# removing anomaly -1 acres burned fire
+# Created.By.System -> factor
 inform <- inform %>%
-    filter(Calculated.Acres >= 0)
+    mutate(Created.By.System = as_factor(Created.By.System))
 ```
+
+```{r}
+# converting Dispatch.Center.ID to factor
+inform <- inform %>% 
+    mutate(Dispatch.Center.ID = as_factor(Dispatch.Center.ID))
+
+```
+
+```{r}
+# converting Fire.Mgmt.Complexity to ordered factor
+inform %>% 
+    group_by(Fire.Mgmt.Complexity) %>%
+    summarize(n = n())
+
+inform <- inform %>%
+    mutate(Fire.Mgmt.Complexity = factor(Fire.Mgmt.Complexity, 
+        levels=c(
+            "Type 1 Incident",
+            "Type 1 Prescribed Fire",
+            "Type 2 Incident",
+            "Type 3 Incident", 
+            "Type 3 Prescribed Fire",
+            "Type 4 Incident",
+            "Type 5 Incident",
+            "Complex Incident"
+        ), ordered=TRUE))
+```
+
+```{r}
+# converting FS.Job.Code to factor
+inform <- inform %>%
+    mutate(FS.Job.Code = as_factor(FS.Job.Code))
+
+```
+
+```{r}
+# converting FS.Override.Code to factor
+inform <- inform %>%
+    mutate(FS.Override.Code = as_factor(FS.Override.Code))
+
+```
+
+```{r}
+# converting GACC to factor
+inform <- inform %>%
+    mutate(GACC = as_factor(GACC))
+
+```
+
+```{r}
+# converting Incident.Type.Category to factor
+inform <- inform %>%
+    mutate(Incident.Type.Category = as_factor(Incident.Type.Category))
+
+```
+
+```{r}
+# converting POO.Jurisdictional.Agency to factor
+inform <- inform %>%
+    mutate(POO.Jurisdictional.Agency = as_factor(POO.Jurisdictional.Agency))
+
+```
+
+```{r}
+# converting POOLandownerCategory to factor
+inform <- inform %>%
+    mutate(POOLandownerCategory = as_factor(POOLandownerCategory))
+```
+
+```{r}
+# converting POOLandownerKind to factor
+inform <- inform %>%
+    mutate(POOLandownerKind = as_factor(POOLandownerKind))
+```
+
+```{r}
+# converting POO.Protecting.Agency to factor
+inform <- inform %>%
+    mutate(POO.Protecting.Agency = as_factor(POO.Protecting.Agency))
+```
+
+```{r}
+# converting POO.State to factor
+inform <- inform %>%
+    mutate(POO.State = as_factor(POO.State))
+```
+
+```{r}
+# converting Predominant.Fuel.Group to factor
+inform <- inform %>%
+    mutate(Predominant.Fuel.Group = as_factor(Predominant.Fuel.Group))
+```
+
+```{r}
+# converting ModifiedBySystem to factor
+inform <- inform %>%
+    mutate(ModifiedBySystem = as_factor(ModifiedBySystem))
+```
+
+```{r}
+# converting Status to factor
+inform <- inform %>%
+    mutate(Status = as_factor(Status))
+```
+
+#### Logical
+
+```{r}
+# convert Is.Fire.Cause.Investigated to bool
+inform %>% 
+    select(Is.Fire.Cause.Investigated) 
+
+inform <- inform %>% 
+    mutate(Is.Fire.Cause.Investigated = as.logical(Is.Fire.Cause.Investigated))
+
+```
+
+```{r}
+# convert Is.FS.Assisted to bool
+inform %>% 
+    select(Is.FS.Assisted) 
+
+inform <- inform %>% 
+    mutate(Is.FS.Assisted = as.logical(Is.FS.Assisted))
+
+```
+
+```{r}
+# convert Is.Trespass to bool
+inform %>% 
+    select(Is.Trespass) 
+
+inform <- inform %>% 
+    mutate(Is.Trespass = as.logical(Is.Trespass))
+
+```
+
+```{r}
+# convert IsCauseProhibited to bool
+inform <- inform %>% 
+    mutate(IsCauseProhibited = as.logical(IsCauseProhibited))
+```
+
+
+#### Datetime
 
 ```{r}
 # converting Containment.Date.Time to a date
 inform <- inform %>%
     mutate(Containment.Date.Time = lubridate::mdy_hms(Containment.Date.Time))
 
-summary(inform$Containment.Date.Time)
 # hey why is there one for 1970. hey.
 inform %>% select(Containment.Date.Time, Calendar.Year, Fire.Discovery.Date.Time) %>% 
     group_by(Containment.Date.Time, Calendar.Year) %>%
     filter(!is.na(Containment.Date.Time)) %>%
     summarize(n=n()) %>%
     arrange(Containment.Date.Time)
-
-# 1970-01-01 has to be a placeholder. changing to NA
-inform %>% 
-    mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00"))) %>%
-    group_by(Containment.Date.Time) %>%
-    summarize(n=n()) %>%
-    arrange(Containment.Date.Time)
-
-inform <- inform %>% 
-    mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00")))
 
 ```
 
@@ -106,14 +237,6 @@ inform <- inform %>%
 inform <- inform %>%
     mutate(Control.Date.Time = lubridate::mdy_hms(Control.Date.Time))
 
-summary(inform$Control.Date.Time)
-# these are not marked 1970! go team
-```
-
-```{r}
-# Created.By.System -> factor
-inform <- inform %>%
-    mutate(Created.By.System = as_factor(Created.By.System))
 ```
 
 ```{r}
@@ -127,14 +250,110 @@ inform %>%
 ```
 
 ```{r}
-# converting Dispatch.Center.ID to factor
-inform <- inform %>% 
-    mutate(Dispatch.Center.ID = as_factor(Dispatch.Center.ID))
-
+# converting Final.Fire.Report.Approved.Date to datetime
 inform %>% 
-    group_by(Dispatch.Center.ID) %>% 
-    summarize(n = n()) %>% 
-    arrange(desc(n))
+    select(Final.Fire.Report.Approved.Date) 
+
+inform <- inform %>%
+    mutate(Final.Fire.Report.Approved.Date = mdy_hms(Final.Fire.Report.Approved.Date))
+```
+
+```{r}
+# converting Fire.Discovery.Date.Time to datetime
+inform %>% 
+    select(Fire.Discovery.Date.Time)
+
+inform <- inform %>%
+    mutate(Fire.Discovery.Date.Time = mdy_hms(Fire.Discovery.Date.Time))
+```
+
+```{r}
+# converting FireOutDateTime to datetime
+inform %>% 
+    select(FireOutDateTime)
+
+inform <- inform %>%
+    mutate(FireOutDateTime = mdy_hms(FireOutDateTime))
+```
+
+```{r}
+# converting Initial.Response.Date.Time to datetime
+inform %>%
+    select(Initial.Response.Date.Time)
+
+inform <- inform %>%
+    mutate(Initial.Response.Date.Time = mdy_hms(Initial.Response.Date.Time))
+
+```
+
+```{r}
+# converting Modified.On.Date.Time to datetime
+inform %>%
+    select(Modified.On.Date.Time)
+
+inform <- inform %>%
+    mutate(Modified.On.Date.Time = mdy_hms(Modified.On.Date.Time))
+
+```
+
+### Column removal, filtering
+
+```{r}
+# removing columns that are missing all values
+inform <- inform %>% 
+    select(-c(
+        Discovery.Acres, 
+        Estimated.Cost.To.Date, 
+        Final.Acres, 
+        Final.Fire.Report.Approved.By.Unit, 
+        Fire.Behavior.General, 
+        Incident.Short.Description, 
+        Is.Reimbursable, 
+        POO.Jurisdictional.Unit.Parent.Unit, 
+        Percent.Contained
+    ))
+```
+
+```{r}
+# limiting Calendar.Year to just 2015-2026
+# missing values for Calendar.Year are all present for Fire.Discovery.Date.Time - can impute
+
+inform <- inform %>%
+    mutate(
+        Calendar.Year = ifelse(abs(year(Fire.Discovery.Date.Time) - Calendar.Year)==100, 
+                        date(Fire.Discovery.Date.Time), 
+                        Calendar.Year),
+        Calendar.Year = ifelse(is.na(Calendar.Year), 
+                        date(Fire.Discovery.Date.Time), 
+                        Calendar.Year)
+    ) %>%
+    filter(abs(year(Fire.Discovery.Date.Time) - Calendar.Year) <= 1) %>%
+    filter(Calendar.Year >= 2015, Calendar.Year <= 2026)
+
+inform %>%
+    group_by(Calendar.Year) %>%
+    summarize(n = n())
+```
+
+```{r}
+# removing anomaly -1 acres burned fire
+inform <- inform %>%
+    filter(Calculated.Acres >= 0)
+```
+
+### Parsing/changing specific entry types to NA
+
+```{r}
+# 1970-01-01 has to be a placeholder. changing to NA
+inform %>% 
+    mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00"))) %>%
+    group_by(Containment.Date.Time) %>%
+    summarize(n=n()) %>%
+    arrange(Containment.Date.Time)
+
+inform <- inform %>% 
+    mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00")))
+
 ```
 
 ```{r}
@@ -270,192 +489,6 @@ interim_inform <- inform %>%
 
 ```
 
-```{r}
-# converting Final.Fire.Report.Approved.Date to datetime
-inform %>% 
-    select(Final.Fire.Report.Approved.Date) 
-
-inform <- inform %>%
-    mutate(Final.Fire.Report.Approved.Date = mdy_hms(Final.Fire.Report.Approved.Date))
-```
-
-```{r}
-# converting Fire.Discovery.Date.Time to datetime
-inform %>% 
-    select(Fire.Discovery.Date.Time)
-
-inform <- inform %>%
-    mutate(Fire.Discovery.Date.Time = mdy_hms(Fire.Discovery.Date.Time))
-```
-
-```{r}
-# converting Fire.Mgmt.Complexity to factor
-inform %>% 
-    group_by(Fire.Mgmt.Complexity) %>%
-    summarize(n = n())
-
-inform <- inform %>%
-    mutate(Fire.Mgmt.Complexity = factor(Fire.Mgmt.Complexity, 
-        levels=c(
-            "Type 1 Incident",
-            "Type 1 Prescribed Fire",
-            "Type 2 Incident",
-            "Type 3 Incident", 
-            "Type 3 Prescribed Fire",
-            "Type 4 Incident",
-            "Type 5 Incident",
-            "Complex Incident"
-        ), ordered=TRUE))
-```
-
-```{r}
-# converting FireOutDateTime to datetime
-inform %>% 
-    select(FireOutDateTime)
-
-inform <- inform %>%
-    mutate(FireOutDateTime = mdy_hms(FireOutDateTime))
-```
-
-```{r}
-# converting FS.Job.Code to factor
-inform <- inform %>%
-    mutate(FS.Job.Code = as_factor(FS.Job.Code))
-
-```
-
-```{r}
-# converting FS.Override.Code to factor
-inform <- inform %>%
-    mutate(FS.Override.Code = as_factor(FS.Override.Code))
-
-```
-
-```{r}
-# converting GACC to factor
-inform <- inform %>%
-    mutate(GACC = as_factor(GACC))
-
-```
-
-```{r}
-# converting Incident.Type.Category to factor
-inform <- inform %>%
-    mutate(Incident.Type.Category = as_factor(Incident.Type.Category))
-
-```
-
-```{r}
-# converting Initial.Response.Date.Time to datetime
-inform %>%
-    select(Initial.Response.Date.Time)
-
-inform <- inform %>%
-    mutate(Initial.Response.Date.Time = mdy_hms(Initial.Response.Date.Time))
-
-```
-
-```{r}
-# convert Is.Fire.Cause.Investigated to bool
-inform %>% 
-    select(Is.Fire.Cause.Investigated) 
-
-inform <- inform %>% 
-    mutate(Is.Fire.Cause.Investigated = as.logical(Is.Fire.Cause.Investigated))
-
-```
-
-```{r}
-# convert Is.FS.Assisted to bool
-inform %>% 
-    select(Is.FS.Assisted) 
-
-inform <- inform %>% 
-    mutate(Is.FS.Assisted = as.logical(Is.FS.Assisted))
-
-```
-
-```{r}
-# convert Is.Trespass to bool
-inform %>% 
-    select(Is.Trespass) 
-
-inform <- inform %>% 
-    mutate(Is.Trespass = as.logical(Is.Trespass))
-
-```
-
-```{r}
-# converting Modified.On.Date.Time to datetime
-inform %>%
-    select(Modified.On.Date.Time)
-
-inform <- inform %>%
-    mutate(Modified.On.Date.Time = mdy_hms(Modified.On.Date.Time))
-
-```
-
-```{r}
-# converting POO.Fips to numeric
-inform <- inform %>%
-    mutate(POO.Fips = as.numeric(POO.Fips)) 
-
-```
-
-```{r}
-# converting POO.Jurisdictional.Agency to factor
-inform <- inform %>%
-    mutate(POO.Jurisdictional.Agency = as_factor(POO.Jurisdictional.Agency))
-
-```
-
-```{r}
-# converting POOLandownerCategory to factor
-inform <- inform %>%
-    mutate(POOLandownerCategory = as_factor(POOLandownerCategory))
-```
-
-```{r}
-# converting POOLandownerKind to factor
-inform <- inform %>%
-    mutate(POOLandownerKind = as_factor(POOLandownerKind))
-```
-
-```{r}
-# converting POO.Protecting.Agency to factor
-inform <- inform %>%
-    mutate(POO.Protecting.Agency = as_factor(POO.Protecting.Agency))
-```
-
-```{r}
-# converting POO.State to factor
-inform <- inform %>%
-    mutate(POO.State = as_factor(POO.State))
-```
-
-```{r}
-# converting Predominant.Fuel.Group to factor
-inform <- inform %>%
-    mutate(Predominant.Fuel.Group = as_factor(Predominant.Fuel.Group))
-```
-
-```{r}
-# convert IsCauseProhibited to bool
-inform <- inform %>% 
-    mutate(IsCauseProhibited = as.logical(IsCauseProhibited))
-```
-
-```{r}
-# converting ModifiedBySystem to factor
-inform <- inform %>%
-    mutate(ModifiedBySystem = as_factor(ModifiedBySystem))
-```
-
-```{r}
-# converting Status to factor
-inform <- inform %>%
-    mutate(Status = as_factor(Status))
-```
 
 ```{r}
 # cleaning Fire.Cause.Comments

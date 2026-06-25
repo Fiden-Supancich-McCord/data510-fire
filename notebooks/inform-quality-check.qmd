@@ -43,7 +43,7 @@ summary(inform)
 
 ```
 
-## Column data types/summary/NA counts
+## Column data types/summaries/NA counts
 
 There are 88 columns so this will take a long time.
 
@@ -678,12 +678,15 @@ inform_missing <- inform %>%
 ```{r}
 inform_missing %>% 
     ggplot(aes(reorder(key, num_missing), num_missing)) +
-    geom_bar(stat="identity") +
-    geom_hline(yintercept=pull(count(inform))) +
+    geom_bar(stat="identity", fill="lightblue") +
+    geom_hline(yintercept=pull(count(inform)), color="black") +
+    geom_hline(yintercept=pull(count(inform)*0.9), color="red") +
+    geom_hline(yintercept=pull(count(inform)*0.5), color="orange2") +
     theme_minimal() +
     coord_flip()
 ```
 
+Significant missingness in a lot of columns. 
 
 ```{r}
 inform_missing_pct <- inform %>%
@@ -697,6 +700,61 @@ inform_missing_pct <- inform %>%
 
 ```
 
+```{r}
+inform_missing_pct %>%
+    filter(is_missing == TRUE, pct == 1) 
+```
+
+9 columns are missing everything and should be removed during cleaning. 
+
+```{r}
+inform_missing_pct %>%
+    filter(is_missing == TRUE, pct >= 0.9, pct < 1) %>%
+    arrange(desc(pct))
+```
+
+Excluding the above, 11 columns are at least 90% missing. 
+
+- City
+- Fire.Cause.Activity.Group
+- Fire.Cause.Specific.Detail
+- ABCD.Misc
+- FireDepartmentID
+- Fire.Mgmt.Complexity
+- Is.Fire.Cause.Investigated
+- Fire.Cause.Age.Category
+- Fire.Cause.Comments
+- FS.Override.Code
+- Predominant.Fuel.Model
+
+They seem to be mostly irrelevant for our analysis.
+
+```{r}
+inform_missing_pct %>%
+    filter(is_missing == TRUE, pct >= 0.75, pct < 0.9) %>%
+    arrange(desc(pct))
+```
+
+An additional 8 columns are at least 75% missing. Again, they seem to be mostly irrelevant for our analysis.
+
+```{r}
+inform_missing_pct %>%
+    filter(is_missing == TRUE, pct >= 0.5, pct < 0.75) %>%
+    arrange(desc(pct))
+```
+
+An additional 10 columns are at least 50% missing. 
+- Calculated.Acres is important, but we can derive that from IFPH. 
+- Predominant.Fuel.Group would also be nice to have, but not critical.
+
+```{r}
+inform_missing_pct %>%
+    filter(is_missing == TRUE, pct >= 0.2, pct < 0.5) %>%
+    arrange(desc(pct))
+```
+
+An additional 6 columns are at least 20% missing. 
+- FireOutDateTime and Containment.Date.Time would both be nice to have, but that level of precision isn't necessarily needed assuming another datetime column provides similar information. 
 
 ```{r}
 levels <-
@@ -712,6 +770,28 @@ inform_missing_pct %>%
     theme_minimal()
 
 ```
+
+## Date missingness
+
+### datetime conversions
+
+```{r}
+# converting Containment.Date.Time to a date
+inform <- inform %>%
+    mutate(
+        Containment.Date.Time = lubridate::mdy_hms(Containment.Date.Time),
+        Control.Date.Time = lubridate::mdy_hms(Control.Date.Time),
+        Created.On.Date.Time = as_datetime(Created.On.Date.Time/1000),
+        Final.Fire.Report.Approved.Date = mdy_hms(Final.Fire.Report.Approved.Date),
+        Fire.Discovery.Date.Time = mdy_hms(Fire.Discovery.Date.Time),
+        FireOutDateTime = mdy_hms(FireOutDateTime),
+        Initial.Response.Date.Time = mdy_hms(Initial.Response.Date.Time),
+        Modified.On.Date.Time = mdy_hms(Modified.On.Date.Time)
+    )
+
+```
+
+### exploring the (many) datetime cols
 
 
 ```{r}
@@ -775,4 +855,120 @@ inform %>%
 
 summary(is.na(inform$Calendar.Year))
 
+```
+
+### missing/misaligned year info handling
+
+```{r}
+inform_missing_pct %>% filter(key == "Calendar.Year", is_missing==TRUE)
+# 11000 missing
+
+inform %>% 
+    filter(is.na(Calendar.Year)) %>%
+    select(
+        Final.Acres,
+        Calendar.Year, 
+        Fire.Discovery.Date.Time,
+        Containment.Date.Time,
+        FireOutDateTime,
+        Control.Date.Time
+    ) %>%
+    summarize(
+        fd_count_na = sum(is.na(Fire.Discovery.Date.Time)),
+        conta_count_na = sum(is.na(Containment.Date.Time)),
+        fo_count_na = sum(is.na(FireOutDateTime)),
+        contr_count_na = sum(is.na(Control.Date.Time))
+    )
+
+inform %>% 
+    filter(is.na(Calendar.Year)) %>%
+    select(
+        Final.Acres,
+        Calendar.Year, 
+        Fire.Discovery.Date.Time,
+        Containment.Date.Time,
+        FireOutDateTime,
+        Control.Date.Time
+    ) %>% 
+    filter(Fire.Discovery.Date.Time==as_date(00000))
+
+# excluding placeholder Fire.Discovery.Date.Time, 239 do not align with Calendar.Year
+
+# mostly off by one year - likely at beginning or end of year
+inform %>%
+    mutate(year_diff = abs(year(Fire.Discovery.Date.Time) - Calendar.Year)) %>%
+    filter(
+        year(Fire.Discovery.Date.Time) != Calendar.Year, 
+        Fire.Discovery.Date.Time!=as_date(00000)) %>%
+    group_by(year_diff) %>%
+    summarize(
+        january = sum(month(Fire.Discovery.Date.Time)==1),
+        december = sum(month(Fire.Discovery.Date.Time)==12),
+        other = sum(between(month(Fire.Discovery.Date.Time), 2, 11))
+    )
+
+# big complicated query
+inform %>%
+    filter(
+        year(Fire.Discovery.Date.Time) != Calendar.Year, 
+        Fire.Discovery.Date.Time!=as_date(00000)
+    ) %>%
+    filter(
+        (between(month(Fire.Discovery.Date.Time), 2, 11)) | (year(Fire.Discovery.Date.Time) - Calendar.Year != abs(1))
+    ) %>%
+    select(Fire.Discovery.Date.Time, Calendar.Year) %>%
+    mutate(diff = abs(year(Fire.Discovery.Date.Time) - Calendar.Year)) %>%
+    arrange(desc(diff))
+# There are 21 that are Quite Wrong (year is off by more than 1 month). Not sure what to do with those? just impute from Fire.Discovery.Date? Leave it? 
+
+# impute missing Calendar.Year, impute the 100 year differences, remove the 3-11 year differences, keep the 1-year differences as is
+inform %>%
+    mutate(
+        Calendar.Year = ifelse(abs(year(Fire.Discovery.Date.Time) - Calendar.Year)==100, 
+                        date(Fire.Discovery.Date.Time), 
+                        Calendar.Year),
+        Calendar.Year = ifelse(is.na(Calendar.Year), 
+                        date(Fire.Discovery.Date.Time), 
+                        Calendar.Year)
+    ) %>%
+    filter(abs(year(Fire.Discovery.Date.Time) - Calendar.Year) <= 1)
+
+```
+
+## missingness within time range 
+
+```{r}
+inform_missing_pct_curr <- inform %>%
+    mutate(
+        Calendar.Year = ifelse(abs(year(Fire.Discovery.Date.Time) - Calendar.Year)==100, 
+                        date(Fire.Discovery.Date.Time), 
+                        Calendar.Year),
+        Calendar.Year = ifelse(is.na(Calendar.Year), 
+                        date(Fire.Discovery.Date.Time), 
+                        Calendar.Year)
+    ) %>%
+    filter(abs(year(Fire.Discovery.Date.Time) - Calendar.Year) <= 1) %>%
+    filter(Calendar.Year >= 2015, Calendar.Year <= 2026) %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is_missing = is.na(val)) %>%
+    group_by(key) %>%
+    mutate(total = n()) %>%
+    group_by(key, total, is_missing) %>%
+    summarise(num_na = n()) %>%
+    mutate(pct = num_na / total)
+
+```
+
+```{r}
+levels <-
+    (inform_missing_pct_curr %>% filter(is_missing == F) %>% arrange(pct))$key
+
+inform_missing_pct_curr %>%
+    ggplot(aes(key, pct, fill=is_missing)) +
+    geom_bar(stat="identity") +
+    scale_x_discrete(limits=levels) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(name = "", values = c('steelblue', 'tomato3'), labels = c("Present", "Missing")) +
+    coord_flip() +
+    theme_minimal()
 ```
