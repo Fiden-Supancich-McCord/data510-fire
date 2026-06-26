@@ -329,7 +329,9 @@ inform <- inform %>%
         Calendar.Year = ifelse(is.na(Calendar.Year), 
                         date(Fire.Discovery.Date.Time), 
                         Calendar.Year)
-    ) %>%
+    ) 
+    
+inform %>%
     # removing all where Fire.Discovery.Date.Time and Calendar.Year are misaligned by more than one year
     filter(abs(year(Fire.Discovery.Date.Time) - Calendar.Year) <= 1) %>%
     filter(Calendar.Year >= 2015, Calendar.Year <= 2026)
