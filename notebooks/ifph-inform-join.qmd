@@ -1,0 +1,471 @@
+---
+title: "IFPH InFORM Join"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+# IFPH InFORM join
+
+## Ingestion from download
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+```{r}
+ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
+
+inform <- read_csv("/Users/nikolefiden/Desktop/DATA-510/InFORM_FireOccurrence_Public.csv")
+
+inform_backup <- read_csv("/Users/nikolefiden/Desktop/DATA-510/InFORM_FireOccurrence_Public.csv")
+```
+
+## Cleaning up
+
+```{r}
+# replacing spaces in col names with "." 
+inform <- inform %>% dplyr::rename_all(~ make.names(.))
+inform_backup <- inform_backup %>% dplyr::rename_all(~ make.names(.))
+
+```
+
+### Limiting to OR
+
+Getting just OR from `usmap` to filter fires/native land to our area of interest with `st_intersects`. 
+
+```{r}
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs=st_crs(ifph))
+
+or %>% 
+    ggplot() +
+    geom_sf() + 
+    theme_minimal()
+```
+
+```{r}
+lengths(ifph)
+
+# creating intersection list for all polygons that intersect with OR border
+# then selecting only those polygons
+ifph_int = st_intersects(or, ifph)
+dim(ifph_int)
+
+or_ifph = ifph[unlist(ifph_int),]
+dim(or_ifph)
+
+or_ifph %>% 
+    ggplot() + geom_sf() + theme_minimal()
+
+lengths(or_ifph)
+```
+
+### Creating dataframe
+
+```{r}
+ifph_df <- as.data.frame(or_ifph)
+
+```
+
+### IFPH Cleaning
+
+```{r}
+# limiting FIRE_YEAR_ to 2015-2025 (inclusive)
+ifph_df <- ifph_df %>%
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
+
+# converting INCIDENT = UNNAMED, UNKNOWN to NA
+ifph_df %>%
+    mutate(INCIDENT = toupper(INCIDENT)) %>%
+    group_by(INCIDENT) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+
+ifph_df <- ifph_df %>%
+    mutate(INCIDENT = toupper(INCIDENT)) %>%
+    mutate(INCIDENT = ifelse(INCIDENT %in% c("UNNAMED", "UNKNOWN"), NA, INCIDENT)) 
+
+ifph_df %>%
+    mutate(INCIDENT = toupper(INCIDENT)) %>%
+    group_by(INCIDENT) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+
+# converting DATE_CUR to actual datetime 
+# not sure what the timezone is. but it probably doesn't matter for our purposes
+ifph_df <- ifph_df %>%
+    mutate(DATE_CUR = lubridate::ymd_hms(DATE_CUR))
+
+# shows an error for the NAs that they "failed to parse" - it's fine
+
+# making FEATURE_CA into a factor
+ifph_df <- ifph_df %>%
+    mutate(FEATURE_CA = as_factor(FEATURE_CA)) 
+
+# cleaning MAP_METHOD and turning into factor
+print(n=30, ifph_df %>%
+    mutate(MAP_METHOD = toupper(MAP_METHOD)) %>%
+    group_by(MAP_METHOD) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n)))
+
+ifph_df <- ifph_df %>%
+    mutate(MAP_METHOD = ifelse(MAP_METHOD %in% c("Mixed Method", "Mixed Collection Methods"), "Mixed Methods", MAP_METHOD),
+        MAP_METHOD = ifelse(MAP_METHOD == "Digitized Other", "Digitized-Other", MAP_METHOD)) %>%
+    mutate(MAP_METHOD = as_factor(MAP_METHOD))
+
+# there are others that could be grouped (or are just the same) but for our purposes I'm not going to 
+
+# making SOURCE into a factor
+ifph_df <- ifph_df %>%
+    mutate(SOURCE = as_factor(SOURCE)) 
+
+# making AGENCY into a factor
+ifph_df <- ifph_df %>%
+    mutate(AGENCY = as_factor(AGENCY)) 
+
+# removing FIRE_YEAR col
+ifph_df <- ifph_df %>%
+    select(-FIRE_YEAR)
+```
+
+## InFORM Cleaning
+
+### Data type conversion
+
+#### Numeric 
+
+```{r}
+# converting POO.Fips to numeric
+inform <- inform %>%
+    mutate(POO.Fips = as.numeric(POO.Fips)) 
+
+```
+
+#### Factor
+
+```{r}
+# changing ADS.Permission.State to a factor
+inform <- inform %>%
+    mutate(ADS.Permission.State = as_factor(ADS.Permission.State))
+
+# Created.By.System -> factor
+inform <- inform %>%
+    mutate(Created.By.System = as_factor(Created.By.System))
+
+# converting Dispatch.Center.ID to factor
+inform <- inform %>% 
+    mutate(Dispatch.Center.ID = as_factor(Dispatch.Center.ID))
+
+# converting Fire.Mgmt.Complexity to ordered factor
+inform %>% 
+    group_by(Fire.Mgmt.Complexity) %>%
+    summarize(n = n())
+
+inform <- inform %>%
+    mutate(Fire.Mgmt.Complexity = factor(Fire.Mgmt.Complexity, 
+        levels=c(
+            "Type 1 Incident",
+            "Type 1 Prescribed Fire",
+            "Type 2 Incident",
+            "Type 3 Incident", 
+            "Type 3 Prescribed Fire",
+            "Type 4 Incident",
+            "Type 5 Incident",
+            "Complex Incident"
+        ), ordered=TRUE))
+
+# converting FS.Job.Code to factor
+inform <- inform %>%
+    mutate(FS.Job.Code = as_factor(FS.Job.Code))
+
+# converting FS.Override.Code to factor
+inform <- inform %>%
+    mutate(FS.Override.Code = as_factor(FS.Override.Code))
+
+# converting GACC to factor
+inform <- inform %>%
+    mutate(GACC = as_factor(GACC))
+
+# converting Incident.Type.Category to factor
+inform <- inform %>%
+    mutate(Incident.Type.Category = as_factor(Incident.Type.Category))
+
+# converting POO.Jurisdictional.Agency to factor
+inform <- inform %>%
+    mutate(POO.Jurisdictional.Agency = as_factor(POO.Jurisdictional.Agency))
+
+# converting POOLandownerCategory to factor
+inform <- inform %>%
+    mutate(POOLandownerCategory = as_factor(POOLandownerCategory))
+
+# converting POOLandownerKind to factor
+inform <- inform %>%
+    mutate(POOLandownerKind = as_factor(POOLandownerKind))
+
+# converting POO.Protecting.Agency to factor
+inform <- inform %>%
+    mutate(POO.Protecting.Agency = as_factor(POO.Protecting.Agency))
+
+# converting POO.State to factor
+inform <- inform %>%
+    mutate(POO.State = as_factor(POO.State))
+
+# converting Predominant.Fuel.Group to factor
+inform <- inform %>%
+    mutate(Predominant.Fuel.Group = as_factor(Predominant.Fuel.Group))
+
+# converting ModifiedBySystem to factor
+inform <- inform %>%
+    mutate(ModifiedBySystem = as_factor(ModifiedBySystem))
+
+# converting Status to factor
+inform <- inform %>%
+    mutate(Status = as_factor(Status))
+```
+
+#### Logical
+
+```{r}
+# convert Is.Fire.Cause.Investigated to bool
+inform <- inform %>% 
+    mutate(Is.Fire.Cause.Investigated = as.logical(Is.Fire.Cause.Investigated))
+
+# convert Is.FS.Assisted to bool
+inform <- inform %>% 
+    mutate(Is.FS.Assisted = as.logical(Is.FS.Assisted))
+
+# convert Is.Trespass to bool
+inform <- inform %>% 
+    mutate(Is.Trespass = as.logical(Is.Trespass))
+
+# convert IsCauseProhibited to bool
+inform <- inform %>% 
+    mutate(IsCauseProhibited = as.logical(IsCauseProhibited))
+```
+
+#### Datetime
+
+```{r}
+# converting Containment.Date.Time to a date
+inform <- inform %>%
+    mutate(Containment.Date.Time = lubridate::mdy_hms(Containment.Date.Time))
+
+# converting Control.Date.Time to a date
+inform <- inform %>%
+    mutate(Control.Date.Time = lubridate::mdy_hms(Control.Date.Time))
+
+# converting Created.On.Date.Time to datetime
+inform <- inform %>%
+    mutate(Created.On.Date.Time = as_datetime(Created.On.Date.Time/1000)) 
+
+# converting Final.Fire.Report.Approved.Date to datetime
+inform <- inform %>%
+    mutate(Final.Fire.Report.Approved.Date = mdy_hms(Final.Fire.Report.Approved.Date))
+
+# converting Fire.Discovery.Date.Time to datetime
+inform <- inform %>%
+    mutate(Fire.Discovery.Date.Time = mdy_hms(Fire.Discovery.Date.Time))
+
+# converting FireOutDateTime to datetime
+inform <- inform %>%
+    mutate(FireOutDateTime = mdy_hms(FireOutDateTime))
+
+# converting Initial.Response.Date.Time to datetime
+inform <- inform %>%
+    mutate(Initial.Response.Date.Time = mdy_hms(Initial.Response.Date.Time))
+
+# converting Modified.On.Date.Time to datetime
+inform <- inform %>%
+    mutate(Modified.On.Date.Time = mdy_hms(Modified.On.Date.Time))
+
+```
+
+### Column removal, filtering
+
+```{r}
+# removing columns that are missing all values
+inform <- inform %>% 
+    select(-c(
+        Discovery.Acres, 
+        Estimated.Cost.To.Date, 
+        Final.Acres, 
+        Final.Fire.Report.Approved.By.Unit, 
+        Fire.Behavior.General, 
+        Incident.Short.Description, 
+        Is.Reimbursable, 
+        POO.Jurisdictional.Unit.Parent.Unit, 
+        Percent.Contained
+    ))
+```
+
+```{r}
+# limiting Calendar.Year to just 2015-2026
+# missing values for Calendar.Year are all present for Fire.Discovery.Date.Time - can impute
+
+inform <- inform %>%
+    mutate(
+        # imputing values that are off by 100 - can assume 1922 -> 2022 and 2121 -> 2021
+        Calendar.Year = ifelse(abs(year(Fire.Discovery.Date.Time) - Calendar.Year)==100, 
+                        year(Fire.Discovery.Date.Time), 
+                        Calendar.Year),
+        # imputing missing values 
+        Calendar.Year = ifelse(is.na(Calendar.Year), 
+                        year(Fire.Discovery.Date.Time), 
+                        Calendar.Year)
+    ) 
+    
+inform <- inform %>%
+    # removing all where Fire.Discovery.Date.Time and Calendar.Year are misaligned by more than one year
+    filter(abs(year(Fire.Discovery.Date.Time) - Calendar.Year) <= 1) %>%
+    filter(Calendar.Year >= 2015, Calendar.Year <= 2026)
+
+inform %>%
+    group_by(Calendar.Year) %>%
+    summarize(n = n())
+```
+
+```{r}
+# removing anomaly -1 acres burned fire
+inform <- inform %>%
+    filter(Calculated.Acres >= 0)
+```
+
+### Parsing/changing specific entry types to NA
+
+```{r}
+# 1970-01-01 is to be a placeholder, changing to NA
+inform %>% 
+    mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00"))) %>%
+    group_by(Containment.Date.Time) %>%
+    summarize(n=n()) %>%
+    arrange(Containment.Date.Time)
+
+inform <- inform %>% 
+    mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00")))
+
+```
+
+```{r}
+# cleaning Fire.Cause.Comments
+inform %>%
+    group_by(Fire.Cause.Comments) %>%
+    summarize(n = n()) %>%
+    arrange(Fire.Cause.Comments)
+
+inform %>%
+    mutate(Fire.Cause.Comments = str_remove(Fire.Cause.Comments, "\n")
+    ) %>%
+    mutate(Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("N/A", "NA", "", "*", ".", "-", ".."), NA, Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c(
+                "UNKNOWN", 
+                "UNDETERMINED", 
+                "UNK", 
+                "UN", 
+                "UNKOWN", 
+                "UNKNOWN CAUSE",
+                "UK"
+           ), "Unknown", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("UNDER INVESTIGATION"), "Under investigation", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NOT INVESTIGATED"), "Not investigated", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
+    ) %>%
+    group_by(Fire.Cause.Comments) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n)) %>%
+    print(n=25)
+
+inform <- inform %>% 
+    mutate(Fire.Cause.Comments = str_remove(Fire.Cause.Comments, "\n")) %>%
+    mutate(Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("N/A", "NA", "", "*", ".", "-", ".."), NA, Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c(
+                "UNKNOWN", 
+                "UNDETERMINED", 
+                "UNK", 
+                "UN", 
+                "UNKOWN", 
+                "UNKNOWN CAUSE",
+                "UK"
+           ), "Unknown", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("UNDER INVESTIGATION"), "Under investigation", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NOT INVESTIGATED"), "Not investigated", Fire.Cause.Comments),
+           Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
+    )
+```
+
+# Joining them
+
+```{r}
+ifph_df %>%
+    mutate(FORID = str_remove_all(FORID, "[{}]")) %>%
+    mutate(
+        unqe_match = ifelse(UNQE_FIRE_ %in% inform_backup$UniqueFireIdentifier, T, F),
+        forid_match = ifelse(FORID %in% inform_backup$FORID, T, F),
+        globalid_match = ifelse(GlobalID %in% inform_backup$GlobalID, T, F)
+    ) %>%
+    group_by(unqe_match, forid_match, globalid_match)%>%
+    summarize(n=n())
+
+head(inform %>% select(UniqueFireIdentifier, FORID, GlobalID))
+head(ifph_df %>% select(UNQE_FIRE_, FORID, GlobalID))
+
+sum(ifph_df$UNQE_FIRE_ %in% inform_backup$UniqueFireIdentifier)
+
+```
+
+```{r}
+ifph_df %>%
+    group_by(UNQE_FIRE_, GlobalID) %>%
+    summarize(n=n()) %>%
+    filter(n > 1) %>%
+    arrange(desc(n))
+
+inform_backup %>%
+    group_by(UniqueFireIdentifier, GlobalID) %>%
+    summarize(n=n()) %>%
+    filter(n > 1, !is.na(UniqueFireIdentifier)) %>%
+    arrange(desc(n))
+
+# everything with duplicated unique fire identifiers has a distinct global id for each entry. so i guess that makes sense. however the global IDs don't overlap across datasets. so fml I guess?
+```
+
+```{r}
+ifph_df %>% 
+    mutate(is_ifph = TRUE) %>%
+    full_join(inform %>% mutate(is_inform = TRUE), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
+    group_by(is_ifph, is_inform, Calendar.Year) %>%
+    summarize(n=n()) %>%
+    arrange(desc(Calendar.Year))
+
+
+ifph_inform <- ifph_df %>% 
+    mutate(is_ifph = TRUE) %>%
+    left_join(inform %>% mutate(is_inform = TRUE), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
+
+ifph_inform %>% 
+    group_by(is_inform, FIRE_YEAR_) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n)) %>%
+    print(n=20)
+
+ifph_inform %>% 
+    group_by(is_inform) %>%
+    summarize(
+        n=n(),
+        quant_year = as_tibble_row(quantile(FIRE_YEAR_))
+    ) %>%
+    arrange(desc(n)) 
+# this is a potential issue - the year spread is pretty distinct.
+```
+
+Not much to be done about it, but should be noted! 

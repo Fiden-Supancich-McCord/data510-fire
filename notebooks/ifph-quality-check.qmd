@@ -196,3 +196,56 @@ summary(is.na(ifph_df$GlobalID)) # none missing, all unique
 
 # last is geometry column which I will not be touching
 ```
+
+```{r}
+ifph_missing_pct <- ifph_df %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is_missing = is.na(val)) %>%
+    group_by(key) %>%
+    mutate(total = n()) %>%
+    group_by(key, total, is_missing) %>%
+    summarise(num_na = n()) %>%
+    mutate(pct = num_na / total)
+```
+
+```{r}
+levels <-
+    (ifph_missing_pct %>% filter(is_missing == F) %>% arrange(pct))$key
+
+ifph_missing_pct %>%
+    ggplot(aes(key, pct, fill=is_missing)) +
+    geom_bar(stat="identity") +
+    scale_x_discrete(limits=levels) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(name = "", values = c('steelblue', 'tomato3'), labels = c("Present", "Missing")) +
+    coord_flip() +
+    theme_minimal()
+```
+
+```{r}
+ifph_missing_pct_curr <- ifph_df %>%
+    filter(FIRE_YEAR_ >= 2015) %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is_missing = is.na(val)) %>%
+    group_by(key) %>%
+    mutate(total = n()) %>%
+    group_by(key, total, is_missing) %>%
+    summarise(num_na = n()) %>%
+    mutate(pct = num_na / total)
+```
+
+```{r}
+levels_curr <-
+    (ifph_missing_pct_curr %>% filter(is_missing == F) %>% arrange(pct))$key
+
+ifph_missing_pct_curr %>%
+    ggplot(aes(key, pct, fill=is_missing)) +
+    geom_bar(stat="identity") +
+    scale_x_discrete(limits=levels_curr) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(name = "", values = c('steelblue', 'tomato3'), labels = c("Present", "Missing")) +
+    coord_flip() +
+    theme_minimal()
+```
+
+Very few missing for UNQE_FIRE when limited to 2015-present! Great news. 
