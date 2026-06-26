@@ -24,8 +24,6 @@ library(sf)
 ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
 
 inform <- read_csv("/Users/nikolefiden/Desktop/DATA-510/InFORM_FireOccurrence_Public.csv")
-
-inform_backup <- read_csv("/Users/nikolefiden/Desktop/DATA-510/InFORM_FireOccurrence_Public.csv")
 ```
 
 ## Cleaning up
@@ -33,8 +31,6 @@ inform_backup <- read_csv("/Users/nikolefiden/Desktop/DATA-510/InFORM_FireOccurr
 ```{r}
 # replacing spaces in col names with "." 
 inform <- inform %>% dplyr::rename_all(~ make.names(.))
-inform_backup <- inform_backup %>% dplyr::rename_all(~ make.names(.))
-
 ```
 
 ### Limiting to OR
@@ -409,9 +405,9 @@ inform <- inform %>%
 ifph_df %>%
     mutate(FORID = str_remove_all(FORID, "[{}]")) %>%
     mutate(
-        unqe_match = ifelse(UNQE_FIRE_ %in% inform_backup$UniqueFireIdentifier, T, F),
-        forid_match = ifelse(FORID %in% inform_backup$FORID, T, F),
-        globalid_match = ifelse(GlobalID %in% inform_backup$GlobalID, T, F)
+        unqe_match = ifelse(UNQE_FIRE_ %in% inform$UniqueFireIdentifier, T, F),
+        forid_match = ifelse(FORID %in% inform$FORID, T, F),
+        globalid_match = ifelse(GlobalID %in% inform$GlobalID, T, F)
     ) %>%
     group_by(unqe_match, forid_match, globalid_match)%>%
     summarize(n=n())
@@ -419,7 +415,7 @@ ifph_df %>%
 head(inform %>% select(UniqueFireIdentifier, FORID, GlobalID))
 head(ifph_df %>% select(UNQE_FIRE_, FORID, GlobalID))
 
-sum(ifph_df$UNQE_FIRE_ %in% inform_backup$UniqueFireIdentifier)
+sum(ifph_df$UNQE_FIRE_ %in% inform$UniqueFireIdentifier)
 
 ```
 
@@ -430,13 +426,13 @@ ifph_df %>%
     filter(n > 1) %>%
     arrange(desc(n))
 
-inform_backup %>%
+inform %>%
     group_by(UniqueFireIdentifier, GlobalID) %>%
     summarize(n=n()) %>%
     filter(n > 1, !is.na(UniqueFireIdentifier)) %>%
     arrange(desc(n))
 
-# everything with duplicated unique fire identifiers has a distinct global id for each entry. so i guess that makes sense. however the global IDs don't overlap across datasets. so fml I guess?
+# everything with duplicated unique fire identifiers has a distinct global id for each entry. so i guess that makes sense. however the global IDs don't overlap across datasets
 ```
 
 ```{r}
