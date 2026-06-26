@@ -1,0 +1,183 @@
+---
+title: "LandMark quality check"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+# Ingestion from download
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+```{r}
+landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
+landmark <- st_zm(landmark)
+
+```
+
+# Limiting to OR
+
+Getting just OR from `usmap` to filter fires/native land to our area of interest with `st_intersects`. 
+
+```{r}
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs=st_crs(landmark))
+
+or %>% 
+    ggplot() +
+    geom_sf() + 
+    theme_minimal()
+```
+
+```{r}
+# issue with dimensions, removing z
+landmark <- st_zm(landmark)
+# limiting to just US first so it doesn't take as long to run
+us_lm <- landmark %>% filter(iso_code == "USA")
+
+lengths(us_lm)
+head(us_lm)
+
+# creating intersection list for all polygons that intersect with OR border
+# then selecting only those polygons
+lm_int = st_intersects(or, us_lm)
+dim(lm_int)
+
+or_lm = us_lm[unlist(lm_int),]
+dim(or_lm)
+
+or_lm %>% ggplot() + geom_sf()
+lengths(or_lm)
+```
+
+# Creating dataframe
+
+```{r}
+# creating dataframes for each
+lm_df <- as.data.frame(or_lm)
+```
+
+# checking data types
+
+```{r}
+names(lm_df)
+summary(lm_df)
+
+# identity
+summary(is.na(lm_df$identity)) # all present
+unique(lm_df$identity) # all "Indigenous"
+
+# name
+summary(is.na(lm_df$name))
+unique(lm_df$name) # all unique
+
+# form_rec
+summary(is.na(lm_df$form_rec))
+unique(lm_df$form_rec) # all "Acknowledged by govt"
+
+# doc_status
+summary(is.na(lm_df$doc_status))
+unique(lm_df$doc_status) # all "Documented"
+
+# stat_date
+summary(is.na(lm_df$stat_date)) # all missing
+
+# stat_note
+summary(is.na(lm_df$stat_note)) # all missing
+
+# country
+summary(is.na(lm_df$country))
+unique(lm_df$country) # all "United States of America"
+
+# category
+summary(is.na(lm_df$category))
+unique(lm_df$category) # all "American Indian and Alaska Native Land Area Representation"
+
+# ethncty_1
+summary(is.na(lm_df$ethncty_1)) # all missing
+
+# populatn
+summary(is.na(lm_df$populatn)) 
+class(lm_df$populatn)
+summary(lm_df$populatn) # all 0
+
+# pop_source
+summary(is.na(lm_df$pop_source)) # all missing
+
+# pop_year
+summary(is.na(lm_df$pop_year))
+class(lm_df$pop_year)
+summary(lm_df$pop_year) # all 0
+
+# area_ofcl
+summary(is.na(lm_df$area_ofcl))
+class(lm_df$area_ofcl)
+summary(lm_df$area_ofcl) # all 0
+
+# area_gis
+summary(is.na(lm_df$area_gis))
+class(lm_df$area_gis)
+summary(lm_df$area_gis) # real numbers!
+
+# scale
+summary(is.na(lm_df$scale)) # all missing
+
+# method
+summary(is.na(lm_df$method)) # all missing
+
+# data_ctrb
+summary(is.na(lm_df$data_ctrb))
+unique(lm_df$data_ctrb) # all "Publicly available"
+
+# data_src
+summary(is.na(lm_df$data_src))
+unique(lm_df$data_src) # all "Bureau of Indian Affairs, Office of Trust Services, Division of Land Titles and Records, Branch of Geospatial Support"
+
+# data_src_s
+summary(is.na(lm_df$data_src_s))
+unique(lm_df$data_src_s) # all "BIA"
+
+# data_src_l
+summary(is.na(lm_df$data_src_l))
+unique(lm_df$data_src_l) # all "Bureau of Indian Affairs, Office of Trust Services, Division of Land Titles and Records, Branch of Geospatial Support"
+
+# data_date
+summary(is.na(lm_df$data_date))
+class(lm_df$data_date) # char, should be numeric
+unique(lm_df$data_date) # all 2024
+
+# add_note
+summary(is.na(lm_df$add_note)) # all missing
+
+# more_info
+summary(is.na(lm_df$more_info))
+unique(lm_df$more_info) # all "https://biamaps.geoplatform.gov/"
+
+# layer
+summary(is.na(lm_df$layer))
+unique(lm_df$layer) # all "Indigenous Lands"
+
+# download
+summary(is.na(lm_df$download))
+unique(lm_df$download) # all "Yes"
+
+# iso_code
+summary(is.na(lm_df$iso_code))
+unique(lm_df$iso_code) # all "USA"
+
+# geometry
+# ignoring, it's the geometry
+```
+
+A lot of these columns are totally irrelevant for our purposes! Great news. 
