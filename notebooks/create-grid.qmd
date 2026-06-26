@@ -1,0 +1,135 @@
+---
+title: "IFPH InFORM Join"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+# Creating grid for oregon
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+```{r}
+landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
+landmark <- st_zm(landmark)
+```
+
+## OR
+
+```{r}
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs=st_crs(landmark))
+
+or %>% 
+    ggplot() +
+    geom_sf() + 
+    theme_minimal()
+```
+
+## Create grid
+
+```{r}
+or_grid_square <- st_make_grid(or, cellsize=0.05)
+plot(or_grid_square)
+plot(st_geometry(or), add=TRUE)
+plot(or_grid_square[or], col="#ff000088", add=TRUE)
+```
+
+## add names/identifier to each grid cell
+
+```{r}
+head(or_grid_square)
+or_grid = or_grid_square[or]
+length(or_grid_square)
+length(or_grid)
+```
+
+```{r}
+index = seq(1, length(or_grid), 1)
+index_tib = tibble(index)
+
+or_grid_df <- cbind(or_grid, index_tib)
+
+
+st_transform(or_grid, crs=st_crs(landmark))
+```
+
+# Add landmark data
+
+```{r}
+lm_int = st_intersects(or, landmark)
+dim(lm_int)
+
+or_lm = us_lm[unlist(lm_int),]
+dim(or_lm)
+```
+
+```{r}
+indigenous <- st_intersects(or_grid, or_lm, sparse=FALSE)
+indigenous_tibble <- tibble(indigenous)
+
+or_grid_df <- cbind(or_grid_df, indigenous_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("indigenous"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        is_indigenous = ifelse(rowSums(across(starts_with("indigenous"))) == 0, 0, 1)
+    )
+
+lengths(or_grid_df)
+
+```
+
+# Add IFPH data
+
+```{r}
+ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
+
+```
+
+```{r}
+ifph <- st_transform(ifph, st_crs(landmark))
+
+ifph <- st_make_valid(ifph)
+
+```
+
+```{r}
+ifph_int = st_intersects(or, ifph)
+dim(ifph_int)
+
+or_ifph = ifph[unlist(ifph_int),]
+dim(or_ifph)
+
+or_ifph %>% 
+    ggplot() + geom_sf() + theme_minimal()
+
+```
+
+## locked in. adding fire identifier
+
+```{r}
+
+head(or_grid)
+head(or_ifph)
+has_fire <- st_intersects(or_grid, or_ifph, sparse=FALSE)
+head(has_fire)
+dim(has_fire)
+fire_tibble <- tibble(has_fire)
+
+fire_tibble %>% filter(has_fire[,100]==TRUE)
+
+or_grid_df <- cbind(or_grid_df, indigenous_tibble)
+
+```
