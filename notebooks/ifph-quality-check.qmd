@@ -1,0 +1,198 @@
+---
+title: "IFPH quality check"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+# IFPH cleaning
+
+## Ingestion from download
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+```{r}
+ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
+```
+
+## Limiting to OR
+
+Getting just OR from `usmap` to filter fires/native land to our area of interest with `st_intersects`. 
+
+```{r}
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs=st_crs(ifph))
+
+or %>% 
+    ggplot() +
+    geom_sf() + 
+    theme_minimal()
+```
+
+```{r}
+lengths(ifph)
+
+# creating intersection list for all polygons that intersect with OR border
+# then selecting only those polygons
+ifph_int = st_intersects(or, ifph)
+dim(ifph_int)
+
+or_ifph = ifph[unlist(ifph_int),]
+dim(or_ifph)
+
+or_ifph %>% 
+    ggplot() + geom_sf() + theme_minimal()
+
+lengths(or_ifph)
+```
+
+## Creating dataframes
+
+```{r}
+ifph_df <- as.data.frame(or_ifph)
+
+```
+
+## Data types
+
+## IFPH data types
+```{r}
+str(ifph_df)
+
+# IRWINID
+length(unique(ifph_df$IRWINID))
+summary(is.na(ifph_df$IRWINID)) # lot of NAs
+head(ifph_df %>% filter(!is.na(IRWINID)) %>% select(IRWINID)) # those that aren't look like chr is correct
+
+# FORID
+length(unique(ifph_df$FORID))
+summary(is.na(ifph_df$FORID)) # lot of NAs
+head(ifph_df %>% filter(!is.na(FORID)) %>% select(FORID)) # those that aren't look like chr is correct
+
+# INCIDENT
+length(unique(ifph_df$INCIDENT))
+summary(is.na(ifph_df$INCIDENT)) # some repeated names - not sure what's up with that, bears some investigations
+
+# GIS_ACRES
+summary(is.na(ifph_df$GIS_ACRES)) # no missing values
+summary(ifph_df$GIS_ACRES)
+length(ifph %>% filter(GIS_ACRES == 0)) # 19 fires that were 0 acres? likely just very small, maybe rounding error? 
+ifph %>% filter(GIS_ACRES == 0) %>% ggplot() + geom_sf()
+# leaving for now, we can revisit these
+
+# UNQE_FIRE_
+length(unique(ifph_df$UNQE_FIRE_))
+summary(is.na(ifph_df$UNQE_FIRE_)) # a few missing, but shouldn't be a problem
+head(ifph_df %>% filter(!is.na(UNQE_FIRE_)) %>% select(UNQE_FIRE_)) # looks good
+
+# DATE_CUR
+summary(is.na(ifph_df$DATE_CUR)) # no missing values
+head(ifph_df %>% select(DATE_CUR)) # should not be chr
+
+# FIRE_YEAR_
+summary(is.na(ifph_df$FIRE_YEAR_)) # no missing values
+summary(ifph_df$FIRE_YEAR_) # need to limit years
+
+# UNIT_ID
+length(unique(ifph_df$UNIT_ID))
+summary(is.na(ifph_df$UNIT_ID)) # some missing
+ifph_df %>%
+    group_by(UNIT_ID) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# seems fine that it's like that
+
+# POO_RESP_I
+length(unique(ifph_df$POO_RESP_I))
+summary(is.na(ifph_df$POO_RESP_I)) # some missing
+ifph_df %>%
+    group_by(POO_RESP_I) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# seems fine
+
+# LOCAL_NUM
+length(unique(ifph_df$LOCAL_NUM))
+summary(is.na(ifph_df$LOCAL_NUM)) # some missing
+ifph_df %>%
+    group_by(LOCAL_NUM) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# not sure why there are so many 0? maybe should be NA, but not relevant to our analysis so I'll leave it
+
+# FEATURE_CA
+length(unique(ifph_df$FEATURE_CA))
+summary(is.na(ifph_df$FEATURE_CA)) # some missing
+ifph_df %>%
+    group_by(FEATURE_CA) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# this should be a factor
+
+# MAP_METHOD
+length(unique(ifph_df$MAP_METHOD)) # 30 unique
+summary(is.na(ifph_df$MAP_METHOD)) # some missing
+ifph_df %>%
+    mutate(MAP_METHOD = toupper(MAP_METHOD)) %>%
+    group_by(MAP_METHOD) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# this should be a factor
+
+# COMMENTS
+length(unique(ifph_df$COMMENTS)) 
+summary(is.na(ifph_df$COMMENTS))
+ifph_df %>%
+    group_by(COMMENTS) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# some repeated comments but it seems normal and fine
+
+# GEO_ID
+length(unique(ifph_df$GEO_ID))
+summary(is.na(ifph_df$GEO_ID)) # none missing
+
+# SOURCE
+length(unique(ifph_df$SOURCE)) 
+summary(is.na(ifph_df$SOURCE)) # none missing
+ifph_df %>%
+    group_by(SOURCE) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# should be a factor
+
+# AGENCY
+length(unique(ifph_df$AGENCY)) 
+summary(is.na(ifph_df$AGENCY)) # none missing
+ifph_df %>%
+    group_by(AGENCY) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+# should be a factor
+
+# FIRE_YEAR
+summary(is.na(ifph_df$FIRE_YEAR)) # none missing
+ifph_df %>%
+    mutate(FIRE_YEAR = as.integer(FIRE_YEAR)) %>%
+    filter(FIRE_YEAR != FIRE_YEAR_) %>%
+    count()
+# FIRE_YEAR always = FIRE_YEAR_, can be removed
+
+# GlobalID
+# it bothers me that this one is not in all caps but whatever
+length(unique(ifph_df$GlobalID))
+summary(is.na(ifph_df$GlobalID)) # none missing, all unique
+
+# last is geometry column which I will not be touching
+```

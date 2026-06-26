@@ -1,0 +1,149 @@
+---
+title: "Data cleaning"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+# IFPH cleaning
+
+## Ingestion from download
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+```{r}
+ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
+```
+
+## Limiting to OR
+
+Getting just OR from `usmap` to filter fires/native land to our area of interest with `st_intersects`. 
+
+```{r}
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs=st_crs(landmark))
+
+or %>% 
+    ggplot() +
+    geom_sf() + 
+    theme_minimal()
+```
+
+```{r}
+lengths(ifph)
+
+# creating intersection list for all polygons that intersect with OR border
+# then selecting only those polygons
+ifph_int = st_intersects(or, ifph)
+dim(ifph_int)
+
+or_ifph = ifph[unlist(ifph_int),]
+dim(or_ifph)
+
+or_ifph %>% 
+    ggplot() + geom_sf()
+
+lengths(or_ifph)
+```
+
+## Creating dataframe
+
+```{r}
+ifph_df <- as.data.frame(or_ifph)
+
+```
+
+## IFPH Cleaning
+
+```{r}
+# limiting FIRE_YEAR_ to 2015-2025 (inclusive)
+ifph_df <- ifph_df %>%
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
+    
+ifph_df%>%
+    select(FIRE_YEAR_) %>%
+    summary()
+```
+
+```{r}
+# converting INCIDENT = UNNAMED, UNKNOWN to NA
+ifph_df %>%
+    mutate(INCIDENT = toupper(INCIDENT)) %>%
+    group_by(INCIDENT) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+
+ifph_df <- ifph_df %>%
+    mutate(INCIDENT = toupper(INCIDENT)) %>%
+    mutate(INCIDENT = ifelse(INCIDENT %in% c("UNNAMED", "UNKNOWN"), NA, INCIDENT)) 
+
+ifph_df %>%
+    mutate(INCIDENT = toupper(INCIDENT)) %>%
+    group_by(INCIDENT) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n))
+```
+
+```{r}
+# converting DATE_CUR to actual datetime 
+# not sure what the timezone is. but it probably doesn't matter for our purposes
+ifph_df <- ifph_df %>%
+    mutate(DATE_CUR = lubridate::ymd_hms(DATE_CUR))
+
+# shows an error for the NAs that they "failed to parse" - it's fine
+summary(is.na(ifph_df$DATE_CUR))
+```
+
+```{r}
+# making FEATURE_CA into a factor
+ifph_df <- ifph_df %>%
+    mutate(FEATURE_CA = as_factor(FEATURE_CA)) 
+
+```
+
+```{r}
+# cleaning MAP_METHOD and turning into factor
+print(n=30, ifph_df %>%
+    mutate(MAP_METHOD = toupper(MAP_METHOD)) %>%
+    group_by(MAP_METHOD) %>%
+    summarize(n = n()) %>%
+    arrange(desc(n)))
+
+ifph_df <- ifph_df %>%
+    mutate(MAP_METHOD = ifelse(MAP_METHOD %in% c("Mixed Method", "Mixed Collection Methods"), "Mixed Methods", MAP_METHOD),
+        MAP_METHOD = ifelse(MAP_METHOD == "Digitized Other", "Digitized-Other", MAP_METHOD)) %>%
+    mutate(MAP_METHOD = as_factor(MAP_METHOD))
+
+# there are others that could be grouped (or are just the same) but for our purposes I'm not going to 
+```
+
+```{r}
+# making SOURCE into a factor
+ifph_df <- ifph_df %>%
+    mutate(SOURCE = as_factor(SOURCE)) 
+
+```
+
+```{r}
+# making AGENCY into a factor
+ifph_df <- ifph_df %>%
+    mutate(AGENCY = as_factor(AGENCY)) 
+
+```
+
+```{r}
+# removing FIRE_YEAR col
+ifph_df <- ifph_df %>%
+    select(-FIRE_YEAR)
+```
