@@ -120,16 +120,89 @@ or_ifph %>%
 ## locked in. adding fire identifier
 
 ```{r}
-
 head(or_grid)
 head(or_ifph)
-has_fire <- st_intersects(or_grid, or_ifph, sparse=FALSE)
-head(has_fire)
-dim(has_fire)
-fire_tibble <- tibble(has_fire)
 
-fire_tibble %>% filter(has_fire[,100]==TRUE)
+# limit ifph to years we care about
+or_ifph_curr <- or_ifph %>%
+    filter(FIRE_YEAR_ >= 2015)
 
-or_grid_df <- cbind(or_grid_df, indigenous_tibble)
+# fire tibble with whether each fire occurred in each grid cell
+fire <- st_intersects(or_grid, or_ifph_curr, sparse=FALSE)
+fire_tibble <- tibble(fire)
+head(fire_tibble)
+dim(fire_tibble)
 
+head(or_ifph_curr)
+
+# combining fire_tibble and or_grid_df to get counts of fires
+or_grid_df <- cbind(or_grid_df, fire_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("fire"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_fires = rowSums(across(starts_with("fire")))
+    )
+
+# removing the interim fire columns (they are mostly false and mostly meaningless)
+or_grid_df <- or_grid_df %>% select(-fire)
+
+head(or_grid_df %>%
+    arrange(desc(n_fires))
+)
+tibble(or_grid_df)
+# max number of fires: 11
+
+# getting grid index as list
+grid_index <- or_grid_df$index
+
+# new tibble that doesn't have a matrix
+fire_tibble2 = tibble(cbind(tibble(data.frame(fire)), grid_index))
+
+# for every grid index, shows the unique fire identifier (unique_id) and whether that fire was in that grid cell (is_fire)
+long_fire <- fire_tibble2 %>%
+    pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
+    mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
+    mutate(unique_id = or_ifph_curr$UNQE_FIRE_[fire_index]) 
+
+# confirming the order didn't shift around for some reason - it did not!
+head(long_fire)
+head(or_ifph_curr$UNQE_FIRE_)
+
+# mutating unique ID to "missing" if NA and adding the constructed fire_index for referencing
+wide_fire <- long_fire %>%
+    mutate(unique_id = ifelse(is.na(unique_id), paste("MISSING", as.symbol(fire_index)), unique_id)) %>%
+    mutate(limited_uid = ifelse(is_fire==TRUE, unique_id, NA)) %>%
+    pivot_wider(names_from = grid_index, values_from = limited_uid) 
+
+head(wide_fire)
+
+# creating new tibble with grid index
+fire_lst_tibble <- tibble(grid_index)
+fire_lst_tibble[,"fire_lst"]=""
+head(fire_lst_tibble,8)
+
+# for every grid cell, pulling unique fire identifiers for fires that occurred in that cell, adding them to fire_lst_tibble
+for (x in 1:dim(or_grid_df)[1]) {
+    lst <- pull(wide_fire, x+3)
+    lst <- lst[!is.na(lst)]
+    #print(lst)
+    if (length(lst) == 0) {
+        fire_lst_tibble$fire_lst[x] = NA
+    } else {
+        fire_lst_tibble$fire_lst[x] = paste(unlist(lst), collapse=", ")
+    }
+}
+
+# checking everything accurate
+ex8 <- pull(wide_fire, `8`)
+ex8 <- ex8[!is.na(ex8)]
+ex8
+head(fire_lst_tibble,8)
+```
+
+```{r}
+or_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="grid_index")))
+
+or_grid_tib
 ```
