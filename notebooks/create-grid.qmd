@@ -206,3 +206,17 @@ or_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="grid_
 
 or_grid_tib
 ```
+
+```{r}
+# visualization? n_fires per square?
+library(viridis)
+
+or_grid_tib %>%
+    mutate(is_indigenous = as_factor(is_indigenous)) %>%
+    ggplot(aes(geometry=geometry, fill=n_fires, color=is_indigenous)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_viridis_c(option="inferno") +
+    scale_colour_discrete(palette=c("white", "black")) +
+    theme_void()
+
+```
