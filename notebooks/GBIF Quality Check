@@ -1,0 +1,286 @@
+---
+title: "GBIF quality check"
+author: "Amaya Supancich-McCord"
+date: "2026-06-26"
+output: html_document
+---
+
+# Ingestion from download
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+```
+
+```{r}
+gbif = read.csv("C://Users//amaya//Downloads//Plant_Species_Data.csv")
+```
+
+# Limiting to OR
+```{r}
+oregon_gbif <- gbif %>% 
+  filter(stateProvince == "Oregon")
+```
+# Number of Total Oregon Rows
+```{r}
+nrow(oregon_gbif)
+```
+
+```{r}
+names(oregon_gbif)
+summary(oregon_gbif)
+```
+```{r}
+# gbifID
+summary(is.na(oregon_gbif$gbifID)) # no missing values
+class(oregon_gbif$gbifID) # numeric
+length(unique(oregon_gbif$gbifID)) # 3684 unique values
+
+# datasetKey
+summary(is.na(oregon_gbif$datasetKey)) # no missing values
+class(oregon_gbif$datasetKey) # char
+length(unique(oregon_gbif$datasetKey)) #2 unique values, interesting, may invite further analysis
+
+# occurrenceID
+summary(is.na(oregon_gbif$occurrenceID)) #no missing values
+class(oregon_gbif$occurrenceID) # character
+length(unique(oregon_gbif$occurrenceID)) # 2684 unique values
+
+# kingdom
+summary(is.na(oregon_gbif$kingdom)) #no missing values
+class(oregon_gbif$kingdom) # char
+length(unique(oregon_gbif$kingdom)) # 1 unique value, as expected ("Plantae")
+
+# phylum
+summary(is.na(oregon_gbif$phylum)) #no missing values
+class(oregon_gbif$phylum) # char
+length(unique(oregon_gbif$phylum)) # 1 unique value, as expected ("Tracheophyta")
+
+# class
+summary(is.na(oregon_gbif$class)) #no missing values
+class(oregon_gbif$class) # char
+length(unique(oregon_gbif$class)) # 3 unique values (Magnoliopsida", "Pinopsida", "Liliopsida")
+
+# order
+summary(is.na(oregon_gbif$order)) #no missing values
+class(oregon_gbif$order) # char
+length(unique(oregon_gbif$order)) 6 unique values ("Fagales", "Cupressales", "Liliales", "Malpighiales", "Rosales", "Pinales" )
+
+# family
+summary(is.na(oregon_gbif$family)) #no missing values
+class(oregon_gbif$family) # char
+length(unique(oregon_gbif$family)) 6 unique values ("Fagaceae", "Cupressaceae", "Melanthiaceae", "Salicaceae", "Rosaceae", "Pinaceae")
+
+# genus
+summary(is.na(oregon_gbif$genus)) #no missing values
+class(oregon_gbif$genus) # char
+length(unique(oregon_gbif$genus)) # 7 unique, as expected ("Quercus", "Thuja", "Xerophyllum", "Populus", "Rubus", "Salix", "Pinus")
+
+# species
+summary(is.na(oregon_gbif$species)) #no missing 
+class(oregon_gbif$species) # char
+length(unique(oregon_gbif$species)) # 7 unique, as expected ("Quercus garryana", "Thuja plicata", "Xerophyllum tenax", "Populus trichocarpa", "Rubus ursinus", "Salix scouleriana", "Pinus ponderosa")
+
+# infraspecificEpithet
+summary(is.na(oregon_gbif$infraspecificEpithet)) # no missing
+class(oregon_gbif$infraspecificEpithet) # char
+length(unique(oregon_gbif$infraspecificEpithet)) #4 unique ("", "garryana", "ponderosa", "benthamiana")
+
+# taxonRank
+summary(is.na(oregon_gbif$taxonRank)) # no missing
+class(oregon_gbif$taxonRank) # char
+length(unique(oregon_gbif$taxonRank)) #2 unique ("SPECIES" & "VARIETY")
+
+# scientificName
+summary(is.na(oregon_gbif$scientificName)) # no missing
+class(oregon_gbif$scientificName) # char
+length(unique(oregon_gbif$scientificName)) #9 unique, as expected  ("Quercus garryana Douglas ex Hook.", "Thuja plicata Donn ex D.Don", "Xerophyllum tenax (Pursh) Nutt.", "Populus trichocarpa Torr. & A.Gray ex Hook.", "Rubus ursinus Cham. & Schltdl.", "Quercus garryana var. garryana", "Salix scouleriana Barratt", "Pinus ponderosa var. ponderosa", "Pinus ponderosa var. benthamiana (Hartw.) Vasey")
+
+# verbatimScientificName
+summary(is.na(oregon_gbif$verbatimScientificName)) #no missing
+class(oregon_gbif$verbatimScientificName) # char
+length(unique(oregon_gbif$verbatimScientificName)) #9 unique as expected ("Quercus garryana", "Thuja plicata", "Xerophyllum tenax", "Populus trichocarpa", "Rubus ursinus", "Quercus garryana garryana", "Salix scouleriana", "Pinus ponderosa ponderosa", "Pinus ponderosa benthamiana")
+# seems to be a concatenation of species and infraspecificEpithet
+
+# verbatimScientificNameAuthorship
+summary(is.na(oregon_gbif$verbatimScientificNameAuthorship)) # no missing
+class(oregon_gbif$verbatimScientificNameAuthorship) # char
+length(unique(oregon_gbif$verbatimScientificNameAuthorship)) #2
+
+# countryCode
+summary(is.na(oregon_gbif$countryCode)) # no missing
+class(oregon_gbif$countryCode) # char
+length(unique(oregon_gbif$countryCode)) #1 unique, as expected (US)
+
+# locality
+summary(is.na(oregon_gbif$locality)) # no missing
+class(oregon_gbif$locality) # char
+length(unique(oregon_gbif$locality)) #2 unique values ("", "South of Blackwell Hill in Harris Gulch. Gold Hill 7.5\\' Quad.")
+
+# stateProvince
+summary(is.na(oregon_gbif$stateProvince)) # no missing
+class(oregon_gbif$stateProvince) # char
+length(unique(oregon_gbif$stateProvince)) #1, as expected ("Oregon")
+
+# occurrenceStatus              
+summary(is.na(oregon_gbif$occurrenceStatus)) #no missing
+class(oregon_gbif$occurrenceStatus) # char
+length(unique(oregon_gbif$occurrenceStatus)) #1 unique, as expected ("PRESENT")
+
+# individualCount              
+summary(is.na(oregon_gbif$individualCountoccurrenceStatus)) #all missing
+class(oregon_gbif$individualCount) # int
+length(unique(oregon_gbif$individualCount)) #1 unique value (NA)
+
+# publishingOrgKey              
+summary(is.na(oregon_gbif$publishingOrgKey)) # no missing
+class(oregon_gbif$publishingOrgKey) # char
+length(unique(oregon_gbif$publishingOrgKey)) #2 unique
+
+# decimalLatitude              
+summary(is.na(oregon_gbif$decimalLatitude)) # no missing
+class(oregon_gbif$decimalLatitude) # numeric
+length(unique(oregon_gbif$decimalLatitude)) #3611 unique values, not a huge concern, but maybe make note of it
+
+# decimalLongitude              
+summary(is.na(oregon_gbif$decimalLongitude)) # no missing
+class(oregon_gbif$decimalLongitude) # numeric
+length(unique(oregon_gbif$decimalLongitude)) #3607 unique values, not a huge concern, but maybe make note of it
+
+# coordinateUncertaintyInMeters              
+summary(is.na(oregon_gbif$coordinateUncertaintyInMeters)) #396 missing values, less than 11% of total, but make note of the issue
+class(oregon_gbif$coordinateUncertaintyInMeters) # int
+length(unique(oregon_gbif$coordinateUncertaintyInMeters)) #344 unique values
+
+# coordinatePrecision              
+summary(is.na(oregon_gbif$coordinatePrecision)) #all missing
+class(oregon_gbif$coordinatePrecision) # logical
+length(unique(oregon_gbif$coordinatePrecision)) #1 unique value ("NA")
+
+# elevation              
+summary(is.na(oregon_gbif$elevation)) #all missing
+class(oregon_gbif$elevation) # int
+length(unique(oregon_gbif$elevation)) #1 unique value, (NA)
+
+elevationAccuracy              
+summary(is.na(oregon_gbif$elevationAccuracy)) #all missing
+class(oregon_gbif$elevationAccuracy) # numeric
+length(unique(oregon_gbif$elevationelevationAccuracy)) #0 unique values
+
+# depth              
+summary(is.na(oregon_gbif$depth)) #all missing
+class(oregon_gbif$depth) # logical
+length(unique(oregon_gbif$depth)) #1 (NA)
+
+# depthAccuracy              
+summary(is.na(oregon_gbif$depthAccuracy)) #all missing
+class(oregon_gbif$depthAccuracy) # logical
+length(unique(oregon_gbif$depthAccuracy)) #1 (NA)
+
+# eventDate              
+summary(is.na(oregon_gbif$eventDate)) #no missing
+class(oregon_gbif$eventDate) # char
+length(unique(oregon_gbif$eventDate)) #3652 unique values
+
+# day              
+summary(is.na(oregon_gbif$day)) #no missinng
+class(oregon_gbif$day) # int
+length(unique(oregon_gbif$day)) #31 unique, yep. thats how dates work
+
+# month             
+summary(is.na(oregon_gbif$month)) #no missing
+class(oregon_gbif$month) # int
+length(unique(oregon_gbif$month)) #12 unique (that them months right there baby)
+
+# year             
+summary(is.na(oregon_gbif$year)) #no missing
+class(oregon_gbif$year) # int
+length(unique(oregon_gbif$year)) #1 unique (2025), this is not great, this should include data from 2015 through 2025, so why is only 2025 recorded
+
+# taxonKey            
+summary(is.na(oregon_gbif$taxonKey)) #no missing
+class(oregon_gbif$taxonKey) # char
+length(unique(oregon_gbif$taxonKey)) #9 unique
+
+# speciesKey            
+summary(is.na(oregon_gbif$speciesKey)) #no missing
+class(oregon_gbif$speciesKey) # char
+length(unique(oregon_gbif$speciesKey)) #7 unique
+
+# basisOfRecord            
+summary(is.na(oregon_gbif$basisOfRecord)) #no missing
+class(oregon_gbif$basisOfRecord) # char
+length(unique(oregon_gbif$basisOfRecord)) #2 unique (HUMAN_OBSERVATION", "PRESERVED_SPECIMEN")
+
+# institutionCode            
+summary(is.na(oregon_gbif$institutionCode)) #no missing
+class(oregon_gbif$institutionCode) # char
+length(unique(oregon_gbif$institutionCode)) #2
+
+# collectionCode            
+summary(is.na(oregon_gbif$collectionCode)) #no missing
+class(oregon_gbif$collectionCode) # char
+length(unique(oregon_gbif$collectionCode)) #2
+
+# catalogNumber           
+summary(is.na(oregon_gbif$catalogNumber)) #no missing
+class(oregon_gbif$catalogNumber) # int
+length(unique(oregon_gbif$catalogNumber)) #3684 unique
+
+# identifiedBy           
+summary(is.na(oregon_gbif$identifiedBy)) #no missing
+class(oregon_gbif$identifiedBy) # char
+length(unique(oregon_gbif$identifiedBy)) #1066 unique values
+# human names, gotta remove these
+
+# dateIdentified           
+summary(is.na(oregon_gbif$dateIdentified)) #no missing
+class(oregon_gbif$dateIdentified) # char
+length(unique(oregon_gbif$dateIdentified)) #2757
+
+# license           
+summary(is.na(oregon_gbif$license)) #no missing
+class(oregon_gbif$license) # char
+length(unique(oregon_gbif$license)) #3 ("CC_BY_NC_4_0", "CC_BY_4_0", "CC0_1_0")
+
+# rightsHolder           
+summary(is.na(oregon_gbif$rightsHolder)) #no missing
+class(oregon_gbif$rightsHolder) # char
+length(unique(oregon_gbif$rightsHolder)) #1149 unique
+
+# recordedBy           
+summary(is.na(oregon_gbif$recordedBy)) #no missing
+class(oregon_gbif$recordedBy) # char
+length(unique(oregon_gbif$recordedBy)) #1149 unique
+
+# typeStatus           
+summary(is.na(oregon_gbif$typeStatus)) #no missing
+class(oregon_gbif$typeStatus) # logical
+length(unique(oregon_gbif$typeStatus)) #1 (NA)
+
+# establishmentMeans          
+summary(is.na(oregon_gbif$establishmentMeans)) #no missing
+class(oregon_gbif$establishmentMeans) # logical notes
+length(unique(oregon_gbif$establishmentMeans)) #1 unique (NA)
+
+# lastInterpreted         
+summary(is.na(oregon_gbif$lastInterpreted)) #no missing
+class(oregon_gbif$lastInterpreteds) # "NULL"
+length(unique(oregon_gbif$lastInterpreted)) #34 unique values (all dates for 6/23/2026 between 11:26 & 12:05 & 22:26)
+# whats up with this column
+
+# mediaType         
+summary(is.na(oregon_gbif$mediaType)) #no missing
+class(oregon_gbif$mediaType) # char
+length(unique(oregon_gbif$mediaType)) #2 ("StillImage" "")
+
+# issue         
+summary(is.na(oregon_gbif$issue)) #no missing
+class(oregon_gbif$issue) # char
+length(unique(oregon_gbif$issue)) #3 ("CONTINENT_DERIVED_FROM_COORDINATES;TAXON_ID_NOT_FOUND", "COORDINATE_ROUNDED;CONTINENT_DERIVED_FROM_COORDINATES;TAXON_ID_NOT_FOUND", "GEODETIC_DATUM_ASSUMED_WGS84;CONTINENT_DERIVED_FROM_COORDINATES;INSTITUTION_MATCH_FUZZY;COLLECTION_MATCH_FUZZY")
+
+

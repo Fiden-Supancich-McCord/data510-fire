@@ -78,7 +78,7 @@ One subsection per class week. The owner team commits the new section **before e
     - Draft research question and frame as a testable claim
 
 **Stakeholder response log**
-- ...
+- NA
 
 **Plan for next iteration**
 - Acquire/document data
@@ -117,25 +117,35 @@ One subsection per class week. The owner team commits the new section **before e
 
 ## Week 7 -- Data summary milestone (M2)
 
-**Iteration ending:** <date>
+**Iteration ending:** 6/27
+
 **Milestone tag in focus:** `M2-data-summary`
 
-**Completed PBIs**
-- ...
+**Completed PBIs** 
+- Siera: Create Shapefile for Streams
+- Serenna: Clean EAB Data
+- Serenna: Get new EAB data for Cordova and clean _(hypothetically by Sunday evening)_
+- Brooke: Scrape Tree Data _(hypothetically by Sunday evening)_
+- Add data we have to the repository _(hypothetically by Sunday evening)_
+- Data cleaning _(hypothetically by Sunday evening)_
+- Exploratory Data Analysis _(hypothetically by Sunday evening)_
 
 **Stakeholder response log**
-- ...
+- NA
 
 **Plan for next iteration**
-- ...
+- Figure out how to create an area shapefile that will connect salem_addresses and stream_shapes with the other tables. 
+- Feature engineering
+- Begin creating our 3 planned models
 
 **Risks and impediments**
-- ...
+- We still need to figure out how to connect salem_addresses and stream_shapes with our other data. Through the process of doing our data summary, we found that it was impossible to get Salem zipcodes due to a paywall. We will need to somehow create our own shapefile that shows the density of addresses. This will be used to connect salem_addresses and stream_shapes to our other datasets.
+- Origianlly in our project proposal, we were hoping to have feature engineering completed by this iteration. However, as previously mentioned, we were unable to complete feature engineering by the Data Summary deadline due to the extensive process that webscraping our data ended up becoming. We are now lumping feature engineering into the modeling process. This is a risk due to it simply being more to do before the poster draft. 
 
 **Retrospective (milestone boundary)**
-- What worked: ...
-- What did not: ...
-- One change for next iteration: ...
+- What worked: The stream, temperature, and weather data were all colleted successfully. The Tree Plotter and EAB data were a lot more challenging and we needed help from Professor Cordova to collect. 
+- What did not: EAB Sighting data is no longer useful due to only one confirmed sighting. This made us need to pivot how we were collecting the main data source for EAB. 
+- One change for next iteration: Implement plan for data density connection to other datasets.
 
 ## Week 8
 
