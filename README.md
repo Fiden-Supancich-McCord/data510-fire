@@ -78,7 +78,7 @@ One subsection per class week. The owner team commits the new section **before e
     - Draft research question and frame as a testable claim
 
 **Stakeholder response log**
-- ...
+- NA
 
 **Plan for next iteration**
 - Acquire/document data
@@ -118,6 +118,7 @@ One subsection per class week. The owner team commits the new section **before e
 ## Week 7 -- Data summary milestone (M2)
 
 **Iteration ending:** 6/27
+
 **Milestone tag in focus:** `M2-data-summary`
 
 **Completed PBIs** 
