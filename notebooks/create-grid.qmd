@@ -21,6 +21,9 @@ library(sf)
 ```{r}
 landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
 landmark <- st_zm(landmark)
+landmark <- st_transform(landmark, crs="WGS84")
+landmark <- st_make_valid(landmark)
+us_lm <- landmark %>% filter(iso_code == "USA")
 ```
 
 ## OR
@@ -29,7 +32,7 @@ landmark <- st_zm(landmark)
 states <- usmap::us_map()
 or <- states %>% filter(abbr=="OR")
 # transforming OR so the coordinate system matches
-or <- st_transform(or, crs=st_crs(landmark))
+or <- st_transform(or, crs="WGS84")
 
 or %>% 
     ggplot() +
@@ -61,17 +64,16 @@ index_tib = tibble(index)
 
 or_grid_df <- cbind(or_grid, index_tib)
 
-
-st_transform(or_grid, crs=st_crs(landmark))
 ```
 
 # Add landmark data
 
 ```{r}
+sf_use_s2(FALSE)
 lm_int = st_intersects(or, landmark)
 dim(lm_int)
 
-or_lm = us_lm[unlist(lm_int),]
+or_lm = landmark[unlist(lm_int),]
 dim(or_lm)
 ```
 
@@ -95,12 +97,7 @@ lengths(or_grid_df)
 
 ```{r}
 ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
-
-```
-
-```{r}
-ifph <- st_transform(ifph, st_crs(landmark))
-
+ifph <- st_transform(ifph, crs="WGS84")
 ifph <- st_make_valid(ifph)
 
 ```
@@ -220,3 +217,11 @@ or_grid_tib %>%
     theme_void()
 
 ```
+
+```{r}
+or_grid_tib %>%
+    group_by(is_indigenous) %>%
+    summarize(n=n())
+```
+
+GBIF IS ALSO WGS 84!!!!
