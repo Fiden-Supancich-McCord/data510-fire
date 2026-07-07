@@ -14,21 +14,48 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggplot2)
 library(sf)
-```
-
-
-```{python}
-read_csv("data/process_grid.csv")
+library(viridis)
+# install.packages("reticulate")
 ```
 
 
 ```{r}
-full_grid_tib %>%
-    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%
-    select(plant_sum, n_quercus, n_xerophyllum, n_thuja, n_populus, n_rubus, n_pinus, n_salix, n_fires)
+df <- read_csv("data/processed_grid.csv")
+shp <- st_read("data/processed_grid.shp")
+```
 
-full_grid_tib %>%
-    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%    
+
+```{r}
+names(shp)
+head(shp)
+
+df <- as_tibble(shp)
+
+shp <- shp %>% mutate(plant_sum = rowSums(df[,4:10]))
+
+names(df)
+head(df)
+
+df <- df %>%
+    mutate(
+        is_indigenous = is_ndgn,
+        n_quercus = n_qurcs,
+        n_xerophyllum = n_xrphy,
+        n_populus = n_popls,
+        fire_lst = fir_lst,
+    ) %>%
+    select(-c(is_ndgn, n_qurcs, n_xrphy, n_popls, fir_lst)) %>%
+    relocate(geometry, .after=fire_lst)
+
+df <- df %>%
+    mutate(plant_sum = rowSums(df[,4:10]), .after=n_populus)
+
+
+df %>%
+    select(plant_sum, n_quercus, n_xerophyllum, n_thuja, n_populus, n_rubus, n_pinus, n_salix, n_fires) %>%
+    arrange(desc(plant_sum))
+
+df %>%
     mutate(is_indigenous = as_factor(is_indigenous)) %>%
     ggplot(aes(geometry=geometry, fill=plant_sum, color=is_indigenous)) +
     geom_sf(linewidth=0.1) +
@@ -36,12 +63,133 @@ full_grid_tib %>%
     scale_colour_discrete(palette=c("white", "black")) +
     theme_void()
 
-full_grid_tib %>%
-    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%    
+df %>%
     mutate(is_indigenous = as_factor(is_indigenous)) %>%
     ggplot(aes(geometry=geometry, fill=plant_sum, color=is_indigenous)) +
     geom_sf(linewidth=0.1) +
-    scale_fill_binned(breaks=c(0, 1, 10, 100), palette=c("red", "blue", "navy", "black")) +
+    scale_fill_binned(breaks=c(0, 0.5, 10, 100), palette=c("red", "blue", "navy", "black")) +
     scale_colour_discrete(palette=c("white", "black")) +
     theme_void()
+
+summary(df$plant_sum)
+
+```
+
+```{r}
+hist_veg <- st_read("data/Historic_Vegetation/Historic_Vegetation.shp")
+
+st_drivers()
+```
+
+```{r}
+head(hist_veg)
+
+length(unique(hist_veg$VEGNAME))
+as_tibble(hist_veg) %>% 
+    group_by(VEGNAME) %>% 
+    summarize(n=n()) %>% 
+    arrange(desc(n)) %>%
+    print(n=84)
+```
+
+
+```{r}
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs="WGS84")
+head(or)
+
+df %>% st_set_crs("WGS84")
+
+st_crs(shp)
+
+ponderosa_plt <- hist_veg %>%
+    filter(VEGNAME=="Ponderosa pine") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="darkgreen") +
+    geom_sf(data=shp %>% filter(n_pinus>0), fill="green", alpha=0.8) +
+    theme_minimal()
+
+ggsave("ponderosa_plt.jpeg", ponderosa_plt)
+
+```
+
+
+```{r}
+as_tibble(hist_veg) %>%
+    filter(str_detect(VEGNAME, "oak"))
+
+white_oak_plt <- hist_veg %>%
+    filter(VEGNAME=="White oak woodland") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="darkgreen") +
+    geom_sf(data=shp %>% filter(n_qurcs>0), fill="green", alpha=0.7) +
+    theme_minimal()
+
+ggsave("white_oak_plt.jpeg", white_oak_plt)
+
+```
+
+
+```{r}
+as_tibble(hist_veg) %>%
+    filter(str_detect(VEGNAME, "redcedar"))
+
+western_redcedar_plt <- hist_veg %>%
+    filter(VEGNAME=="Western redcedar") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="darkgreen") +
+    geom_sf(data=shp %>% filter(n_thuja>0), fill="green", alpha=0.7) +
+    theme_minimal()
+
+ggsave("western_redcedar_plt.jpeg", western_redcedar_plt)
+```
+
+
+```{r}
+as_tibble(hist_veg) %>%
+    filter(str_detect(VEGNAME, "cottonwood"))
+
+cottonwood_plt <- hist_veg %>%
+    filter(VEGNAME=="Black cottonwood riparian woodland") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="darkgreen") +
+    geom_sf(data=shp %>% filter(n_popls>0), fill="green", alpha=0.7) +
+    theme_minimal()
+
+ggsave("cottonwood_plt.jpeg", cottonwood_plt)
+
+```
+
+```{r}
+as_tibble(hist_veg) %>%
+    filter(str_detect(VEGNAME, "Sand"))
+
+hist_veg %>%
+    filter(VEGNAME=="Sand dunes") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="darkgreen") +
+    #geom_sf(data=shp %>% filter(n_popls>0), fill="green", alpha=0.7) +
+    theme_minimal()
+
+```
+
+
+```{r}
+brush_plt <- hist_veg %>%
+    filter(str_detect(VEGNAME, "brush")) %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="orange2", color="orange4") +
+    geom_sf(data=shp %>% filter(plant_sum>0), fill="green", alpha=0.7) +
+    theme_minimal()
+
+ggsave("brush_plt.jpeg", brush_plt)
+
 ```

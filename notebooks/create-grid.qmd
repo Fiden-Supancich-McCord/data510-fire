@@ -393,6 +393,8 @@ full_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="gri
 ```{r}
 names(full_grid_tib)
 export_grid <- full_grid_tib %>% select(-indigenous)
+st_crs(export_grid)
 
 write_csv(export_grid, "data/processed_grid.csv")
+st_write(export_grid, "data/processed_grid.shp")
 ```
