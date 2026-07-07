@@ -391,41 +391,6 @@ full_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="gri
 ```
 
 ```{r}
-full_grid_tib %>%
-    mutate(is_indigenous = as_factor(is_indigenous)) %>%
-    ggplot(aes(geometry=geometry, fill=n_pinus, color=is_indigenous)) +
-    geom_sf(linewidth=0.1) +
-    scale_fill_viridis_c(option="inferno") +
-    scale_colour_discrete(palette=c("white", "black")) +
-    theme_void()
-```
-
-```{r}
-full_grid_tib %>%
-    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%
-    select(plant_sum, n_quercus, n_xerophyllum, n_thuja, n_populus, n_rubus, n_pinus, n_salix, n_fires)
-
-full_grid_tib %>%
-    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%    
-    mutate(is_indigenous = as_factor(is_indigenous)) %>%
-    ggplot(aes(geometry=geometry, fill=plant_sum, color=is_indigenous)) +
-    geom_sf(linewidth=0.1) +
-    scale_fill_viridis_c(option="inferno") +
-    scale_colour_discrete(palette=c("white", "black")) +
-    theme_void()
-
-full_grid_tib %>%
-    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%    
-    mutate(is_indigenous = as_factor(is_indigenous)) %>%
-    ggplot(aes(geometry=geometry, fill=plant_sum, color=is_indigenous)) +
-    geom_sf(linewidth=0.1) +
-    scale_fill_binned(breaks=c(0, 1, 10, 100), palette=c("red", "blue", "navy", "black")) +
-    scale_colour_discrete(palette=c("white", "black")) +
-    theme_void()
-```
-
-
-```{r}
 names(full_grid_tib)
 export_grid <- full_grid_tib %>% select(-indigenous)
 

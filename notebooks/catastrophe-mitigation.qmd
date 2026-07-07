@@ -1,0 +1,47 @@
+---
+title: "IFPH InFORM Join"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+
+```{python}
+read_csv("data/process_grid.csv")
+```
+
+
+```{r}
+full_grid_tib %>%
+    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%
+    select(plant_sum, n_quercus, n_xerophyllum, n_thuja, n_populus, n_rubus, n_pinus, n_salix, n_fires)
+
+full_grid_tib %>%
+    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%    
+    mutate(is_indigenous = as_factor(is_indigenous)) %>%
+    ggplot(aes(geometry=geometry, fill=plant_sum, color=is_indigenous)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_viridis_c(option="inferno") +
+    scale_colour_discrete(palette=c("white", "black")) +
+    theme_void()
+
+full_grid_tib %>%
+    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%    
+    mutate(is_indigenous = as_factor(is_indigenous)) %>%
+    ggplot(aes(geometry=geometry, fill=plant_sum, color=is_indigenous)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_binned(breaks=c(0, 1, 10, 100), palette=c("red", "blue", "navy", "black")) +
+    scale_colour_discrete(palette=c("white", "black")) +
+    theme_void()
+```
