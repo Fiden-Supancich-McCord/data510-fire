@@ -224,4 +224,210 @@ or_grid_tib %>%
     summarize(n=n())
 ```
 
-GBIF IS ALSO WGS 84!!!!
+```{r}
+gbif <- read_csv("data/new_gbif_dataset.csv")
+```
+
+```{r}
+gbif_sf <- st_as_sf(gbif, coords=c("decimalLongitude", "decimalLatitude"), crs="WGS84")
+gbif_sf <- gbif_sf %>% select(-`...1`)
+```
+
+```{r}
+str(gbif_sf)
+
+gbif_sf %>%
+    mutate(
+        species = as_factor(species),
+        eventDate = ifelse(str_starts(eventDate, "20"), ymd_hms(eventDate, truncated=3), mdy_hms(eventDate, truncated=3)),
+        #eventDate = ifelse(is.Date(eventDate), eventDate, as_datetime(eventDate)),
+        basisOfRecord = as_factor(basisOfRecord),
+        license = as_factor(license)
+    ) %>%
+    arrange(eventDate)
+
+gbif_sf <- gbif_sf %>%
+    mutate(
+        species = as_factor(species),
+        eventDate = ifelse(str_starts(eventDate, "20"), ymd_hms(eventDate, truncated=3), mdy_hms(eventDate, truncated=3)),
+        basisOfRecord = as_factor(basisOfRecord),
+        license = as_factor(license)
+    ) 
+
+```
+
+```{r}
+unique(gbif_sf$species)
+
+qg_gbif <- gbif_sf %>%
+    filter(species == "Quercus garryana")
+
+xt_gbif <- gbif_sf %>%
+    filter(species == "Xerophyllum tenax")
+
+tp_gbif <- gbif_sf %>%
+    filter(species == "Thuja plicata")
+
+pt_gbif <- gbif_sf %>%
+    filter(species == "Populus trichocarpa")
+
+ru_gbif <- gbif_sf %>%
+    filter(species == "Rubus ursinus")
+
+pp_gbif <- gbif_sf %>%
+    filter(species == "Pinus ponderosa")
+
+ss_gbif <- gbif_sf %>%
+    filter(species == "Salix scouleriana")
+
+qg_con <- st_contains(or_grid, qg_gbif, sparse=FALSE)
+qg_tibble <- tibble(qg_con)
+
+xt_con <- st_contains(or_grid, xt_gbif, sparse=FALSE)
+xt_tibble <- tibble(xt_con)
+
+tp_con <- st_contains(or_grid, tp_gbif, sparse=FALSE)
+tp_tibble <- tibble(tp_con)
+
+pt_con <- st_contains(or_grid, pt_gbif, sparse=FALSE)
+pt_tibble <- tibble(pt_con)
+
+ru_con <- st_contains(or_grid, ru_gbif, sparse=FALSE)
+ru_tibble <- tibble(ru_con)
+
+pp_con <- st_contains(or_grid, pp_gbif, sparse=FALSE)
+pp_tibble <- tibble(pp_con)
+
+ss_con <- st_contains(or_grid, ss_gbif, sparse=FALSE)
+ss_tibble <- tibble(ss_con)
+
+head(qg_tibble)
+
+# quercus garryana
+or_grid_df <- cbind(or_grid_df, qg_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("qg_con"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_quercus = rowSums(across(starts_with("qg_con")))
+    )
+
+or_grid_df <- or_grid_df %>% select(-qg_con)
+
+# xerophyllum tenax
+or_grid_df <- cbind(or_grid_df, xt_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("xt_con"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_xerophyllum = rowSums(across(starts_with("xt_con")))
+    )
+
+or_grid_df <- or_grid_df %>% select(-xt_con)
+
+# thuja plicata
+or_grid_df <- cbind(or_grid_df, tp_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("tp_con"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_thuja = rowSums(across(starts_with("tp_con")))
+    )
+
+or_grid_df <- or_grid_df %>% select(-tp_con)
+
+# populus trichocarpa
+or_grid_df <- cbind(or_grid_df, pt_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("pt_con"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_populus = rowSums(across(starts_with("pt_con")))
+    )
+
+or_grid_df <- or_grid_df %>% select(-pt_con)
+
+# rubus ursinus
+or_grid_df <- cbind(or_grid_df, ru_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("ru_con"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_rubus = rowSums(across(starts_with("ru_con")))
+    )
+
+or_grid_df <- or_grid_df %>% select(-ru_con)
+
+# pinus ponderosa
+or_grid_df <- cbind(or_grid_df, pp_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("pp_con"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_pinus = rowSums(across(starts_with("pp_con")))
+    )
+
+or_grid_df <- or_grid_df %>% select(-pp_con)
+
+# salix scouleriana
+or_grid_df <- cbind(or_grid_df, ss_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("ss_con"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_salix = rowSums(across(starts_with("ss_con")))
+    )
+
+or_grid_df <- or_grid_df %>% select(-ss_con)
+```
+
+```{r}
+head(or_grid_df)
+```
+
+
+```{r}
+full_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="grid_index")))
+```
+
+```{r}
+full_grid_tib %>%
+    mutate(is_indigenous = as_factor(is_indigenous)) %>%
+    ggplot(aes(geometry=geometry, fill=n_pinus, color=is_indigenous)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_viridis_c(option="inferno") +
+    scale_colour_discrete(palette=c("white", "black")) +
+    theme_void()
+```
+
+```{r}
+full_grid_tib %>%
+    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%
+    select(plant_sum, n_quercus, n_xerophyllum, n_thuja, n_populus, n_rubus, n_pinus, n_salix, n_fires)
+
+full_grid_tib %>%
+    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%    
+    mutate(is_indigenous = as_factor(is_indigenous)) %>%
+    ggplot(aes(geometry=geometry, fill=plant_sum, color=is_indigenous)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_viridis_c(option="inferno") +
+    scale_colour_discrete(palette=c("white", "black")) +
+    theme_void()
+
+full_grid_tib %>%
+    mutate(plant_sum = rowSums(full_grid_tib[,6:12])) %>%    
+    mutate(is_indigenous = as_factor(is_indigenous)) %>%
+    ggplot(aes(geometry=geometry, fill=plant_sum, color=is_indigenous)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_binned(breaks=c(0, 1, 10, 100), palette=c("red", "blue", "navy", "black")) +
+    scale_colour_discrete(palette=c("white", "black")) +
+    theme_void()
+```
+
+
+```{r}
+names(full_grid_tib)
+export_grid <- full_grid_tib %>% select(-indigenous)
+
+write_csv(export_grid, "data/processed_grid.csv")
+```
