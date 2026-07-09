@@ -286,6 +286,8 @@ noplant_plt <- hist_veg %>%
     theme_minimal()
 
 noplant_plt
+
+ggsave("noplant_plt.jpeg", noplant_plt)
 ```
 
 ```{r}
@@ -293,7 +295,7 @@ vegname_fills <- c("Open water" = "blue", "Bare rock" = "gray", "Brush" = "orang
 
 vegname_cols <- c("Open water" = "navy", "Bare rock" = "darkgray", "Brush" = "orange4", "Ponderosa pine" = "black")
 
-hist_veg %>%
+or_ecology_plt <- hist_veg %>%
     filter(VEGNAME %in% c("Open water", "Bare rock", "Ponderosa pine", "Ponderosa pine-lodgepole pine","Douglas fir-ponderosa pine") | str_detect(VEGNAME, "brush")) %>%
     mutate(
         VEGNAME = ifelse(str_detect(VEGNAME, "brush"), "Brush", VEGNAME),
@@ -306,5 +308,9 @@ hist_veg %>%
     scale_fill_manual(values=vegname_fills) +
     scale_color_manual(values=vegname_cols) +
     theme_minimal()
+
+or_ecology_plt
+
+ggsave("or_ecology_plt.jpeg", or_ecology_plt)
 
 ```
