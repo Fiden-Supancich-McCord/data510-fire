@@ -18,12 +18,10 @@ library(viridis)
 # install.packages("reticulate")
 ```
 
-
 ```{r}
 df <- read_csv("data/processed_grid.csv")
 shp <- st_read("data/processed_grid.shp")
 ```
-
 
 ```{r}
 names(shp)
@@ -76,9 +74,10 @@ summary(df$plant_sum)
 ```
 
 ```{r}
-hist_veg <- st_read("data/Historic_Vegetation/Historic_Vegetation.shp")
+# fixed path using sudo chown -R
+# hopefully. this will never happen again!
+hist_veg <- st_read("/Users/nikolefiden/Desktop/Historic_Vegetation_84513795379117550/Historic_Vegetation.shp")
 
-st_drivers()
 ```
 
 ```{r}
@@ -92,6 +91,35 @@ as_tibble(hist_veg) %>%
     print(n=84)
 ```
 
+Our GBIF species
+- Ponderosa pine
+- Oregon white oak
+- Beargrass
+- California blackberry
+- Scouler's willow
+- Western redcedar
+- Black cottonwood
+
+Of interest for us: 
+
+Species 
+
+- Ponderosa pine
+    - Ponderosa pine-lodgepole pine
+    - Douglas fir-ponderosa pine
+- Willows
+- White oak woodland
+- Black cottonwood riparian woodland
+- White oak-black oak
+- Western redcedar
+
+Other
+- Open water
+- Riparian hardwoods
+- Riparian
+- Mixed conifer
+- Marsh/Wetland
+- Bare rock
 
 ```{r}
 states <- usmap::us_map()
@@ -112,6 +140,17 @@ ponderosa_plt <- hist_veg %>%
     geom_sf(data=shp %>% filter(n_pinus>0), fill="green", alpha=0.8) +
     theme_minimal()
 
+hist_veg %>%
+    filter(VEGNAME=="Ponderosa pine") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="darkgreen") +
+    geom_sf(data=shp %>% filter(n_pinus>0), aes(fill=n_pinus), alpha=0.8) +
+    scale_fill_binned(breaks=c(0, 1, 10, 100)) +
+    theme_minimal()
+
+ponderosa_plt
+
 ggsave("ponderosa_plt.jpeg", ponderosa_plt)
 
 ```
@@ -128,6 +167,8 @@ white_oak_plt <- hist_veg %>%
     geom_sf(fill="darkgreen") +
     geom_sf(data=shp %>% filter(n_qurcs>0), fill="green", alpha=0.7) +
     theme_minimal()
+
+white_oak_plt
 
 ggsave("white_oak_plt.jpeg", white_oak_plt)
 
@@ -146,6 +187,8 @@ western_redcedar_plt <- hist_veg %>%
     geom_sf(data=shp %>% filter(n_thuja>0), fill="green", alpha=0.7) +
     theme_minimal()
 
+western_redcedar_plt
+
 ggsave("western_redcedar_plt.jpeg", western_redcedar_plt)
 ```
 
@@ -161,6 +204,8 @@ cottonwood_plt <- hist_veg %>%
     geom_sf(fill="darkgreen") +
     geom_sf(data=shp %>% filter(n_popls>0), fill="green", alpha=0.7) +
     theme_minimal()
+
+cottonwood_plt
 
 ggsave("cottonwood_plt.jpeg", cottonwood_plt)
 
@@ -189,6 +234,8 @@ brush_plt <- hist_veg %>%
     geom_sf(fill="orange2", color="orange4") +
     geom_sf(data=shp %>% filter(plant_sum>0), fill="green", alpha=0.7) +
     theme_minimal()
+
+brush_plt
 
 ggsave("brush_plt.jpeg", brush_plt)
 
