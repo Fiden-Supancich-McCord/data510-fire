@@ -19,8 +19,8 @@ library(viridis)
 ```
 
 ```{r}
-df <- read_csv("data/processed_grid.csv")
-shp <- st_read("data/processed_grid.shp")
+df <- read_csv("../data/processed_grid.csv")
+shp <- st_read("../data/processed_grid.shp")
 ```
 
 ```{r}
@@ -114,6 +114,7 @@ Species
 - Western redcedar
 
 Other
+
 - Open water
 - Riparian hardwoods
 - Riparian
@@ -127,8 +128,6 @@ or <- states %>% filter(abbr=="OR")
 # transforming OR so the coordinate system matches
 or <- st_transform(or, crs="WGS84")
 head(or)
-
-df %>% st_set_crs("WGS84")
 
 st_crs(shp)
 
