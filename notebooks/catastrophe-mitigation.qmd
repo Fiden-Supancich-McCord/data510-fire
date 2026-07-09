@@ -19,8 +19,8 @@ library(viridis)
 ```
 
 ```{r}
-df <- read_csv("../data/processed_grid.csv")
-shp <- st_read("../data/processed_grid.shp")
+df <- read_csv("data/processed_grid.csv")
+shp <- st_read("data/processed_grid.shp")
 ```
 
 ```{r}
@@ -109,8 +109,8 @@ Species
     - Douglas fir-ponderosa pine
 - Willows
 - White oak woodland
+    - White oak-black oak
 - Black cottonwood riparian woodland
-- White oak-black oak
 - Western redcedar
 
 Other
@@ -132,7 +132,7 @@ head(or)
 st_crs(shp)
 
 ponderosa_plt <- hist_veg %>%
-    filter(VEGNAME=="Ponderosa pine") %>%
+    filter(VEGNAME %in% c("Ponderosa pine", "Ponderosa pine-lodgepole pine","Douglas fir-ponderosa pine")) %>%
     ggplot(aes(geometry=geometry)) +
     geom_sf(data=or, aes(geometry=geom)) +
     geom_sf(fill="darkgreen") +
@@ -160,7 +160,7 @@ as_tibble(hist_veg) %>%
     filter(str_detect(VEGNAME, "oak"))
 
 white_oak_plt <- hist_veg %>%
-    filter(VEGNAME=="White oak woodland") %>%
+    filter(VEGNAME %in% c("White oak-black oak", "White oak woodland")) %>%
     ggplot(aes(geometry=geometry)) +
     geom_sf(data=or, aes(geometry=geom)) +
     geom_sf(fill="darkgreen") +
@@ -211,6 +211,20 @@ ggsave("cottonwood_plt.jpeg", cottonwood_plt)
 ```
 
 ```{r}
+willows_plt <- hist_veg %>%
+    filter(VEGNAME=="Willows") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="darkgreen") +
+    geom_sf(data=shp %>% filter(n_salix>0), fill="green", alpha=0.7) +
+    theme_minimal()
+
+willows_plt
+
+ggsave("willows_plt.jpeg", willows_plt)
+```
+
+```{r}
 as_tibble(hist_veg) %>%
     filter(str_detect(VEGNAME, "Sand"))
 
@@ -218,12 +232,28 @@ hist_veg %>%
     filter(VEGNAME=="Sand dunes") %>%
     ggplot(aes(geometry=geometry)) +
     geom_sf(data=or, aes(geometry=geom)) +
-    geom_sf(fill="darkgreen") +
-    #geom_sf(data=shp %>% filter(n_popls>0), fill="green", alpha=0.7) +
+    geom_sf(color="tan", fill="yellow") +
     theme_minimal()
 
 ```
 
+```{r}
+hist_veg %>%
+    filter(VEGNAME=="Bare rock") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="gray") +
+    theme_minimal()
+```
+
+```{r}
+hist_veg %>%
+    filter(VEGNAME=="Open water") %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="blue", color="navy") +
+    theme_minimal()
+```
 
 ```{r}
 brush_plt <- hist_veg %>%
@@ -237,5 +267,44 @@ brush_plt <- hist_veg %>%
 brush_plt
 
 ggsave("brush_plt.jpeg", brush_plt)
+
+```
+
+```{r}
+vegname_fills <- c("Open water" = "blue", "Bare rock" = "gray", "Brush" = "orange2")
+
+vegname_cols <- c("Open water" = "navy", "Bare rock" = "darkgray", "Brush" = "orange4")
+
+noplant_plt <- hist_veg %>%
+    filter(VEGNAME %in% c("Open water", "Bare rock") | str_detect(VEGNAME, "brush")) %>%
+    mutate(VEGNAME = ifelse(str_detect(VEGNAME, "brush"), "brush", VEGNAME)) %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(aes(fill=VEGNAME, color=VEGNAME)) +
+    scale_fill_manual(values=vegname_fills) +
+    scale_color_manual(values=vegname_cols) +
+    theme_minimal()
+
+noplant_plt
+```
+
+```{r}
+vegname_fills <- c("Open water" = "blue", "Bare rock" = "gray", "Brush" = "orange2", "Ponderosa pine" = "darkgreen")
+
+vegname_cols <- c("Open water" = "navy", "Bare rock" = "darkgray", "Brush" = "orange4", "Ponderosa pine" = "black")
+
+hist_veg %>%
+    filter(VEGNAME %in% c("Open water", "Bare rock", "Ponderosa pine", "Ponderosa pine-lodgepole pine","Douglas fir-ponderosa pine") | str_detect(VEGNAME, "brush")) %>%
+    mutate(
+        VEGNAME = ifelse(str_detect(VEGNAME, "brush"), "Brush", VEGNAME),
+        VEGNAME = ifelse(str_detect(VEGNAME, "pine"), "Ponderosa pine", VEGNAME)
+    ) %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(aes(fill=VEGNAME, color=VEGNAME), linewidth=0.1) +
+    geom_sf(data=shp %>% filter(plant_sum>0), fill="green", alpha=0.7) +
+    scale_fill_manual(values=vegname_fills) +
+    scale_color_manual(values=vegname_cols) +
+    theme_minimal()
 
 ```
