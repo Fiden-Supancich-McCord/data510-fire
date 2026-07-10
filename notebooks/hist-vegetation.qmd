@@ -1,0 +1,209 @@
+---
+title: "Joining Historic Vegetation"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+library(viridis)
+```
+
+```{r}
+shp <- st_read("data/processed_grid.shp")
+hist_veg <- st_read("/Users/nikolefiden/Desktop/Historic_Vegetation_84513795379117550/Historic_Vegetation.shp")
+```
+
+```{r}
+df <- as_tibble(shp)
+
+shp <- shp %>% mutate(plant_sum = rowSums(df[,4:10]))
+
+shp <- st_transform(shp, "WGS84")
+
+df <- df %>%
+    mutate(
+        is_indigenous = is_ndgn,
+        n_quercus = n_qurcs,
+        n_xerophyllum = n_xrphy,
+        n_populus = n_popls,
+        fire_lst = fir_lst,
+    ) %>%
+    select(-c(is_ndgn, n_qurcs, n_xrphy, n_popls, fir_lst)) %>%
+    relocate(geometry, .after=fire_lst)
+
+df <- df %>%
+    mutate(plant_sum = rowSums(df[,4:10]), .after=n_populus)
+
+hist_veg <- st_transform(hist_veg, "WGS84")
+
+```
+
+## Descriptions of mappings
+
+Our GBIF species
+- Ponderosa pine (n_pinus)
+- Oregon white oak (n_qurcs)
+- Beargrass (n_xrphy)
+- California blackberry (n_rubus)
+- Scouler's willow (n_salix)
+- Western redcedar (n_thuja)
+- Black cottonwood (n_popls)
+
+Vegetation names of interest:
+- Ponderosa pine
+    - Ponderosa pine-lodgepole pine
+    - Douglas fir-ponderosa pine
+- Willows
+- White oak woodland
+    - White oak-black oak
+- Black cottonwood riparian woodland
+- Western redcedar
+
+n_pinus <- Ponderosa pine, Ponderosa pine-lodgepole pine, Douglas fir-ponderosa pine
+n_salix <- Willows
+n_qurcs <- White oak woodland, White oak-black oak
+n_popls <- Black cottonwood riparian woodland
+n_thuja <- Western redcedar
+
+```{r}
+names(shp)
+names(hist_veg)
+
+hist_veg %>%
+    filter(VEGNAME %in% c("Ponderosa pine", "Ponderosa pine-lodgepole pine","Douglas fir-ponderosa pine")) %>%
+    summarize(n=n())
+# 1430 shapes in here!
+
+hist_pinus <- hist_veg %>%
+    filter(VEGNAME %in% c("Ponderosa pine", "Ponderosa pine-lodgepole pine","Douglas fir-ponderosa pine"))
+
+hist_pinus_grid <- st_intersects(shp, hist_pinus, sparse=FALSE)
+hist_pinus_tibble <- tibble(hist_pinus_grid)
+
+shp <- cbind(shp, hist_pinus_tibble)
+
+shp <- shp %>%
+    mutate(across(starts_with("hist_pinus_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_pinus = ifelse(rowSums(across(starts_with("hist_pinus_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_pinus_grid)
+
+```
+
+```{r}
+hist_veg %>%
+    filter(VEGNAME=="Willows") %>%
+    summarize(n=n())
+# 617 shapes
+
+hist_salix <- hist_veg %>%
+    filter(VEGNAME=="Willows")
+
+hist_salix_grid <- st_intersects(shp, hist_salix, sparse=FALSE)
+hist_salix_tibble <- tibble(hist_salix_grid)
+
+shp <- cbind(shp, hist_salix_tibble)
+
+shp <- shp %>%
+    mutate(across(starts_with("hist_salix_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_salix = ifelse(rowSums(across(starts_with("hist_salix_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_salix_grid)
+```
+
+```{r}
+hist_veg %>%
+    filter(VEGNAME %in% c("White oak woodland", "White oak-black oak")) %>%
+    summarize(n=n())
+# 131 shapes
+
+hist_qurcs <- hist_veg %>%
+    filter(VEGNAME %in% c("White oak woodland", "White oak-black oak"))
+
+hist_qurcs_grid <- st_intersects(shp, hist_qurcs, sparse=FALSE)
+hist_qurcs_tibble <- tibble(hist_qurcs_grid)
+
+shp <- cbind(shp, hist_qurcs_tibble)
+
+shp <- shp %>%
+    mutate(across(starts_with("hist_qurcs_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_qurcs = ifelse(rowSums(across(starts_with("hist_qurcs_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_qurcs_grid)
+```
+
+```{r}
+hist_veg %>%
+    filter(VEGNAME=="Black cottonwood riparian woodland") %>%
+    summarize(n=n())
+# 75 shapes
+
+hist_popls <- hist_veg %>%
+    filter(VEGNAME=="Black cottonwood riparian woodland")
+
+hist_popls_grid <- st_intersects(shp, hist_popls, sparse=FALSE)
+hist_popls_tibble <- tibble(hist_popls_grid)
+
+shp <- cbind(shp, hist_popls_tibble)
+
+shp <- shp %>%
+    mutate(across(starts_with("hist_popls_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_popls = ifelse(rowSums(across(starts_with("hist_popls_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_popls_grid)
+```
+
+```{r}
+hist_veg %>%
+    filter(VEGNAME=="Western redcedar") %>%
+    summarize(n=n())
+# 11 shapes
+
+hist_thuja <- hist_veg %>%
+    filter(VEGNAME=="Western redcedar")
+
+hist_thuja_grid <- st_intersects(shp, hist_thuja, sparse=FALSE)
+hist_thuja_tibble <- tibble(hist_thuja_grid)
+
+shp <- cbind(shp, hist_thuja_tibble)
+
+shp <- shp %>%
+    mutate(across(starts_with("hist_thuja_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_thuja = ifelse(rowSums(across(starts_with("hist_thuja_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_thuja_grid) 
+```
+
+## summing everything!
+
+```{r}
+shp <- shp %>%
+    mutate(
+        sum_pinus = rowSums(across(ends_with("pinus"))),
+        sum_salix = rowSums(across(ends_with("salix"))),
+        sum_qurcs = rowSums(across(ends_with("qurcs"))),
+        sum_popls = rowSums(across(ends_with("popls"))),
+        sum_thuja = rowSums(across(ends_with("thuja"))),
+        .before=geometry
+    ) %>% 
+    mutate(
+        total_sum = rowSums(across(starts_with("sum"))),
+        .before=geometry
+    )
+
+head(shp)
+```
