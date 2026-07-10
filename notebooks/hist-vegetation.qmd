@@ -207,3 +207,21 @@ shp <- shp %>%
 
 head(shp)
 ```
+
+
+```{r}
+shp %>%
+    ggplot(aes(geometry=geometry, fill=total_sum)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_binned(breaks=c(0, 0.5, 10, 100), palette=c("red", "blue", "navy", "black")) +
+    theme_void()
+
+shp %>%
+    mutate(plants = ifelse(total_sum == 0, 0, 1)) %>%
+    ggplot(aes(geometry=geometry, alpha=plants, fill=n_fires)) +
+    geom_sf(linewidth=0.1) +
+    scale_alpha(range=c(0.7, 1)) +
+    #scale_alpha_binned(breaks=c(0, 0.9), range=c(0.6, 1.2)) +
+    scale_fill_viridis(option="rocket") +
+    theme_void()
+```
