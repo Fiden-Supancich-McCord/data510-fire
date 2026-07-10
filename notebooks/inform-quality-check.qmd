@@ -250,6 +250,7 @@ inform %>%
     group_by(Incident.Type.Category) %>%
     summarize(n=n()) %>%
     arrange(desc(n))
+summary(is.na(inform$Incident.Type.Category))
 # should be factor - only WF or RX
 
 # Incident.Type.Kind

@@ -1,11 +1,9 @@
 ---
-title: "InFORM cleaning"
+title: "Fire Severity Feature Engineering"
 author: "Spencer Fiden"
 date: "2026-05-29"
 output: html_document
 ---
-
-# InFORM ingestion & quality checks
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -16,33 +14,17 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggplot2)
 library(sf)
+library(viridis)
+# install.packages("reticulate")
 ```
 
-## Ingestion from download
-
 ```{r}
+df <- read_csv("data/processed_grid.csv")
+shp <- st_read("data/processed_grid.shp")
+
 inform <- read_csv("/Users/nikolefiden/Desktop/DATA-510/InFORM_FireOccurrence_Public.csv")
-
-```
-
-```{r}
 # replacing spaces in col names with "." 
 inform <- inform %>% dplyr::rename_all(~ make.names(.))
-
-```
-
-## Overview 
-
-```{r}
-str(inform)
-class(inform)
-dim(inform)
-
-names(inform) # that's a lot of columns. that's a LOT of columns
-summary(inform)
-
-head(inform %>% arrange(desc(`Calendar.Year`)) %>% select(`Calendar.Year`))
-# one year marked as 2121 - probably actually 2021
 
 ```
 
@@ -328,11 +310,14 @@ inform <- inform %>%
         # imputing missing values 
         Calendar.Year = ifelse(is.na(Calendar.Year), 
                         year(Fire.Discovery.Date.Time), 
-                        Calendar.Year),
-        Calendar.Year = ifelse(Calendar.Year > 2100, 
-                        year(Fire.Discovery.Date.Time), 
                         Calendar.Year)
     ) 
+
+inform <- inform %>%
+    mutate(
+        Calendar.Year = ifelse(Calendar.Year > 2100, year(Fire.Discovery.Date.Time), Calendar.Year)
+    )
+
     
 inform %>%
     # removing all where Fire.Discovery.Date.Time and Calendar.Year are misaligned by more than one year
@@ -342,6 +327,20 @@ inform %>%
 inform %>%
     group_by(Calendar.Year) %>%
     summarize(n = n())
+```
+
+```{r}
+summary(inform$Calendar.Year)
+
+inform %>%
+    select(Calendar.Year) %>%
+    arrange(desc(Calendar.Year))
+
+inform %>%
+    filter(Calendar.Year > 2026) %>%
+    summarize(sum(is.na(Fire.Discovery.Date.Time)))
+
+summary(is.na(inform$Fire.Discovery.Date.Time))
 ```
 
 ```{r}
@@ -413,135 +412,39 @@ inform <- inform %>%
     )
 ```
 
-```{}
-# IN PROGRESS
-# this is taking a long long long time
-# so. going to move on for now
+## Fire Severity Feature
 
-inform_report_title <- interim_inform %>% 
-    #mutate(Final.Fire.Report.Approved.By.Title = toupper(Final.Fire.Report.Approved.By.Title)) %>%
-    group_by(Final.Fire.Report.Approved.By.Title) %>% 
-    summarize(n=n()) %>% 
-    arrange(Final.Fire.Report.Approved.By.Title)
+```{r}
+inform <- inform %>%
+    filter(Calendar.Year >= 2005)
+```
 
-print(inform_report_title[60:200, 1:2], n=100)
-length(unique(inform_report_title$Final.Fire.Report.Approved.By.Title))
-length(unique(inform$Final.Fire.Report.Approved.By.Title))
+```{r}
+inform %>%
+    group_by(Fire.Mgmt.Complexity, Incident.Type.Category) %>%
+    summarize(
+        n=n(),
+        avg_acres = mean(Calculated.Acres, na.rm=TRUE)
+    ) %>%
+    arrange(avg_acres)
 
-interim_inform <- inform %>%
-    mutate(
-        # (Supervisory) Range Tech
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            Final.Fire.Report.Approved.By.Title %in% c(
-                "(Supervisor) Range Tech", 
-                "(Supervisory Range Tech", 
-                "(Supervisory) Range Tech)", 
-                "(Supervsory) Range Tech"
-            ), 
-            "(Supervisory) Range Tech", Final.Fire.Report.Approved.By.Title),
-        # Acting AFMO
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
-                "ACTING AFMO", 
-                "ACTING  AFMO",
-                "AFMO (ACTING)", 
-                "ACT AFMO",
-                "ACTING ASSISTANT FMO", 
-                "ACTING ASST. FMO",
-                "ACTINT AFMO"
-            ),
-            "Acting AFMO", Final.Fire.Report.Approved.By.Title
-        ),
-        # Acting FMO
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
-                "ACT FMO", 
-                "ACTIG FIRE MANAGEMENT OFFICER", 
-                "ACTING FMMO", 
-                "ACTING FIRE MANAGEMENT OFFICE", 
-                "ACTING FIRE MANAGEMENT OFFICER", 
-                "ACTING FIRE MANAGEMENT OFFIER", 
-                "ACTING FIRE MANAGEMTN", 
-                "ACTING FIRE MANAGEMTN OFICER", 
-                "ACTING FIRE MANAGMENT OFFICER", 
-                "ACTING FIRE MGMT OFFICER", 
-                "ACTING FMO", 
-                "ACTING FIRE MANAGEMTN OFFICER", 
-                "ACTING FRIE MANAGEMENT OFFICER", 
-                "ACTING-FMO"
-            ),
-            "Acting FMO", Final.Fire.Report.Approved.By.Title
-        ),
-        # Acting Superintendent
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
-                "ACTING SUPERINTENDENT", 
-                "ACTING SUPT", 
-                "ACTING SUPT."
-            ),
-            "Acting Superintendent", Final.Fire.Report.Approved.By.Title
-        ),
-        # Acting Zone FMO
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
-                "ACTING ZONE FMO", 
-                "ACTING ZONE FIRE MANAGEMENT OFFICER", 
-                "ACTING ZONE FIRE MGMT OFFICER",
-                "ACTING ZONE FIRE MGT OFFICER",
-                "ACTING ZONE FRIE MGMT OFFICER"
-            ),
-            "Acting Zone FMO", Final.Fire.Report.Approved.By.Title
-        ),
-        # AFMO (Assistant Fire Management Officer)
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
-                "AFMO",
-                "AMFO",
-                "ASSIST FMO",
-                "ASSISTANT FMO",
-                "ASSISTANT FIRE MANAGEMENT OFFI",
-                "ASST FIRE MANAGEMENT OFFICER",
-                "ASST. FIRE MANAGEMENT OFFICER"
-            ),
-            "AFMO", Final.Fire.Report.Approved.By.Title
-        ),
-        # AFMO Ops
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
-                "AFMO OPS",
-                "AFMO  OPS",
-                "AFMO OPS.",
-                "AFMO OPERATIONS",
-                "AFMO. OPS",
-                "AFMO - OPERATIONS"
-            ),
-            "AFMO Ops", Final.Fire.Report.Approved.By.Title
-        ),
-        # Asst. District Forester
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
-                "ASST DISCT. FORESTER",
-                "ASST DISTRICT FORESTER",
-                "ASST. DISTRICT FORESTER",
-                "ASST, DISPTRICT FORESTER",
-                "ASST, DISTC FORESTER",
-                "ASST, DISTRICT FORESTER",
-                "ASST. DISC FORESTER",
-                "ASST. DISCTRIC FORESTER",
-                "ASST. DITRICT FORESTER",
-                "ASST, DISTRICT FOREST",
-                "ASST. DISCTRIC FORESTER"
-            ), "Asst. District Forester", Final.Fire.Report.Approved.By.Title
-        ),
-        # ASFT
-        Final.Fire.Report.Approved.By.Title = ifelse(
-            toupper(Final.Fire.Report.Approved.By.Title) %in% c(
-                "A.S.F.T", 
-                "A.S.F.T.", 
-                "ASFT"
-            ),
-            "ASFT", Final.Fire.Report.Approved.By.Title
-        )
-    )
+inform %>%
+    group_by(Incident.Type.Category) %>%
+    summarize(
+        n=n()
+    ) %>%
+    arrange(n)
+```
 
+```{r}
+inform %>%
+    group_by(Fire.Mgmt.Complexity, Incident.Type.Category) %>%
+    summarize(
+        n=n(),
+        avg_acres = mean(Calculated.Acres, na.rm=TRUE),
+        max_acres = max(Calculated.Acres, na.rm=TRUE),
+        min_acres = min(Calculated.Acres, na.rm=TRUE)
+    ) %>%
+    arrange(avg_acres) %>%
+    print(width=Inf)
 ```

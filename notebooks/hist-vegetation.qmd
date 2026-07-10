@@ -44,6 +44,7 @@ df <- df %>%
     mutate(plant_sum = rowSums(df[,4:10]), .after=n_populus)
 
 hist_veg <- st_transform(hist_veg, "WGS84")
+dim(hist_veg)
 
 ```
 
@@ -206,6 +207,9 @@ shp <- shp %>%
     )
 
 head(shp)
+write_csv(shp, "data/processed_grid.csv")
+st_write(shp, "data/processed_grid.shp", append=FALSE)
+
 ```
 
 
