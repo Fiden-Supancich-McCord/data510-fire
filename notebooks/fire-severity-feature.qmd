@@ -89,3 +89,131 @@ fire_shp %>%
     geom_sf() +
     theme_minimal()
 ```
+
+
+```{r}
+names(fire_shp)
+
+```
+
+# FEATURES
+
+- Acres burned
+- Burn duration
+- Fire management complexity
+
+```{r}
+fire_df <- ifph_inform %>% filter(is_inform==TRUE) %>% select(-c(is_inform, is_ifph))
+fire_shp <- fire_shp %>% filter(!is.na(is_nfrm)) %>% select(-c(is_nfrm, is_ifph))
+
+head(fire_shp)
+```
+
+## Acres burned
+
+Already exists with no missingness - GIS_ACR
+
+```{r}
+dim(fire_shp %>%
+    filter(is.na(GIS_ACR)))
+```
+
+## Fire management complexity
+
+Already exists - Fr_Mg_C
+
+```{r}
+fire_shp %>%
+    select(Fr_Mg_C) %>%
+    filter(!is.na(Fr_Mg_C))
+
+fire_df %>%
+    group_by(Fire.Mgmt.Complexity) %>%
+    summarize(n=n())
+
+fire_df %>%
+    group_by(Fire.Mgmt.Complexity) %>%
+    summarize(n=n())
+
+# significant missingness - 1531 missing total
+# 665 missing where inform data is present
+# can be converted to numeric category for modeling, all 1-5 no extra text
+fire_df <- fire_df %>%
+    mutate(fire_mgmt_n = as.numeric(str_extract(Fire.Mgmt.Complexity, "[1-5]"))) 
+
+fire_shp <- fire_shp %>%
+    mutate(fire_mgmt_n = as.numeric(str_extract(Fr_Mg_C, "[1-5]")))
+
+```
+
+## Burn Duration
+
+```{r}
+fire_df %>%
+    group_by(is.na(Containment.Date.Time), is.na(Control.Date.Time), is.na(FireOutDateTime)) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n)) %>%
+    print(width=Inf)
+# 17 missing all three
+
+fire_df <- fire_df %>%
+    filter(!(is.na(Containment.Date.Time) & is.na(Control.Date.Time) & is.na(FireOutDateTime)))
+
+# Cntn_D_T, Cntr_D_T, FrOtDtT
+fire_shp <- fire_shp %>%
+    filter(!(is.na(Cntn_D_T) & is.na(Cntr_D_T) & is.na(FrOtDtT)))
+
+```
+
+```{r}
+# creating latest_out column
+fire_df %>%
+    rowwise %>%
+    mutate(
+        latest_out = max(c(Containment.Date.Time, Control.Date.Time, FireOutDateTime), na.rm=TRUE)
+    ) %>%
+    select(Containment.Date.Time, Control.Date.Time, FireOutDateTime, latest_out) %>%
+    print(width=Inf)
+
+fire_df <- fire_df %>%
+    rowwise %>%
+    mutate(
+        latest_out = max(c(Containment.Date.Time, Control.Date.Time, FireOutDateTime), na.rm=TRUE)
+    )
+
+fire_shp %>%
+    rowwise %>%
+    mutate(
+        latest_out = max(c(Cntn_D_T, Cntr_D_T, FrOtDtT), na.rm=TRUE)
+    ) %>%
+    select(Cntn_D_T, Cntr_D_T, FrOtDtT, latest_out) %>%
+    print(width=Inf)
+
+fire_shp <- fire_shp %>%
+    rowwise %>%
+    mutate(
+        latest_out = max(c(Cntn_D_T, Cntr_D_T, FrOtDtT), na.rm=TRUE)
+    )
+
+```
+
+```{r}
+# calculated the duration between fire discovery and latest out
+fire_df %>%
+    mutate(fire_duration = as.duration(interval(Fire.Discovery.Date.Time, latest_out))) %>%
+    mutate(duration_hrs = as.numeric(fire_duration, "hours")) %>%
+    select(Fire.Discovery.Date.Time, latest_out, fire_duration, duration_hrs) %>%
+    print(width=Inf)
+
+fire_df <- fire_df %>%
+    mutate(fire_duration = as.duration(interval(Fire.Discovery.Date.Time, latest_out))) %>%
+    mutate(duration_hrs = as.numeric(fire_duration, "hours"))
+
+fire_shp <- cbind(fire_shp, fire_df$duration_hrs)
+
+```
+
+```{r}
+st_write(fire_shp, "data/fire_shp.shp")
+write_csv(fire_df, "data/fire_df.csv")
+```
