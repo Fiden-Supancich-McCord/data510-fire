@@ -23,6 +23,7 @@ df <- read_csv("data/processed_grid.csv")
 shp <- st_read("data/processed_grid.shp")
 
 ifph_inform <- read_csv("data/ifph_inform.csv")
+fire_shp <- st_read("data/ifph_inform.shp")
 
 ```
 
@@ -37,7 +38,15 @@ ifph_inform %>%
     group_by(Fire.Mgmt.Complexity, Incident.Type.Category) %>%
     summarize(
         n=n(),
-        avg_acres = mean(Calculated.Acres, na.rm=TRUE)
+        avg_acres = mean(GIS_ACRES, na.rm=TRUE)
+    ) %>%
+    arrange(avg_acres)
+
+ifph_inform %>%
+    group_by(is_inform) %>%
+    summarize(
+        n=n(),
+        avg_acres = mean(GIS_ACRES, na.rm=TRUE)
     ) %>%
     arrange(avg_acres)
 
@@ -50,14 +59,33 @@ ifph_inform %>%
 ```
 
 ```{r}
-inform %>%
+ifph_inform %>%
     group_by(Fire.Mgmt.Complexity, Incident.Type.Category) %>%
     summarize(
         n=n(),
-        avg_acres = mean(Calculated.Acres, na.rm=TRUE),
-        max_acres = max(Calculated.Acres, na.rm=TRUE),
-        min_acres = min(Calculated.Acres, na.rm=TRUE)
+        avg_acres = mean(GIS_ACRES, na.rm=TRUE),
+        max_acres = max(GIS_ACRES, na.rm=TRUE),
+        min_acres = min(GIS_ACRES, na.rm=TRUE)
     ) %>%
     arrange(avg_acres) %>%
     print(width=Inf)
+
+ifph_inform %>%
+    group_by(is_inform) %>%
+    summarize(
+        n=n(),
+        avg_acres = mean(GIS_ACRES, na.rm=TRUE),
+        max_acres = max(GIS_ACRES, na.rm=TRUE),
+        median_acres = median(GIS_ACRES, na.rm=TRUE),
+        min_acres = min(GIS_ACRES, na.rm=TRUE)
+    ) %>%
+    arrange(avg_acres) %>%
+    print(width=Inf)
+```
+
+```{r}
+fire_shp %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf() +
+    theme_minimal()
 ```

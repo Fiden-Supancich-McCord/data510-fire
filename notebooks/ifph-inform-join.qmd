@@ -74,7 +74,8 @@ lengths(or_ifph)
 ### Creating dataframe
 
 ```{r}
-ifph_df <- tibble(or_ifph)
+ifph_df <- or_ifph
+# ifph_df <- tibble(or_ifph)
 
 ```
 
@@ -476,6 +477,9 @@ ifph_inform %>%
         quant_year = as_tibble_row(quantile(FIRE_YEAR_))
     ) %>%
     arrange(desc(n)) 
+
+dim(ifph_inform %>%
+    filter(is_inform==TRUE))
 # this is a potential issue - the year spread is pretty distinct.
 ```
 
@@ -489,6 +493,6 @@ ifph_inform %>%
 ifph_inform <- ifph_inform %>%
     filter(FIRE_YEAR_ >=2015, FIRE_YEAR_ <= 2025)
 
-write_csv(ifph_inform, "data/ifph_inform.csv")
-
+st_write(ifph_inform, "data/ifph_inform.shp")
+#write_csv(ifph_inform, "data/ifph_inform.csv")
 ```
