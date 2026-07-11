@@ -487,7 +487,7 @@ ifph_inform %>%
     select(Calendar.Year, Fire.Discovery.Date.Time, FIRE_YEAR_, UNQE_FIRE_, is_inform, is_ifph) %>%
     filter(FIRE_YEAR_ != Calendar.Year) 
 
-ifph_inform %>%
+ifph_inform <- ifph_inform %>%
     filter(FIRE_YEAR_ >=2015, FIRE_YEAR_ <= 2025)
 
 write_csv(ifph_inform, "data/ifph_inform.csv")
