@@ -89,7 +89,7 @@ ifph_df %>%
     filter(unqe_year != FIRE_YEAR_) %>%
     arrange(desc(FIRE_YEAR_))
 
-ifph_df <- ifph_df %>%
+ifph_df %>%
     filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025)
 
 # converting INCIDENT = UNNAMED, UNKNOWN to NA
@@ -453,7 +453,7 @@ inform %>%
 ```{r}
 ifph_df %>% 
     mutate(is_ifph = TRUE) %>%
-    full_join(inform %>% mutate(is_inform = TRUE), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
+    full_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
     group_by(is_ifph, is_inform, Calendar.Year) %>%
     summarize(n=n()) %>%
     arrange(desc(Calendar.Year))
@@ -461,8 +461,7 @@ ifph_df %>%
 
 ifph_inform <- ifph_df %>% 
     mutate(is_ifph = TRUE) %>%
-    filter(!is.na(UNQE_FIRE_)) %>%
-    left_join(inform %>% mutate(is_inform = TRUE), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
+    left_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
 
 ifph_inform %>% 
     group_by(is_inform, FIRE_YEAR_) %>%
