@@ -41,7 +41,7 @@ Getting just OR from `usmap` to filter fires/native land to our area of interest
 states <- usmap::us_map()
 or <- states %>% filter(abbr=="OR")
 # transforming OR so the coordinate system matches
-or <- st_transform(or, crs=st_crs(ifph))
+or <- st_transform(or, crs="WGS84")
 
 or %>% 
     ggplot() +
@@ -51,7 +51,8 @@ or %>%
 
 ```{r}
 lengths(ifph)
-
+ifph <- st_transform(ifph, crs="WGS84")
+ifph <- st_make_valid(ifph)
 # creating intersection list for all polygons that intersect with OR border
 # then selecting only those polygons
 ifph_int = st_intersects(or, ifph)
@@ -61,7 +62,11 @@ or_ifph = ifph[unlist(ifph_int),]
 dim(or_ifph)
 
 or_ifph %>% 
-    ggplot() + geom_sf() + theme_minimal()
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) %>%
+    ggplot() + 
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(fill="firebrick", linewidth=0.05, color="black", alpha=0.4) + 
+    theme_minimal()
 
 lengths(or_ifph)
 ```
@@ -69,7 +74,7 @@ lengths(or_ifph)
 ### Creating dataframe
 
 ```{r}
-ifph_df <- as.data.frame(or_ifph)
+ifph_df <- tibble(or_ifph)
 
 ```
 
@@ -77,8 +82,15 @@ ifph_df <- as.data.frame(or_ifph)
 
 ```{r}
 # limiting FIRE_YEAR_ to 2015-2025 (inclusive)
+summary(ifph_df$FIRE_YEAR_)
+ifph_df %>%
+    select(FIRE_YEAR_, UNQE_FIRE_) %>%
+    mutate(unqe_year = as.numeric(str_sub(UNQE_FIRE_, 1, 4))) %>%
+    filter(unqe_year != FIRE_YEAR_) %>%
+    arrange(desc(FIRE_YEAR_))
+
 ifph_df <- ifph_df %>%
-    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025)
 
 # converting INCIDENT = UNNAMED, UNKNOWN to NA
 ifph_df %>%
@@ -88,8 +100,7 @@ ifph_df %>%
     arrange(desc(n))
 
 ifph_df <- ifph_df %>%
-    mutate(INCIDENT = toupper(INCIDENT)) %>%
-    mutate(INCIDENT = ifelse(INCIDENT %in% c("UNNAMED", "UNKNOWN"), NA, INCIDENT)) 
+    mutate(INCIDENT = ifelse(toupper(INCIDENT) %in% c("UNNAMED", "UNKNOWN", "NO NAME AVAIL", "NOT AVAILABLE"), NA, INCIDENT)) 
 
 ifph_df %>%
     mutate(INCIDENT = toupper(INCIDENT)) %>%
@@ -318,8 +329,11 @@ inform <- inform %>%
         # imputing missing values 
         Calendar.Year = ifelse(is.na(Calendar.Year), 
                         year(Fire.Discovery.Date.Time), 
+                        Calendar.Year),
+        Calendar.Year = ifelse(Calendar.Year > 2100, 
+                        year(Fire.Discovery.Date.Time), 
                         Calendar.Year)
-    ) 
+    )
     
 inform %>%
     # removing all where Fire.Discovery.Date.Time and Calendar.Year are misaligned by more than one year
@@ -328,7 +342,8 @@ inform %>%
 
 inform %>%
     group_by(Calendar.Year) %>%
-    summarize(n = n())
+    summarize(n = n()) %>%
+    arrange(desc(n))
 ```
 
 ```{r}
@@ -446,6 +461,7 @@ ifph_df %>%
 
 ifph_inform <- ifph_df %>% 
     mutate(is_ifph = TRUE) %>%
+    filter(!is.na(UNQE_FIRE_)) %>%
     left_join(inform %>% mutate(is_inform = TRUE), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
 
 ifph_inform %>% 
@@ -465,3 +481,15 @@ ifph_inform %>%
 ```
 
 Not much to be done about it, but should be noted! 
+
+```{r}
+ifph_inform %>%
+    select(Calendar.Year, Fire.Discovery.Date.Time, FIRE_YEAR_, UNQE_FIRE_, is_inform, is_ifph) %>%
+    filter(FIRE_YEAR_ != Calendar.Year) 
+
+ifph_inform %>%
+    filter(FIRE_YEAR_ >=2015, FIRE_YEAR_ <= 2025)
+
+write_csv(ifph_inform, "data/ifph_inform.csv")
+
+```
