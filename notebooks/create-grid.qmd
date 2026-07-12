@@ -549,6 +549,39 @@ or_grid_df <- or_grid_df %>%
 names(or_grid_df)
 ```
 
+## Diversity index with vegan package
+
+```{r}
+div_df <- or_grid_df %>%
+    select(sum_pinus, sum_salix, sum_quercus, sum_populus, sum_thuja, n_xerophyllum, n_rubus)
+
+library(vegan)
+shannon_div_tib <- tibble(diversity(div_df, index="shannon"))
+
+simpson_div_tib <- tibble(diversity(div_df, index="simpson"))
+
+or_grid_div <- cbind(or_grid_df, shannon_div_tib)
+or_grid_div <- or_grid_div %>% rename(shannon_div = `diversity(div_df, index = \"shannon\")`)
+
+or_grid_div <- cbind(or_grid_df, simpson_div_tib)
+or_grid_div <- or_grid_div %>% rename(simpson_div = `diversity(div_df, index = \"simpson\")`)
+
+names(or_grid_div)
+
+```
+
+```{r}
+div_sf <- st_as_sf(or_grid_div, crs="WGS84")
+names(div_sf)
+
+div_sf %>%
+    ggplot(aes(geometry=geometry, fill=simpson_div, alpha=n_fires)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_binned(breaks=c(0, 0, 0.01, 0.1, 1), palette=c("red", "black", "blue", "lightblue")) +
+    scale_alpha_binned(range=c(0.2, 1), breaks=c(0, 0.5)) +
+    theme_void()
+```
+
 # finalizing join
 
 ```{r}
@@ -561,4 +594,6 @@ full_grid_shp <- st_as_sf(full_grid_tib, crs="WGS84")
 
 write_csv(full_grid_tib, "data/processed_grid.csv")
 st_write(full_grid_shp, "data/processed_grid.shp", append=FALSE)
+
+names(full_grid_tib)
 ```
