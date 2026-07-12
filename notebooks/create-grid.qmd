@@ -553,7 +553,6 @@ names(or_grid_df)
 
 ```{r}
 full_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="grid_index")))
-
 ```
 
 ```{r}
