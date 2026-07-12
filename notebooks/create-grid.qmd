@@ -261,6 +261,8 @@ or_grid_tib %>%
 
 # Adding GBIF data
 
+## Read in and make sf
+
 ```{r}
 gbif <- read_csv("data/new_gbif_dataset.csv")
 ```
@@ -273,16 +275,6 @@ gbif_sf <- gbif_sf %>% select(-`...1`)
 ```{r}
 str(gbif_sf)
 
-gbif_sf %>%
-    mutate(
-        species = as_factor(species),
-        eventDate = ifelse(str_starts(eventDate, "20"), ymd_hms(eventDate, truncated=3), mdy_hms(eventDate, truncated=3)),
-        #eventDate = ifelse(is.Date(eventDate), eventDate, as_datetime(eventDate)),
-        basisOfRecord = as_factor(basisOfRecord),
-        license = as_factor(license)
-    ) %>%
-    arrange(eventDate)
-
 gbif_sf <- gbif_sf %>%
     mutate(
         species = as_factor(species),
@@ -293,9 +285,12 @@ gbif_sf <- gbif_sf %>%
 
 ```
 
+# Species counts
+
 ```{r}
 unique(gbif_sf$species)
 
+# datasets filtered for each species
 qg_gbif <- gbif_sf %>%
     filter(species == "Quercus garryana")
 
@@ -317,6 +312,10 @@ pp_gbif <- gbif_sf %>%
 ss_gbif <- gbif_sf %>%
     filter(species == "Salix scouleriana")
 
+```
+
+```{r}
+# contains lists/tibbles for each species
 qg_con <- st_contains(or_grid, qg_gbif, sparse=FALSE)
 qg_tibble <- tibble(qg_con)
 
@@ -339,7 +338,10 @@ ss_con <- st_contains(or_grid, ss_gbif, sparse=FALSE)
 ss_tibble <- tibble(ss_con)
 
 head(qg_tibble)
+```
 
+```{r}
+# adding counts per cell to overall df
 # quercus garryana
 or_grid_df <- cbind(or_grid_df, qg_tibble)
 
@@ -416,12 +418,138 @@ or_grid_df <- or_grid_df %>%
     )
 
 or_grid_df <- or_grid_df %>% select(-ss_con)
+
+names(or_grid_df)
 ```
 
 ```{r}
-head(or_grid_df)
+# adding plant sums
+or_grid_df <- or_grid_df %>% 
+    mutate(plant_sum = rowSums(or_grid_df[,5:11])) # if cols added change 5:11
+
 ```
 
+# Historic Vegetation info
+
+```{r}
+hist_veg <- st_read("/Users/nikolefiden/Desktop/Historic_Vegetation_84513795379117550/Historic_Vegetation.shp")
+hist_veg <- st_transform(hist_veg, crs="WGS84")
+```
+
+## adding historic vegetation cols of interest
+
+```{r}
+# datasets filtered to each species
+hist_pinus <- hist_veg %>%
+    filter(VEGNAME %in% c("Ponderosa pine", "Ponderosa pine-lodgepole pine","Douglas fir-ponderosa pine"))
+
+hist_salix <- hist_veg %>%
+    filter(VEGNAME=="Willows")
+
+hist_quercus <- hist_veg %>%
+    filter(VEGNAME %in% c("White oak woodland", "White oak-black oak"))
+
+hist_populus <- hist_veg %>%
+    filter(VEGNAME=="Black cottonwood riparian woodland")
+
+hist_thuja <- hist_veg %>%
+    filter(VEGNAME=="Western redcedar")
+
+```
+
+```{r}
+# contains lists/tibbles for each species
+hist_pinus_grid <- st_intersects(or_grid, hist_pinus, sparse=FALSE)
+hist_pinus_tibble <- tibble(hist_pinus_grid)
+
+hist_salix_grid <- st_intersects(or_grid, hist_salix, sparse=FALSE)
+hist_salix_tibble <- tibble(hist_salix_grid)
+
+hist_quercus_grid <- st_intersects(or_grid, hist_quercus, sparse=FALSE)
+hist_quercus_tibble <- tibble(hist_quercus_grid)
+
+hist_populus_grid <- st_intersects(or_grid, hist_populus, sparse=FALSE)
+hist_populus_tibble <- tibble(hist_populus_grid)
+
+hist_thuja_grid <- st_intersects(or_grid, hist_thuja, sparse=FALSE)
+hist_thuja_tibble <- tibble(hist_thuja_grid)
+
+```
+
+```{r}
+# adding presence by cell to overall df
+# pinus
+or_grid_df <- cbind(or_grid_df, hist_pinus_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("hist_pinus_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_pinus = ifelse(rowSums(across(starts_with("hist_pinus_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_pinus_grid)
+
+# salix
+or_grid_df <- cbind(or_grid_df, hist_salix_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("hist_salix_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_salix = ifelse(rowSums(across(starts_with("hist_salix_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_salix_grid)
+
+# quercus
+or_grid_df <- cbind(or_grid_df, hist_quercus_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("hist_quercus_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_quercus = ifelse(rowSums(across(starts_with("hist_quercus_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_quercus_grid)
+
+# populus 
+or_grid_df <- cbind(or_grid_df, hist_populus_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("hist_populus_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_populus = ifelse(rowSums(across(starts_with("hist_populus_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_populus_grid)
+
+# thuja
+or_grid_df <- cbind(or_grid_df, hist_thuja_tibble)
+
+or_grid_df <- or_grid_df %>%
+    mutate(across(starts_with("hist_thuja_grid"), ~ ifelse(.x==TRUE, 1, 0))) %>%
+    mutate(
+        hist_thuja = ifelse(rowSums(across(starts_with("hist_thuja_grid"))) == 0, 0, 1)
+    ) %>%
+    select(-hist_thuja_grid) 
+
+names(or_grid_df)
+```
+
+## summing everything (GBIF and historic)
+
+```{r}
+or_grid_df <- or_grid_df %>%
+    mutate(
+        sum_pinus = rowSums(across(ends_with("pinus"))),
+        sum_salix = rowSums(across(ends_with("salix"))),
+        sum_quercus = rowSums(across(ends_with("quercus"))),
+        sum_populus = rowSums(across(ends_with("populus"))),
+        sum_thuja = rowSums(across(ends_with("thuja")))
+    ) %>% 
+    mutate(
+        total_sum = rowSums(across(starts_with("sum")))
+    )
+
+names(or_grid_df)
+```
+
+# finalizing join
 
 ```{r}
 full_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="grid_index")))
