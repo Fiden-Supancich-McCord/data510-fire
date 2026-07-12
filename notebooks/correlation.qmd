@@ -1,0 +1,31 @@
+---
+title: "Create grid!"
+author: "Spencer Fiden"
+date: "2026-05-29"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(sf)
+library(GGally)
+```
+
+```{r}
+grid <- st_read("data/processed_grid.shp")
+grid_df <- read_csv("data/processed_grid.csv")
+```
+
+```{r}
+names(grid_df)
+
+pairplot_plt <- grid_df %>%
+    select(is_indigenous, n_fires, n_xerophyllum, n_rubus, sum_pinus, sum_salix, sum_quercus, sum_populus, sum_thuja, max_acres, min_mgmt, max_duration) %>%
+    ggpairs()
+
+ggsave("pairplot_plt.jpeg", pairplot_plt)
+```
