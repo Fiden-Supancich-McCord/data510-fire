@@ -5,8 +5,6 @@ date: "2026-05-29"
 output: html_document
 ---
 
-# Creating grid for oregon
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -18,77 +16,99 @@ library(ggplot2)
 library(sf)
 ```
 
-```{r}
-landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
-us_lm <- landmark %>% filter(iso_code == "USA")
-us_lm <- st_zm(us_lm)
-us_lm <- st_transform(us_lm, crs="WGS84")
-us_lm <- st_make_valid(us_lm)
-```
+# Creating grid cells for oregon
 
 ## OR
 
 ```{r}
+# read in oregon shapefile
 states <- usmap::us_map()
 or <- states %>% filter(abbr=="OR")
 # transforming OR so the coordinate system matches
 or <- st_transform(or, crs="WGS84")
 
-or %>% 
-    ggplot() +
-    geom_sf() + 
-    theme_minimal()
 ```
 
 ## Create grid
 
 ```{r}
-or_grid_square <- st_make_grid(or, cellsize=0.05)
+# make grid that covers OR area (note: it's a full rectangle)
+# cellsize is based on lat/lon degrees
+or_grid_square <- st_make_grid(or, cellsize=0.05) 
+
+# test visualization
 plot(or_grid_square)
 plot(st_geometry(or), add=TRUE)
 plot(or_grid_square[or], col="#ff000088", add=TRUE)
 ```
 
-## add names/identifier to each grid cell
-
 ```{r}
 head(or_grid_square)
+# limiting to grid cells that are actually in oregon (e.g. removing non-red cells from prev visualization)
 or_grid = or_grid_square[or]
+
+# confirm it is smaller now (fewer cells)
 length(or_grid_square)
 length(or_grid)
 ```
 
+## add names/identifier to each grid cell
+
 ```{r}
+# creating index, writing as tibble
 index = seq(1, length(or_grid), 1)
 index_tib = tibble(index)
 
+# using cbind to add index to grid (this transforms it to data.frame)
 or_grid_df <- cbind(or_grid, index_tib)
+class(or_grid_df)
 
 ```
 
 # Add landmark data
 
 ```{r}
-sf_use_s2(FALSE)
+# read in landmark data
+landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
+# limit to USA, remove z-dimension, tranform coordinate system, make valid
+us_lm <- landmark %>% filter(iso_code == "USA")
+us_lm <- st_zm(us_lm)
+us_lm <- st_transform(us_lm, crs="WGS84")
+us_lm <- st_make_valid(us_lm)
+```
+
+## finding OR-intersecting areas
+
+```{r}
+# sf_use_s2(FALSE) (not sure why I had this before? doesn't seem necessary but if something breaks, it was)
+
+# sparse geometry binary predicate list of length 1, where the predicate was "intersects"
+# e.g. indexes where geometry intersects with OR
 lm_int = st_intersects(or, us_lm)
 dim(lm_int)
 
+# only landmark rows that were in the intersection list
 or_lm = us_lm[unlist(lm_int),]
 dim(or_lm)
+# 11 total
 ```
 
 ```{r}
+# list for each cell and tribal area, TRUE if they intersect
 indigenous <- st_intersects(or_grid, or_lm, sparse=FALSE)
 indigenous_tibble <- tibble(indigenous)
 
 or_grid_df <- cbind(or_grid_df, indigenous_tibble)
 
+# for each grid cell, convert all indigenous rows to 1 if TRUE/0 if FALSE
+# create is_indigenous column with sum of indigenous rows, so each cell has 1 if indigenous land and 0 if not
 or_grid_df <- or_grid_df %>%
     mutate(across(starts_with("indigenous"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
     mutate(
         is_indigenous = ifelse(rowSums(across(starts_with("indigenous"))) == 0, 0, 1)
     )
 
+# remove interim rows
 or_grid_df <- or_grid_df %>% select(-indigenous)
 
 lengths(or_grid_df)
@@ -98,15 +118,14 @@ lengths(or_grid_df)
 # Add IFPH and InFORM data
 
 ```{r}
+# reading in combined IFPH and InFORM data created in ifph-inform-join
 fire_shp <- st_read("data/fire_shp.shp")
 
 ```
 
-## locked in. adding fire identifier
+## Adding fire count
 
 ```{r}
-head(or_grid)
-
 # fire tibble with whether each fire occurred in each grid cell
 fire <- st_intersects(or_grid, fire_shp, sparse=FALSE)
 fire_tibble <- tibble(fire)
@@ -117,25 +136,31 @@ dim(fire_tibble$fire)
 # combining fire_tibble and or_grid_df to get counts of fires
 or_grid_df <- cbind(or_grid_df, fire_tibble)
 
+# creating sum of fires across each row/grid cell
 or_grid_df <- or_grid_df %>%
     mutate(across(starts_with("fire"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
     mutate(
         n_fires = rowSums(across(starts_with("fire")))
     )
 
-# removing the interim fire columns (they are mostly false and mostly meaningless)
+# removing the interim fire columns
 or_grid_df <- or_grid_df %>% select(-fire)
 
 head(or_grid_df %>%
     arrange(desc(n_fires))
 )
 # max number of fires: 8
+```
 
+## Adding fire identifier
+
+```{r}
 # getting grid index as list
 grid_index <- or_grid_df$index
 
 # new tibble that doesn't have a matrix
 fire_tibble2 = cbind(tibble(data.frame(fire)), grid_index)
+names(fire_tibble2)
 
 # for every grid index and fire, shows the unique fire identifier (unique_id) and whether that fire was in that grid cell (is_fire)
 long_fire <- fire_tibble2 %>%
@@ -148,7 +173,7 @@ long_fire <- fire_tibble2 %>%
         duration_hrs = fire_shp$fr_df__[fire_index]
     )
 
-# confirming the order didn't shift around for some reason - it did not!
+# confirming the order didn't shift around for some reason
 (long_fire %>% pull(unique_id))[1:100] == (fire_shp %>% pull(UNQE_FI))[1:100]
 
 # creating new limited id column that has unique identifier if fire is present in that square, otherwise NA
@@ -164,9 +189,8 @@ wide_fire <- long_fire %>%
 
 head(wide_fire)
 
-
-
 # creating new tibble with grid index
+# empty columns for unique identifiers, acres, mgmt complexity, duration 
 fire_lst_tibble <- tibble(grid_index)
 fire_lst_tibble[,"fire_lst"]=""
 fire_lst_tibble[,"max_acres"]=""
@@ -176,15 +200,19 @@ head(fire_lst_tibble,5)
 
 # for every grid cell, pulling unique fire identifiers for fires that occurred in that cell, adding them to fire_lst_tibble
 for (x in 1:dim(or_grid_df)[1]) {
-    full_lst <- pull(wide_fire, x+6)
+    # pull list of NAs and fire identifiers for each col/grid cell
+    full_lst <- pull(wide_fire, x+6) # change 6 if more cols added
+    # list of indexes for present fires
     fire_idx <- which(!is.na(full_lst))
+    # list of present fire identifiers
     lst <- full_lst[!is.na(full_lst)]
-    #print(lst)
+    # if no fires, all NA
     if (length(lst) == 0) {
         fire_lst_tibble$fire_lst[x] = NA
         fire_lst_tibble$max_acres[x] = NA
         fire_lst_tibble$min_mgmt[x] = NA
         fire_lst_tibble$max_duration[x] = NA
+    # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
     } else {
         fire_lst_tibble$fire_lst[x] = paste(unlist(lst), collapse=", ")
         fire_lst_tibble$max_acres[x] = max(wide_fire$acres[fire_idx])
@@ -205,13 +233,14 @@ ex8 == fire_lst_tibble$fire_lst[8]
 ```
 
 ```{r}
+# joining or_grid_df and fire_lst_tibble on the grid index
 or_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="grid_index")))
 
 or_grid_tib
 ```
 
 ```{r}
-# visualization? n_fires per square?
+# test visualization
 library(viridis)
 
 or_grid_tib %>%
@@ -229,6 +258,8 @@ or_grid_tib %>%
     group_by(is_indigenous) %>%
     summarize(n=n())
 ```
+
+# Adding GBIF data
 
 ```{r}
 gbif <- read_csv("data/new_gbif_dataset.csv")
