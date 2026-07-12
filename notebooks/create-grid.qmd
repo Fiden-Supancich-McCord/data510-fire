@@ -20,10 +20,10 @@ library(sf)
 
 ```{r}
 landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
-landmark <- st_zm(landmark)
-landmark <- st_transform(landmark, crs="WGS84")
-landmark <- st_make_valid(landmark)
 us_lm <- landmark %>% filter(iso_code == "USA")
+us_lm <- st_zm(us_lm)
+us_lm <- st_transform(us_lm, crs="WGS84")
+us_lm <- st_make_valid(us_lm)
 ```
 
 ## OR
@@ -70,10 +70,10 @@ or_grid_df <- cbind(or_grid, index_tib)
 
 ```{r}
 sf_use_s2(FALSE)
-lm_int = st_intersects(or, landmark)
+lm_int = st_intersects(or, us_lm)
 dim(lm_int)
 
-or_lm = landmark[unlist(lm_int),]
+or_lm = us_lm[unlist(lm_int),]
 dim(or_lm)
 ```
 
@@ -89,28 +89,16 @@ or_grid_df <- or_grid_df %>%
         is_indigenous = ifelse(rowSums(across(starts_with("indigenous"))) == 0, 0, 1)
     )
 
+or_grid_df <- or_grid_df %>% select(-indigenous)
+
 lengths(or_grid_df)
 
 ```
 
-# Add IFPH data
+# Add IFPH and InFORM data
 
 ```{r}
-ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
-ifph <- st_transform(ifph, crs="WGS84")
-ifph <- st_make_valid(ifph)
-
-```
-
-```{r}
-ifph_int = st_intersects(or, ifph)
-dim(ifph_int)
-
-or_ifph = ifph[unlist(ifph_int),]
-dim(or_ifph)
-
-or_ifph %>% 
-    ggplot() + geom_sf() + theme_minimal()
+fire_shp <- st_read("data/fire_shp.shp")
 
 ```
 
@@ -118,19 +106,13 @@ or_ifph %>%
 
 ```{r}
 head(or_grid)
-head(or_ifph)
-
-# limit ifph to years we care about
-or_ifph_curr <- or_ifph %>%
-    filter(FIRE_YEAR_ >= 2015)
 
 # fire tibble with whether each fire occurred in each grid cell
-fire <- st_intersects(or_grid, or_ifph_curr, sparse=FALSE)
+fire <- st_intersects(or_grid, fire_shp, sparse=FALSE)
 fire_tibble <- tibble(fire)
 head(fire_tibble)
 dim(fire_tibble)
-
-head(or_ifph_curr)
+dim(fire_tibble$fire)
 
 # combining fire_tibble and or_grid_df to get counts of fires
 or_grid_df <- cbind(or_grid_df, fire_tibble)
@@ -147,55 +129,79 @@ or_grid_df <- or_grid_df %>% select(-fire)
 head(or_grid_df %>%
     arrange(desc(n_fires))
 )
-tibble(or_grid_df)
-# max number of fires: 11
+# max number of fires: 8
 
 # getting grid index as list
 grid_index <- or_grid_df$index
 
 # new tibble that doesn't have a matrix
-fire_tibble2 = tibble(cbind(tibble(data.frame(fire)), grid_index))
+fire_tibble2 = cbind(tibble(data.frame(fire)), grid_index)
 
-# for every grid index, shows the unique fire identifier (unique_id) and whether that fire was in that grid cell (is_fire)
+# for every grid index and fire, shows the unique fire identifier (unique_id) and whether that fire was in that grid cell (is_fire)
 long_fire <- fire_tibble2 %>%
     pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
     mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
-    mutate(unique_id = or_ifph_curr$UNQE_FIRE_[fire_index]) 
+    mutate(
+        unique_id = fire_shp$UNQE_FI[fire_index],
+        acres = fire_shp$GIS_ACR[fire_index],
+        fire_management_n = fire_shp$fr_mgm_[fire_index],
+        duration_hrs = fire_shp$fr_df__[fire_index]
+    )
 
 # confirming the order didn't shift around for some reason - it did not!
-head(long_fire)
-head(or_ifph_curr$UNQE_FIRE_)
+(long_fire %>% pull(unique_id))[1:100] == (fire_shp %>% pull(UNQE_FI))[1:100]
 
-# mutating unique ID to "missing" if NA and adding the constructed fire_index for referencing
+# creating new limited id column that has unique identifier if fire is present in that square, otherwise NA
+# same for acres, fire_management_n, duration_hrs
+# then pivoting so the unique ID shows in grid index col where the fire is present
 wide_fire <- long_fire %>%
+    # mutating unique ID to "missing" if NA and adding the constructed fire_index for referencing
     mutate(unique_id = ifelse(is.na(unique_id), paste("MISSING", as.symbol(fire_index)), unique_id)) %>%
-    mutate(limited_uid = ifelse(is_fire==TRUE, unique_id, NA)) %>%
-    pivot_wider(names_from = grid_index, values_from = limited_uid) 
+    mutate(
+        limited_uid = ifelse(is_fire==TRUE, unique_id, NA)
+    ) %>%
+    pivot_wider(names_from = grid_index, values_from = limited_uid)
 
 head(wide_fire)
+
+
 
 # creating new tibble with grid index
 fire_lst_tibble <- tibble(grid_index)
 fire_lst_tibble[,"fire_lst"]=""
-head(fire_lst_tibble,8)
+fire_lst_tibble[,"max_acres"]=""
+fire_lst_tibble[,"min_mgmt"]=""
+fire_lst_tibble[,"max_duration"]=""
+head(fire_lst_tibble,5)
 
 # for every grid cell, pulling unique fire identifiers for fires that occurred in that cell, adding them to fire_lst_tibble
 for (x in 1:dim(or_grid_df)[1]) {
-    lst <- pull(wide_fire, x+3)
-    lst <- lst[!is.na(lst)]
+    full_lst <- pull(wide_fire, x+6)
+    fire_idx <- which(!is.na(full_lst))
+    lst <- full_lst[!is.na(full_lst)]
     #print(lst)
     if (length(lst) == 0) {
         fire_lst_tibble$fire_lst[x] = NA
+        fire_lst_tibble$max_acres[x] = NA
+        fire_lst_tibble$min_mgmt[x] = NA
+        fire_lst_tibble$max_duration[x] = NA
     } else {
         fire_lst_tibble$fire_lst[x] = paste(unlist(lst), collapse=", ")
+        fire_lst_tibble$max_acres[x] = max(wide_fire$acres[fire_idx])
+        fire_lst_tibble$min_mgmt[x] = min(wide_fire$fire_management_n[fire_idx])
+        fire_lst_tibble$max_duration[x] = max(wide_fire$duration_hrs[fire_idx])
     }
 }
 
 # checking everything accurate
 ex8 <- pull(wide_fire, `8`)
+ex8_idx <- which(!is.na(ex8))
+max(wide_fire$duration_hrs[ex8_idx])
 ex8 <- ex8[!is.na(ex8)]
 ex8
 head(fire_lst_tibble,8)
+
+ex8 == fire_lst_tibble$fire_lst[8]
 ```
 
 ```{r}
@@ -213,7 +219,7 @@ or_grid_tib %>%
     ggplot(aes(geometry=geometry, fill=n_fires, color=is_indigenous)) +
     geom_sf(linewidth=0.1) +
     scale_fill_viridis_c(option="inferno") +
-    scale_colour_discrete(palette=c("white", "black")) +
+    scale_colour_discrete(palette=c("gray", "black")) +
     theme_void()
 
 ```
@@ -388,13 +394,13 @@ head(or_grid_df)
 
 ```{r}
 full_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="grid_index")))
+
 ```
 
 ```{r}
 names(full_grid_tib)
-export_grid <- full_grid_tib %>% select(-indigenous)
-st_crs(export_grid)
+full_grid_shp <- st_as_sf(full_grid_tib, crs="WGS84")
 
-write_csv(export_grid, "data/processed_grid.csv")
-st_write(export_grid, "data/processed_grid.shp")
+write_csv(full_grid_tib, "data/processed_grid.csv")
+st_write(full_grid_shp, "data/processed_grid.shp", append=FALSE)
 ```
