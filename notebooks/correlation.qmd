@@ -13,6 +13,8 @@ library(ggplot2)
 library(tidyverse)
 library(sf)
 library(GGally)
+library(randomForest)
+library(caret)
 ```
 
 ```{r}
@@ -23,9 +25,135 @@ grid_df <- read_csv("data/processed_grid.csv")
 ```{r}
 names(grid_df)
 
-pairplot_plt <- grid_df %>%
-    select(is_indigenous, n_fires, n_xerophyllum, n_rubus, sum_pinus, sum_salix, sum_quercus, sum_populus, sum_thuja, max_acres, min_mgmt, max_duration) %>%
+lim_grid_df <- grid_df %>%
+    select(index, is_indigenous, n_fires, n_xerophyllum, n_rubus, sum_pinus, sum_salix, sum_quercus, sum_populus, sum_thuja, max_acres, min_mgmt, max_duration)
+
+pairplot_plt <- lim_grid_df %>%
     ggpairs()
 
 ggsave("pairplot_plt.jpeg", pairplot_plt)
+```
+
+
+```{r}
+set.seed(42)
+
+dur_grid <- lim_grid_df %>% select(-c(n_fires, min_mgmt, max_acres, index)) %>% filter(!is.na(max_duration))
+
+train_index <- sample(1:nrow(dur_grid), 0.7 * nrow(dur_grid))
+train_data <- dur_grid[train_index,]
+test_data <- dur_grid[-train_index,]
+
+
+rf_dur <- randomForest(max_duration ~ ., data=train_data)
+
+print(rf_dur)
+
+dur_pred <- predict(rf_dur, test_data)
+length(dur_pred)
+class(dur_pred)
+length(test_data$max_duration)
+class(test_data$max_duration)
+
+plot(
+    test_data$max_duration, dur_pred,
+    main="Actual vs predicted fire duration",
+    xlab="Actual fire duration", 
+    ylab="Predicted fire duration",
+    col="blue", pch=19
+)
+
+abline(0, 1, col="red")
+
+importance(rf_dur)
+varImpPlot(rf_dur)
+```
+
+
+```{r}
+
+acre_grid <- lim_grid_df %>% select(-c(n_fires, min_mgmt, max_duration, index)) %>% filter(!is.na(max_acres))
+
+train_index <- sample(1:nrow(acre_grid), 0.7 * nrow(acre_grid))
+train_data <- acre_grid[train_index,]
+test_data <- acre_grid[-train_index,]
+
+rf_acre <- randomForest(max_acres ~ ., data=train_data)
+
+print(rf_acre)
+
+acre_pred <- predict(rf_acre, test_data)
+
+plot(
+    test_data$max_acres, acre_pred,
+    main="Actual vs predicted fire acres",
+    xlab="Actual fire acres", 
+    ylab="Predicted fire acres",
+    col="blue", pch=19
+)
+
+abline(0, 1, col="red")
+
+importance(rf_acre)
+varImpPlot(rf_acre)
+```
+
+```{r}
+
+fire_grid <- lim_grid_df %>% 
+    select(-c(max_acres, min_mgmt, max_duration, index)) %>% 
+    mutate(n_fires = ifelse(n_fires >= 1, 1, n_fires)) %>%
+    mutate(n_fires = as.factor(n_fires)) 
+
+train_index <- createDataPartition(fire_grid$n_fires, p=0.7, list=FALSE)
+train_data <- fire_grid[train_index,]
+test_data <- fire_grid[-train_index,]
+
+rf_fire <- randomForest(
+    n_fires ~ ., 
+    data=train_data,
+    mtry=4,
+    nodesize=2
+)
+
+fire_pred <- predict(rf_fire, test_data)
+
+confusionMatrix(fire_pred, test_data$n_fires)
+
+importance(rf_fire)
+varImpPlot(rf_fire)
+```
+
+# XGBoost
+
+
+```{r}
+library(xgboost)
+library(cowplot)
+
+```
+
+
+```{r}
+param_lst = list(
+    objective = "reg:linear",
+    eta = 0.01,
+    gamma = 1,
+    max_depth = 6,
+    subsample = 0.8, 
+    colsample_bytree = 0.5
+)
+
+Dtrain <- xgb.DMatrix(data=as.data.frame(train_data))
+Dtest <- xgb.DMatrix(data=as.data.frame(test_data))
+
+xgbcv = xgb.cv(
+    params=param_lst,
+    data=Dtrain,
+    nrounds=70,
+    nfold=5,
+    print_every_n = 10,
+    early_stopping_rounds = 10,
+    maximize=FALSE
+)
 ```
