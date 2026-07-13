@@ -1,0 +1,493 @@
+---
+title: "yest another fire grid"
+author: "Amaya Supancich-McCord"
+date: "2026-07-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+library(viridis)
+#install.packages("reticulate")
+
+library(car)
+library(caret)
+library(Metrics)
+library(ranger)
+```
+
+```{r}
+fire_df <- read_csv("C://Users//amaya//Downloads//processed_grid_real.csv")
+
+names(fire_df)
+```
+```{r}
+fire_data <- fire_df %>%
+  select(
+    max_acres,
+    min_mgmt,
+    max_duration,
+    sum_quercus,
+    n_xerophyllum,
+    sum_thuja,
+    sum_populus,
+    n_rubus,
+    sum_pinus,
+    sum_salix
+  ) %>%
+  na.omit()
+```
+
+```{r}
+# Max Acres
+
+lm_acres <- lm(
+  max_acres ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = fire_data
+)
+
+summary(lm_acres)
+
+errors_acres <- lm_acres$residuals
+rmse <- sqrt(mean(errors_acres^2))
+mae <- mean(abs(errors_acres))
+
+print(paste("RMSE:", rmse))
+print(paste("MAE:", mae))
+
+# Residual standard error: 131800 on 836 degrees of freedom
+# Multiple R-squared:  0.002831 
+# Adjusted R-squared:  -0.005518 
+# F-statistic: 0.3391 on 7 and 836 DF
+# p-value: 0.936
+# RMSE: 131181.18806331
+# MAE: 104917.949340843
+
+```
+
+```{r}
+# checking multicollinearity 
+
+#The values are all the same, cuz its just the same input data
+
+vif(lm_acres)
+# All values <5 = acceptable
+```
+
+```{r}
+# residual diagnostics for acres
+
+par(mfrow = c(2,2))
+plot(lm_acres)
+```
+
+```{r}
+# Setting up for random max acres forest
+
+set.seed(123)
+
+train_index <- createDataPartition(
+  fire_data$max_acres,
+  p = .8,
+  list = FALSE
+)
+
+train <- fire_data[train_index, ]
+test <- fire_data[-train_index, ]
+```
+
+```{r}
+# random forest for max acres
+
+rf_acres <- ranger(
+  max_acres ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = train,
+  importance = "permutation",
+  num.trees = 500
+)
+
+# predict
+pred_rf <- predict(rf_acres, data = test)$predictions
+
+# evaluate
+rmse(test$max_acres, pred_rf) #122365.2
+
+mae(test$max_acres, pred_rf) #101096.2
+
+cor(test$max_acres, pred_rf)^2 #0.08401572
+
+#variable importance
+importance(rf_acres)
+#sum_quercus: 561624684
+#n_xerophyllum: 578134711
+#sum_thuja: 2308772   
+#sum_populus: 166158362       
+#n_rubus: 383094144     
+#sum_pinus: 3879612039    
+#sum_salix: -37868451
+
+#cross validation
+control <- trainControl(
+  method = "cv",
+  number = 10
+)
+
+rf_cv <- train(
+  max_acres ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = fire_data,
+  method = "ranger",
+  trControl = control,
+  importance = "permutation"
+)
+
+rf_cv
+# best outcomes w/ mtry: 2
+#mtry  splitrule   RMSE      Rsquared    MAE     
+#2     variance    124475.2  0.11010476  104381.0
+#2     extratrees  126548.2  0.09453851  104999.4
+```
+
+```{r}
+# Comparison
+
+#MLM:
+# RMSE: 131181.18806331
+# Multiple R-squared:  0.002831 
+# Adjusted R-squared:  -0.005518 
+# MAE: 104917.949340843
+
+#RF:
+#mtry  splitrule   RMSE      Rsquared    MAE     
+#2     variance    124475.2  0.11010476  104381.0
+#2     extratrees  126548.2  0.09453851  104999.4
+
+#Lower RMSE: RF
+#Higher R^2: RF
+#Lower MAE: RF
+```
+
+```{r}
+# Min Management
+
+lm_mgmt <- lm(
+  min_mgmt ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = fire_data
+)
+
+summary(lm_mgmt)
+
+errors_mgmt <- lm_mgmt$residuals
+rmse <- sqrt(mean(errors_mgmt^2))
+mae <- mean(abs(errors_mgmt))
+
+print(paste("RMSE:", rmse))
+print(paste("MAE:", mae))
+
+#Residual standard error: 1.159 on 836 degrees of freedom
+#Multiple R-squared:  0.00724	
+#Adjusted R-squared:  -0.001073 
+#F-statistic: 0.871 on 7 and 836 DF
+#p-value: 0.529
+#RMSE: 1.15337638019094
+#MAE: 0.893930627479109
+
+```
+
+
+```{r}
+# checking multicollinearity 
+library(car)
+
+#The values are all the same, cuz its just the same input data
+
+vif(lm_mgmt)
+# All values <5 = acceptable
+```
+
+```{r}
+# residual diagnostics for mgmt
+
+par(mfrow = c(2,2))
+plot(lm_mgmt)
+```
+
+```{r}
+# Setting up for random min mgmt forest
+
+set.seed(123)
+
+train_index <- createDataPartition(
+  fire_data$min_mgmt,
+  p = .8,
+  list = FALSE
+)
+
+train <- fire_data[train_index, ]
+test <- fire_data[-train_index, ]
+```
+
+```{r}
+# random forest for min_mgmt
+
+rf_mgmt <- ranger(
+  min_mgmt ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = train,
+  importance = "permutation",
+  num.trees = 500
+)
+
+# predict
+pred_rf_mgmt <- predict(rf_mgmt, data = test)$predictions
+
+# evaluate
+rmse(test$min_mgmt, pred_rf_mgmt) #1.017104
+
+mae(test$min_mgmt, pred_rf_mgmt) #0.7219724
+
+cor(test$min_mgmt, pred_rf_mgmt)^2 #0.1954246
+
+#variable importance
+importance(rf_mgmt)
+#sum_quercus: 0.003769078
+#n_xerophyllum: 0.034950524
+#sum_thuja: 0.012349036   
+#sum_populus: 0.013582280       
+#n_rubus: 0.031448448     
+#sum_pinus: 0.249387144    
+#sum_salix: -0.002544133
+
+#cross validation
+control <- trainControl(
+  method = "cv",
+  number = 10
+)
+
+rf_cv_mgmt <- train(
+  min_mgmt ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = fire_data,
+  method = "ranger",
+  trControl = control,
+  importance = "permutation"
+)
+
+rf_cv_mgmt
+# best outcomes w/ mtry: 
+
+#mtry  splitrule   RMSE      Rsquared    MAE      
+#4     variance    1.102640  0.09862680  0.8008894
+#4     extratrees  1.102826  0.09331209  0.8216965
+```
+
+```{r}
+#Comparison
+
+#RMSE: 1.15337638019094
+#Multiple R-squared:  0.00724	
+#Adjusted R-squared:  -0.001073
+#MAE: 0.893930627479109
+
+#mtry  splitrule   RMSE      Rsquared    MAE      
+#4     variance    1.102640  0.09862680  0.8008894
+#4     extratrees  1.102826  0.09331209  0.8216965
+
+#Lower RMSE: RF
+#Higher R^2: RF
+#Lower MAE: RF
+```
+
+```{r}
+# Max Duration
+
+lm_dur <- lm(
+  max_duration ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = fire_data
+)
+
+summary(lm_dur)
+
+errors_dur <- lm_dur$residuals
+rmse <- sqrt(mean(errors_dur^2))
+mae <- mean(abs(errors_dur))
+
+print(paste("RMSE:", rmse))
+print(paste("MAE:", mae))
+
+#Residual standard error: 3914 on 836 degrees of freedom
+#Multiple R-squared:  0.06954
+#Adjusted R-squared:  0.06175 
+#F-statistic: 8.925 on 7 and 836 DF
+#p-value: 1.237e-10
+#RMSE: 3895.83918494007
+#MAE: 3349.16128176322
+
+```
+
+```{r}
+# checking multicollinearity 
+#The values are all the same, cuz its just the same input data
+
+vif(lm_dur)
+# All values <5 = acceptable
+
+```
+
+```{r}
+# residual diagnostics for dur
+
+par(mfrow = c(2,2))
+plot(lm_dur)
+```
+```{r}
+# Setting up for random max dur forest
+
+set.seed(123)
+
+train_index <- createDataPartition(
+  fire_data$max_duration,
+  p = .8,
+  list = FALSE
+)
+
+train <- fire_data[train_index, ]
+test <- fire_data[-train_index, ]
+```
+
+
+```{r}
+# random forest for max_duration
+
+rf_dur <- ranger(
+  max_duration ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = train,
+  importance = "permutation",
+  num.trees = 500
+)
+
+# predict
+pred_rf_dur <- predict(rf_dur, data = test)$predictions
+
+# evaluate
+rmse(test$max_duration, pred_rf_dur) #3557.633
+
+mae(test$max_duration, pred_rf_dur) #2860.497
+
+cor(test$max_duration, pred_rf_dur)^2 #0.2182788
+
+#variable importance
+importance(rf_dur)
+#sum_quercus: 779598.40
+#n_xerophyllum: 615077.13
+#sum_thuja: 362858.28   
+#sum_populus: 198586.42       
+#n_rubus: 1449219.87      
+#sum_pinus: 2376556.77    
+#sum_salix: 30196.01
+
+#cross validation
+control <- trainControl(
+  method = "cv",
+  number = 10
+)
+
+rf_cv_dur <- train(
+  max_duration ~
+    sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix,
+  data = fire_data,
+  method = "ranger",
+  trControl = control,
+  importance = "permutation"
+)
+
+rf_cv_dur
+# best outcomes w/ mtry: 2
+
+#mtry  splitrule   RMSE      Rsquared   MAE     
+#2     variance    3647.919  0.1922700  2973.474
+#2     extratrees  3704.485  0.1756472  3037.303
+```
+
+```{r}
+#Comparison
+
+#RMSE: 3895.83918494007
+#Multiple R-squared:  0.06954
+#Adjusted R-squared:  0.06175 
+#MAE: 3349.16128176322
+
+#mtry  splitrule   RMSE      Rsquared   MAE     
+#2     variance    3647.919  0.1922700  2973.474
+#2     extratrees  3704.485  0.1756472  3037.303
+
+#Lower RMSE: RF
+#Higher R^2: RF
+#Lower MAE: RF
+```
