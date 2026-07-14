@@ -80,6 +80,32 @@ print(paste("MAE:", mae))
 ```
 
 ```{r}
+# Max Acres
+# thought it'd be worth a try to combine more variables - it is worse actually
+lm_acres_2 <- lm(
+  max_acres ~
+    (sum_quercus +
+    n_xerophyllum +
+    sum_thuja +
+    sum_populus +
+    n_rubus +
+    sum_pinus +
+    sum_salix)^2,
+  data = fire_data
+)
+
+summary(lm_acres_2)
+
+errors_acres_2 <- lm_acres_2$residuals
+rmse_2 <- sqrt(mean(errors_acres_2^2))
+mae_2 <- mean(abs(errors_acres_2))
+
+print(paste("RMSE:", rmse_2))
+print(paste("MAE:", mae_2))
+
+```
+
+```{r}
 # checking multicollinearity 
 
 #The values are all the same, cuz its just the same input data
