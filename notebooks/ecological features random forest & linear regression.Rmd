@@ -126,9 +126,11 @@ plot(lm_acres)
 
 set.seed(123)
 
+repeat_cv <- trainControl(method="repeatedcv", number=5, repeats=3)
+
 train_index <- createDataPartition(
   fire_data$max_acres,
-  p = .8,
+  p = .7,
   list = FALSE
 )
 
@@ -190,7 +192,7 @@ rf_cv <- train(
     sum_salix,
   data = fire_data,
   method = "ranger",
-  trControl = control,
+  trControl = repeat_cv,
   importance = "permutation"
 )
 

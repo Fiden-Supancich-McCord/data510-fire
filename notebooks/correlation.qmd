@@ -50,11 +50,6 @@ rf_dur <- randomForest(max_duration ~ ., data=train_data)
 print(rf_dur)
 
 dur_pred <- predict(rf_dur, test_data)
-length(dur_pred)
-class(dur_pred)
-length(test_data$max_duration)
-class(test_data$max_duration)
-
 plot(
     test_data$max_duration, dur_pred,
     main="Actual vs predicted fire duration",
@@ -71,7 +66,6 @@ varImpPlot(rf_dur)
 
 
 ```{r}
-
 acre_grid <- lim_grid_df %>% select(-c(n_fires, min_mgmt, max_duration, index)) %>% filter(!is.na(max_acres))
 
 train_index <- sample(1:nrow(acre_grid), 0.7 * nrow(acre_grid))
@@ -99,7 +93,6 @@ varImpPlot(rf_acre)
 ```
 
 ```{r}
-
 fire_grid <- lim_grid_df %>% 
     select(-c(max_acres, min_mgmt, max_duration, index)) %>% 
     mutate(n_fires = ifelse(n_fires >= 1, 1, n_fires)) %>%

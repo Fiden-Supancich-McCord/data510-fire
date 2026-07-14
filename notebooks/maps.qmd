@@ -1,0 +1,31 @@
+---
+title: "map!"
+author: "Spencer Fiden"
+date: "2026-07-13"
+output: html_document
+---
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+library(viridis)
+
+```
+
+```{r}
+shp <- st_read("data/processed_grid.shp")
+```
+
+```{r}
+# make maps!
+or_grid_tib %>%
+    mutate(is_indigenous = as_factor(is_indigenous)) %>%
+    ggplot(aes(geometry=geometry, fill=n_fires, color=is_indigenous)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_viridis_c(option="inferno") +
+    scale_colour_discrete(palette=c("gray", "black")) +
+    theme_void()
+
+```

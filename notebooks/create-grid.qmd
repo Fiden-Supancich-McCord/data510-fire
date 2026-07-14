@@ -206,12 +206,12 @@ for (x in 1:dim(or_grid_df)[1]) {
     fire_idx <- which(!is.na(full_lst))
     # list of present fire identifiers
     lst <- full_lst[!is.na(full_lst)]
-    # if no fires, all NA
+    # if no fires, NA or 0 as applicable
     if (length(lst) == 0) {
         fire_lst_tibble$fire_lst[x] = NA
-        fire_lst_tibble$max_acres[x] = NA
+        fire_lst_tibble$max_acres[x] = 0
         fire_lst_tibble$min_mgmt[x] = NA
-        fire_lst_tibble$max_duration[x] = NA
+        fire_lst_tibble$max_duration[x] = 0
     # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
     } else {
         fire_lst_tibble$fire_lst[x] = paste(unlist(lst), collapse=", ")
