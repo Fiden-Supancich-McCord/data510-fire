@@ -24,7 +24,7 @@ library(ranger)
 ```
 
 ```{r}
-fire_df <- read_csv("C://Users//amaya//Downloads//processed_grid_real.csv")
+fire_df <- read_csv("data/processed_grid.csv")
 
 names(fire_df)
 ```
@@ -41,8 +41,9 @@ fire_data <- fire_df %>%
     n_rubus,
     sum_pinus,
     sum_salix
-  ) %>%
-  na.omit()
+  )
+  # ) %>%
+  # na.omit()
 ```
 
 ```{r}
