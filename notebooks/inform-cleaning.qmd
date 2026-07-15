@@ -393,8 +393,13 @@ names(inform_or)
 
 ```{r}
 object.size(inform)
+inform_curr <- inform %>%
+    filter(Calendar.Year <= 2025, Calendar.Year >= 2015)
+
+object.size(inform_curr)
 # this includes all data for the US, including with missing lat/lon
-write_csv(inform, "data/inform_clean.csv")
+# writing to my personal system because it is too too large by far
+write_csv(inform_curr, "../DATA-510/inform_clean.csv")
 
 inform_or_df <- tibble(inform_or)
 object.size(inform_or_df)

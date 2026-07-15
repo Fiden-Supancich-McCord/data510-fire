@@ -28,6 +28,10 @@ inform <- read_csv("data/inform_clean.csv")
 inform_shp <- st_read("data/inform_clean.shp")
 ```
 
+```{r}
+lengths(inform)
+```
+
 # Joining them
 
 ## Checking Unique Fire ID for join validity
