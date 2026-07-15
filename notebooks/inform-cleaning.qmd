@@ -65,22 +65,15 @@ inform <- inform %>%
 # changing ADS.Permission.State to a factor
 inform <- inform %>%
     mutate(ADS.Permission.State = as_factor(ADS.Permission.State))
-```
 
-```{r}
 # Created.By.System -> factor
 inform <- inform %>%
     mutate(Created.By.System = as_factor(Created.By.System))
-```
 
-```{r}
 # converting Dispatch.Center.ID to factor
 inform <- inform %>% 
     mutate(Dispatch.Center.ID = as_factor(Dispatch.Center.ID))
 
-```
-
-```{r}
 # converting Fire.Mgmt.Complexity to ordered factor
 inform %>% 
     group_by(Fire.Mgmt.Complexity) %>%
@@ -98,80 +91,52 @@ inform <- inform %>%
             "Type 5 Incident",
             "Complex Incident"
         ), ordered=TRUE))
-```
 
-```{r}
 # converting FS.Job.Code to factor
 inform <- inform %>%
     mutate(FS.Job.Code = as_factor(FS.Job.Code))
 
-```
 
-```{r}
 # converting FS.Override.Code to factor
 inform <- inform %>%
     mutate(FS.Override.Code = as_factor(FS.Override.Code))
 
-```
-
-```{r}
 # converting GACC to factor
 inform <- inform %>%
     mutate(GACC = as_factor(GACC))
 
-```
-
-```{r}
 # converting Incident.Type.Category to factor
 inform <- inform %>%
     mutate(Incident.Type.Category = as_factor(Incident.Type.Category))
 
-```
-
-```{r}
 # converting POO.Jurisdictional.Agency to factor
 inform <- inform %>%
     mutate(POO.Jurisdictional.Agency = as_factor(POO.Jurisdictional.Agency))
 
-```
-
-```{r}
 # converting POOLandownerCategory to factor
 inform <- inform %>%
     mutate(POOLandownerCategory = as_factor(POOLandownerCategory))
-```
 
-```{r}
 # converting POOLandownerKind to factor
 inform <- inform %>%
     mutate(POOLandownerKind = as_factor(POOLandownerKind))
-```
 
-```{r}
 # converting POO.Protecting.Agency to factor
 inform <- inform %>%
     mutate(POO.Protecting.Agency = as_factor(POO.Protecting.Agency))
-```
 
-```{r}
 # converting POO.State to factor
 inform <- inform %>%
     mutate(POO.State = as_factor(POO.State))
-```
 
-```{r}
 # converting Predominant.Fuel.Group to factor
 inform <- inform %>%
     mutate(Predominant.Fuel.Group = as_factor(Predominant.Fuel.Group))
-```
 
-```{r}
 # converting ModifiedBySystem to factor
 inform <- inform %>%
     mutate(ModifiedBySystem = as_factor(ModifiedBySystem))
-```
 
-```{r}
 # converting Status to factor
 inform <- inform %>%
     mutate(Status = as_factor(Status))
@@ -182,14 +147,12 @@ inform <- inform %>%
 ```{r}
 # convert Is.Fire.Cause.Investigated to bool
 inform %>% 
-    select(Is.Fire.Cause.Investigated) 
+    select(Is.Fire.Cause.Investigated) %>%
+    filter(!is.na(Is.Fire.Cause.Investigated))
 
 inform <- inform %>% 
     mutate(Is.Fire.Cause.Investigated = as.logical(Is.Fire.Cause.Investigated))
 
-```
-
-```{r}
 # convert Is.FS.Assisted to bool
 inform %>% 
     select(Is.FS.Assisted) 
@@ -197,9 +160,6 @@ inform %>%
 inform <- inform %>% 
     mutate(Is.FS.Assisted = as.logical(Is.FS.Assisted))
 
-```
-
-```{r}
 # convert Is.Trespass to bool
 inform %>% 
     select(Is.Trespass) 
@@ -207,9 +167,6 @@ inform %>%
 inform <- inform %>% 
     mutate(Is.Trespass = as.logical(Is.Trespass))
 
-```
-
-```{r}
 # convert IsCauseProhibited to bool
 inform <- inform %>% 
     mutate(IsCauseProhibited = as.logical(IsCauseProhibited))
@@ -230,16 +187,10 @@ inform %>% select(Containment.Date.Time, Calendar.Year, Fire.Discovery.Date.Time
     summarize(n=n()) %>%
     arrange(Containment.Date.Time)
 
-```
-
-```{r}
 # converting Control.Date.Time to a date
 inform <- inform %>%
     mutate(Control.Date.Time = lubridate::mdy_hms(Control.Date.Time))
 
-```
-
-```{r}
 # converting Created.On.Date.Time to datetime
 inform <- inform %>%
     mutate(Created.On.Date.Time = as_datetime(Created.On.Date.Time/1000)) 
@@ -247,36 +198,27 @@ inform <- inform %>%
 inform %>%
     select(Created.On.Date.Time)
 
-```
-
-```{r}
 # converting Final.Fire.Report.Approved.Date to datetime
 inform %>% 
     select(Final.Fire.Report.Approved.Date) 
 
 inform <- inform %>%
     mutate(Final.Fire.Report.Approved.Date = mdy_hms(Final.Fire.Report.Approved.Date))
-```
 
-```{r}
 # converting Fire.Discovery.Date.Time to datetime
 inform %>% 
     select(Fire.Discovery.Date.Time)
 
 inform <- inform %>%
     mutate(Fire.Discovery.Date.Time = mdy_hms(Fire.Discovery.Date.Time))
-```
 
-```{r}
 # converting FireOutDateTime to datetime
 inform %>% 
     select(FireOutDateTime)
 
 inform <- inform %>%
     mutate(FireOutDateTime = mdy_hms(FireOutDateTime))
-```
 
-```{r}
 # converting Initial.Response.Date.Time to datetime
 inform %>%
     select(Initial.Response.Date.Time)
@@ -284,9 +226,6 @@ inform %>%
 inform <- inform %>%
     mutate(Initial.Response.Date.Time = mdy_hms(Initial.Response.Date.Time))
 
-```
-
-```{r}
 # converting Modified.On.Date.Time to datetime
 inform %>%
     select(Modified.On.Date.Time)
@@ -318,7 +257,6 @@ inform <- inform %>%
 # limiting Calendar.Year to just 2015-2026
 # missing values for Calendar.Year are all present for Fire.Discovery.Date.Time - can impute
 
-
 inform <- inform %>%
     mutate(
         # imputing values that are off by 100 - can assume 1922 -> 2022 and 2121 -> 2021
@@ -334,6 +272,8 @@ inform <- inform %>%
                         Calendar.Year)
     ) 
     
+# skipping this step because of upcoming join with ifph - 
+# don't want to exclude anything that's valid under ifph's fire year col
 inform %>%
     # removing all where Fire.Discovery.Date.Time and Calendar.Year are misaligned by more than one year
     filter(abs(year(Fire.Discovery.Date.Time) - Calendar.Year) <= 1) %>%
@@ -353,7 +293,7 @@ inform <- inform %>%
 ### Parsing/changing specific entry types to NA
 
 ```{r}
-# 1970-01-01 is to be a placeholder, changing to NA
+# 1970-01-01 is a placeholder, changing to NA
 inform %>% 
     mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00"))) %>%
     group_by(Containment.Date.Time) %>%
@@ -363,10 +303,6 @@ inform %>%
 inform <- inform %>% 
     mutate(Containment.Date.Time = na_if(Containment.Date.Time, as_datetime("1970-01-01 00:00:00")))
 
-```
-
-
-```{r}
 # cleaning Fire.Cause.Comments
 inform %>%
     group_by(Fire.Cause.Comments) %>%
@@ -412,6 +348,55 @@ inform <- inform %>%
            Fire.Cause.Comments = ifelse(toupper(Fire.Cause.Comments) %in% c("NONE"), "None", Fire.Cause.Comments)
     )
 ```
+
+# Limiting to OR using coords
+
+```{r}
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs="WGS84")
+
+or %>% 
+    ggplot() +
+    geom_sf() + 
+    theme_minimal()
+```
+
+```{r}
+inform_coords <- inform %>%
+    filter(!is.na(Initial.Longitude), !is.na(Initial.Latitude))
+
+inform_shp <- st_as_sf(inform_coords, coords=c("Initial.Longitude", "Initial.Latitude"), crs="WGS84")
+# note: coord system isn't listed on the website. but! confirmed by checking two mapped points (one in OR, one in NY) manually and both were correct with WGS84. so I feel confident that's what we're working with
+```
+
+```{r}
+inform_int <- st_contains(or, inform_shp)
+dim(inform_int)
+
+inform_or <- inform_shp[unlist(inform_int),]
+dim(inform_or)
+
+inform_or %>%
+    ggplot() +
+    geom_sf(data=or, aes(geometry=geom)) + 
+    geom_sf(aes(geometry=geometry), color="firebrick4") +
+    theme_minimal()
+
+object.size(inform_or)
+names(inform_or)
+
+inform_or_df <- tibble(inform_or)
+```
+
+# Writing to shp and csv
+
+```{r}
+
+```
+
+This is irrelevant for our purposes, started doing it and decided it was not necessary - keeping here in case we need it eventually for some reason. 
 
 ```{}
 # IN PROGRESS
