@@ -20,6 +20,8 @@ library(sf)
 
 ```{r}
 ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
+ifph <- st_transform(ifph, crs="WGS84")
+ifph <- st_make_valid(ifph)
 ```
 
 # Limiting to OR
@@ -30,7 +32,7 @@ Getting just OR from `usmap` to filter fires/native land to our area of interest
 states <- usmap::us_map()
 or <- states %>% filter(abbr=="OR")
 # transforming OR so the coordinate system matches
-or <- st_transform(or, crs=st_crs(landmark))
+or <- st_transform(or, crs="WGS84")
 
 or %>% 
     ggplot() +
@@ -50,7 +52,14 @@ or_ifph = ifph[unlist(ifph_int),]
 dim(or_ifph)
 
 or_ifph %>% 
-    ggplot() + geom_sf()
+    ggplot() + geom_sf(data=or, aes(geometry=geom)) + geom_sf(alpha=0.5, fill="firebrick") + theme_minimal()
+
+or_ifph_curr <- or_ifph %>%
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
+
+lengths(or_ifph_curr)
+
+object.size(or_ifph_curr)
 
 lengths(or_ifph)
 ```
@@ -58,7 +67,7 @@ lengths(or_ifph)
 ## Creating dataframe
 
 ```{r}
-ifph_df <- as.data.frame(or_ifph)
+ifph_df <- or_ifph
 
 ```
 
