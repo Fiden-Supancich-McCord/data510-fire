@@ -48,27 +48,21 @@ lengths(ifph)
 ifph_int = st_intersects(or, ifph)
 dim(ifph_int)
 
-or_ifph = ifph[unlist(ifph_int),]
-dim(or_ifph)
+ifph_or = ifph[unlist(ifph_int),]
+dim(ifph_or)
 
-or_ifph %>% 
+ifph_or %>% 
     ggplot() + geom_sf(data=or, aes(geometry=geom)) + geom_sf(alpha=0.5, fill="firebrick") + theme_minimal()
 
-or_ifph_curr <- or_ifph %>%
-    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
 
-lengths(or_ifph_curr)
-
-object.size(or_ifph_curr)
-
-lengths(or_ifph)
+lengths(ifph_or)
 ```
 
 ## Creating dataframe
 
 ```{r}
-ifph_df <- or_ifph
-
+ifph_df <- tibble(ifph_or)
+# tests run much much quicker on the tibble
 ```
 
 # IFPH Cleaning
@@ -77,6 +71,9 @@ ifph_df <- or_ifph
 
 ```{r}
 # limiting FIRE_YEAR_ to 2015-2025 (inclusive)
+ifph_or <- ifph_or %>%
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
+
 ifph_df <- ifph_df %>%
     filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) 
     
@@ -97,6 +94,10 @@ ifph_df <- ifph_df %>%
     mutate(INCIDENT = toupper(INCIDENT)) %>%
     mutate(INCIDENT = ifelse(INCIDENT %in% c("UNNAMED", "UNKNOWN"), NA, INCIDENT)) 
 
+ifph_or <- ifph_or %>%
+    mutate(INCIDENT = toupper(INCIDENT)) %>%
+    mutate(INCIDENT = ifelse(INCIDENT %in% c("UNNAMED", "UNKNOWN"), NA, INCIDENT)) 
+
 ifph_df %>%
     mutate(INCIDENT = toupper(INCIDENT)) %>%
     group_by(INCIDENT) %>%
@@ -110,6 +111,9 @@ ifph_df %>%
 ifph_df <- ifph_df %>%
     mutate(DATE_CUR = lubridate::ymd_hms(DATE_CUR))
 
+ifph_or <- ifph_or %>%
+    mutate(DATE_CUR = lubridate::ymd_hms(DATE_CUR))
+
 # shows an error for the NAs that they "failed to parse" - it's fine
 summary(is.na(ifph_df$DATE_CUR))
 ```
@@ -117,6 +121,9 @@ summary(is.na(ifph_df$DATE_CUR))
 ```{r}
 # making FEATURE_CA into a factor
 ifph_df <- ifph_df %>%
+    mutate(FEATURE_CA = as_factor(FEATURE_CA)) 
+
+ifph_or <- ifph_or %>%
     mutate(FEATURE_CA = as_factor(FEATURE_CA)) 
 
 ```
@@ -142,11 +149,17 @@ ifph_df <- ifph_df %>%
 ifph_df <- ifph_df %>%
     mutate(SOURCE = as_factor(SOURCE)) 
 
+ifph_or <- ifph_or %>%
+    mutate(SOURCE = as_factor(SOURCE)) 
+
 ```
 
 ```{r}
 # making AGENCY into a factor
 ifph_df <- ifph_df %>%
+    mutate(AGENCY = as_factor(AGENCY)) 
+
+ifph_or <- ifph_or %>%
     mutate(AGENCY = as_factor(AGENCY)) 
 
 ```
@@ -155,4 +168,17 @@ ifph_df <- ifph_df %>%
 # removing FIRE_YEAR col
 ifph_df <- ifph_df %>%
     select(-FIRE_YEAR)
+
+ifph_or <- ifph_or %>%
+    select(-FIRE_YEAR)
+```
+
+# Writing to shp and csv
+
+```{r}
+object.size(ifph_df)
+write_csv(ifph_df, "data/ifph_clean.csv")
+
+object.size(ifph_or)
+st_write(ifph_or, "data/ifph_clean.shp")
 ```
