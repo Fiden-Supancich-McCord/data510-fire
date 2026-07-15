@@ -118,10 +118,15 @@ ifph_df %>%
     summarize(n=n()) %>%
     arrange(desc(Calendar.Year))
 
+```
+
+```{r}
+# left join on IFPH, as non-IFPH data will be point geometries from inform
 ifph_inform <- ifph %>% 
     mutate(is_ifph = TRUE) %>%
     left_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
 
+# assorted checks
 tibble(ifph_inform) %>% 
     filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) %>%
     group_by(is_inform, FIRE_YEAR_) %>%
@@ -142,10 +147,21 @@ ifph_df %>%
         n=n(),
         quant_year = as_tibble_row(quantile(FIRE_YEAR_))
     )
-
-dim(ifph_inform %>%
-    filter(is_inform==TRUE))
 # this is a potential issue - the year spread is pretty distinct.
+
+tibble(ifph_inform) %>%
+    filter(is_inform == TRUE) %>%
+    mutate(acre_diff = abs(Calculated.Acres - GIS_ACRES)) %>%
+    summarize(
+        mean_diff = mean(acre_diff),
+        quant_diff = as_tibble_row(quantile(acre_diff))
+    )
+
+tibble(ifph_inform) %>%
+    mutate(acre_diff = abs(Calculated.Acres - GIS_ACRES)) %>%
+    filter(acre_diff > 1) %>%
+    arrange(desc(acre_diff)) %>%
+    select(GIS_ACRES, Calculated.Acres, acre_diff, FIRE_YEAR_, Calendar.Year)
 ```
 
 Not much to be done about it, but should be noted! 
@@ -153,16 +169,69 @@ Not much to be done about it, but should be noted!
 # Adding coordinate data from inform records that don't match ifph
 
 ```{r}
+tibble(ifph_inform) %>%
+    group_by(is_inform) %>%
+    summarize(n=n())
+
+inform %>%
+    mutate(unqe_match = UniqueFireIdentifier %in% ifph_inform$UNQE_FIRE_) %>%
+    group_by(unqe_match) %>%
+    summarize(n=n()) # so i'm not sure why this is 791 and not 819? seems strange.
+
+# filtering to fire IDs not present in UNQE_FIRE_
+# selecting only columns we will use in our analysis
+inform_shp_lim <- inform_shp %>% 
+    filter(!(UnqFrId %in% ifph_inform$UNQE_FIRE_)) %>% 
+    select(UnqFrId, Clclt_A, Cntn_D_T, Cntr_D_T, Fr_Mg_C, FrOtDtT, Inc_T_C, AcrsTrb, Clndr_Y, geometry)
+
+# selecting only matching cols
+ifph_inform_lim <- ifph_inform %>%
+    select(GIS_ACRES, UNQE_FIRE_, FIRE_YEAR_, is_ifph, Calculated.Acres, Containment.Date.Time, Control.Date.Time, Fire.Mgmt.Complexity, FireOutDateTime, Incident.Type.Category, AcresTribal, Calendar.Year, is_inform, geometry)
+
+# renaming columns to match, adding NAs for cols that are ifph-specifc
+inform_shp_lim <- inform_shp_lim %>%
+    rename(c(
+        UNQE_FIRE_ = UnqFrId,
+        Calculated.Acres = Clclt_A,
+        Containment.Date.Time = Cntn_D_T,
+        Control.Date.Time = Cntr_D_T,
+        Fire.Mgmt.Complexity = Fr_Mg_C,
+        FireOutDateTime = FrOtDtT,
+        Incident.Type.Category = Inc_T_C,
+        AcresTribal = AcrsTrb,
+        Calendar.Year = Clndr_Y
+    )) %>%
+    mutate(
+        GIS_ACRES = NA,
+        FIRE_YEAR_ = NA,
+        is_ifph = FALSE,
+        is_inform = TRUE
+    )
+
+# ensuring names all match
+names(inform_shp_lim) %in% names(ifph_inform_lim)
+names(ifph_inform_lim) %in% names(inform_shp_lim)
+
+# checking dims - everything lines up
+dim(inform_shp_lim)
+dim(ifph_inform_lim)
+dim(rbind(inform_shp_lim, ifph_inform_lim))
+
+# creating full version with rbind
+ifph_inform_full <- rbind(inform_shp_lim, ifph_inform_lim)
+
+# so it turns out. you can't write multipolygon and point geometries to the same shapefile. so it'll just have to be two shapefiles. whatever.
 
 ```
 
 # Writing to shp/csv
 
 ```{r}
-ifph_inform %>%
-    select(Calendar.Year, Fire.Discovery.Date.Time, FIRE_YEAR_, UNQE_FIRE_, is_inform, is_ifph) %>%
-    filter(FIRE_YEAR_ != Calendar.Year) 
+object.size(ifph_inform_full)
 
-st_write(ifph_inform, "data/ifph_inform.shp")
+st_write(ifph_inform_lime, "data/ifph_inform_multipolygon.shp")
+st_write(inform_shp_lim, "data/ifph_inform_point.shp")
+
+#st_write(ifph_inform, "data/ifph_inform.shp")
 #write_csv(ifph_inform, "data/ifph_inform.csv")
 ```
