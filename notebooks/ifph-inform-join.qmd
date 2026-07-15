@@ -24,12 +24,15 @@ library(sf)
 ifph <- st_read("data/ifph_clean.shp")
 ifph_df <- read_csv("data/ifph_clean.csv")
 
-inform <- read_csv("data/inform_clean.csv")
+inform <- read_csv("../DATA-510/inform_clean.csv")
 inform_shp <- st_read("data/inform_clean.shp")
 ```
 
 ```{r}
 lengths(inform)
+lengths(inform_shp)
+lengths(ifph)
+lengths(ifph_df)
 ```
 
 # Joining them
@@ -86,7 +89,7 @@ inform %>%
         pct_present = 1 - (lat_missing/n)
     )
 
-tibble(ifph_df) %>% 
+ifph_df %>% 
     mutate(is_ifph = TRUE) %>%
     full_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
     group_by(is_ifph, is_inform, Incident.Type.Category) %>%
@@ -98,54 +101,47 @@ tibble(ifph_df) %>%
         pct_present = 1 - (lat_missing/n)
     )
 
-inform_coords <- inform %>%
-    filter(!is.na(Initial.Longitude), !is.na(Initial.Latitude))
-
-inform_shp <- st_as_sf(inform_coords, coords=c("Initial.Longitude", "Initial.Latitude"), crs="WGS84")
-
-inform_int <- st_intersects(or, inform_shp)
-dim(inform_int)
-
-inform_or <- inform_shp[unlist(inform_int),]
-dim(inform_or)
-
-inform_or %>%
+inform_shp %>%
     ggplot(aes(geometry=geometry)) +
     geom_sf(data=or, aes(geometry=geom)) +
-    geom_sf(aes(color=Incident.Type.Category, size=Calculated.Acres), alpha=0.5) +
-    scale_color_discrete(palette=c("WF" = "firebrick", "RX" = "green3")) +
+    geom_sf(aes(color=Inc_T_C, size=Clclt_A), alpha=0.5) +
+    scale_color_discrete(palette=c("RX" = "green3", "WF" = "firebrick")) +
     theme_minimal()
-
-st_write(inform_or, "../DATA-510/inform_coords_or.shp",append=FALSE)
-
 
 ```
 
 ```{r}
-tibble(ifph_df) %>% 
+ifph_df %>% 
     mutate(is_ifph = TRUE) %>%
     full_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
     group_by(is_ifph, is_inform, Calendar.Year) %>%
     summarize(n=n()) %>%
     arrange(desc(Calendar.Year))
 
-ifph_inform <- ifph_df %>% 
+ifph_inform <- ifph %>% 
     mutate(is_ifph = TRUE) %>%
     left_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
 
-ifph_inform %>% 
+tibble(ifph_inform) %>% 
+    filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) %>%
     group_by(is_inform, FIRE_YEAR_) %>%
     summarize(n=n()) %>%
     arrange(desc(n)) %>%
     print(n=20)
 
-ifph_inform %>% 
+tibble(ifph_inform) %>% 
     group_by(is_inform) %>%
     summarize(
         n=n(),
         quant_year = as_tibble_row(quantile(FIRE_YEAR_))
     ) %>%
     arrange(desc(n)) 
+
+ifph_df %>%
+    summarize(
+        n=n(),
+        quant_year = as_tibble_row(quantile(FIRE_YEAR_))
+    )
 
 dim(ifph_inform %>%
     filter(is_inform==TRUE))
@@ -154,13 +150,18 @@ dim(ifph_inform %>%
 
 Not much to be done about it, but should be noted! 
 
+# Adding coordinate data from inform records that don't match ifph
+
+```{r}
+
+```
+
+# Writing to shp/csv
+
 ```{r}
 ifph_inform %>%
     select(Calendar.Year, Fire.Discovery.Date.Time, FIRE_YEAR_, UNQE_FIRE_, is_inform, is_ifph) %>%
     filter(FIRE_YEAR_ != Calendar.Year) 
-
-ifph_inform <- ifph_inform %>%
-    filter(FIRE_YEAR_ >=2015, FIRE_YEAR_ <= 2025)
 
 st_write(ifph_inform, "data/ifph_inform.shp")
 #write_csv(ifph_inform, "data/ifph_inform.csv")

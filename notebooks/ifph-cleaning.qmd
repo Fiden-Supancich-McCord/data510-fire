@@ -180,5 +180,5 @@ object.size(ifph_df)
 write_csv(ifph_df, "data/ifph_clean.csv")
 
 object.size(ifph_or)
-st_write(ifph_or, "data/ifph_clean.shp")
+st_write(ifph_or, "data/ifph_clean.shp", append=FALSE)
 ```

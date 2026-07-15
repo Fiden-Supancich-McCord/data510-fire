@@ -199,7 +199,7 @@ fire_lst_tibble[,"max_duration"]=""
 head(fire_lst_tibble,5)
 
 # for every grid cell, pulling unique fire identifiers for fires that occurred in that cell, adding them to fire_lst_tibble
-for (x in 1:dim(or_grid_df)[1]) {
+for (x in 1:seq_len(dim(or_grid_df)[1])) {
     # pull list of NAs and fire identifiers for each col/grid cell
     full_lst <- pull(wide_fire, x+6) # change 6 if more cols added
     # list of indexes for present fires
