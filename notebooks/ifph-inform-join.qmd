@@ -55,10 +55,10 @@ ifph <- st_transform(ifph, crs="WGS84")
 ifph <- st_make_valid(ifph)
 # creating intersection list for all polygons that intersect with OR border
 # then selecting only those polygons
-ifph_int = st_intersects(or, ifph)
+ifph_int <- st_intersects(or, ifph)
 dim(ifph_int)
 
-or_ifph = ifph[unlist(ifph_int),]
+or_ifph <- ifph[unlist(ifph_int),]
 dim(or_ifph)
 
 or_ifph %>% 
@@ -417,8 +417,11 @@ inform <- inform %>%
 
 # Joining them
 
+## Checking Unique Fire ID for join validity
+
 ```{r}
-ifph_df %>%
+# making tibble for this so it runs faster
+tibble(ifph_df) %>%
     mutate(FORID = str_remove_all(FORID, "[{}]")) %>%
     mutate(
         unqe_match = ifelse(UNQE_FIRE_ %in% inform$UniqueFireIdentifier, T, F),
@@ -451,14 +454,63 @@ inform %>%
 # everything with duplicated unique fire identifiers has a distinct global id for each entry. so i guess that makes sense. however the global IDs don't overlap across datasets
 ```
 
+## checking lat lon presence
+
 ```{r}
-ifph_df %>% 
+inform %>%
+    filter(Calendar.Year <= 2025, Calendar.Year >= 2015) %>%
+    group_by(Incident.Type.Category) %>%
+    summarize(
+        lat_missing = sum(is.na(Initial.Latitude)),
+        lon_missing = sum(is.na(Initial.Longitude)),
+        n=n()
+    ) %>%
+    mutate(
+        pct_present = 1 - (lat_missing/n)
+    )
+
+tibble(ifph_df) %>% 
+    mutate(is_ifph = TRUE) %>%
+    full_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
+    group_by(is_ifph, is_inform, Incident.Type.Category) %>%
+    summarize(
+        n=n(),
+        lat_missing = sum(is.na(Initial.Latitude))
+    ) %>%
+    mutate(
+        pct_present = 1 - (lat_missing/n)
+    )
+
+inform_coords <- inform %>%
+    filter(!is.na(Initial.Longitude), !is.na(Initial.Latitude))
+
+inform_shp <- st_as_sf(inform_coords, coords=c("Initial.Longitude", "Initial.Latitude"), crs="WGS84")
+
+inform_int <- st_intersects(or, inform_shp)
+dim(inform_int)
+
+inform_or <- inform_shp[unlist(inform_int),]
+dim(inform_or)
+
+inform_or %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(aes(color=Incident.Type.Category, size=Calculated.Acres), alpha=0.5) +
+    scale_color_discrete(palette=c("WF" = "firebrick", "RX" = "green3")) +
+    theme_minimal()
+
+st_write(inform_or, "../DATA-510/inform_coords_or.shp",append=FALSE)
+
+
+```
+
+```{r}
+tibble(ifph_df) %>% 
     mutate(is_ifph = TRUE) %>%
     full_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
     group_by(is_ifph, is_inform, Calendar.Year) %>%
     summarize(n=n()) %>%
     arrange(desc(Calendar.Year))
-
 
 ifph_inform <- ifph_df %>% 
     mutate(is_ifph = TRUE) %>%

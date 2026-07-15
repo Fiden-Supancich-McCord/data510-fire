@@ -5,9 +5,7 @@ date: "2026-05-29"
 output: html_document
 ---
 
-# IFPH cleaning
-
-## Ingestion from download
+# Ingestion from download
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -24,7 +22,7 @@ library(sf)
 ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
 ```
 
-## Limiting to OR
+# Limiting to OR
 
 Getting just OR from `usmap` to filter fires/native land to our area of interest with `st_intersects`. 
 
@@ -64,7 +62,9 @@ ifph_df <- as.data.frame(or_ifph)
 
 ```
 
-## IFPH Cleaning
+# IFPH Cleaning
+
+## Time bounds
 
 ```{r}
 # limiting FIRE_YEAR_ to 2015-2025 (inclusive)

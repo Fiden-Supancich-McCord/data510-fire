@@ -540,10 +540,12 @@ or_grid_df <- or_grid_df %>%
         sum_salix = rowSums(across(ends_with("salix"))),
         sum_quercus = rowSums(across(ends_with("quercus"))),
         sum_populus = rowSums(across(ends_with("populus"))),
-        sum_thuja = rowSums(across(ends_with("thuja")))
+        sum_thuja = rowSums(across(ends_with("thuja"))),
     ) %>% 
+    # THIS NEEDS TO BE RERUN AND UPDATED
+    # WAS NOT INCLUDING xeryophyllum or rubus initially
     mutate(
-        total_sum = rowSums(across(starts_with("sum")))
+        total_sum = rowSums(across(c(starts_with("sum"), n_xerophyllum, n_rubus)))
     )
 
 names(or_grid_df)

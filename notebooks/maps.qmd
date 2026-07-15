@@ -16,16 +16,45 @@ library(viridis)
 
 ```{r}
 shp <- st_read("data/processed_grid.shp")
+names(shp)
 ```
 
 ```{r}
 # make maps!
-or_grid_tib %>%
-    mutate(is_indigenous = as_factor(is_indigenous)) %>%
-    ggplot(aes(geometry=geometry, fill=n_fires, color=is_indigenous)) +
-    geom_sf(linewidth=0.1) +
+n_fires_plt <- shp %>%
+    ggplot(aes(geometry=geometry, fill=n_fires)) +
+    geom_sf(linewidth=0.01) +
     scale_fill_viridis_c(option="inferno") +
-    scale_colour_discrete(palette=c("gray", "black")) +
     theme_void()
 
+shp %>%
+    ggplot(aes(geometry=geometry, fill=n_fires, alpha=is_ndgn)) +
+    geom_sf(linewidth=0.01) +
+    scale_fill_viridis_c(option="inferno") +
+    scale_alpha_binned(range=c(0.6, 1)) +
+    theme_void()
+
+max_acres_plt <- shp %>%
+    mutate(max_crs = as.numeric(max_crs)) %>%
+    ggplot(aes(geometry=geometry, fill=max_crs)) +
+    geom_sf(linewidth=0.01) +
+    scale_fill_viridis_c(option="inferno") +
+    theme_void()
+
+max_acres_plt
+
+shp %>%
+    ggplot(aes(geometry=geometry, alpha=totl_sm, ))
+```
+
+
+```{r}
+grid <- read_csv("data/processed_grid.csv")
+grid %>%
+    summarize(
+        plant_sum = sum(plant_sum),
+        total_sum = sum(total_sum, n_xerophyllum, n_rubus)
+    )
+
+names(grid)
 ```
