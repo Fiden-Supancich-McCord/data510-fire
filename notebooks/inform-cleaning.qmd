@@ -407,7 +407,7 @@ object.size(inform_or_df)
 write_csv(inform_or_df, "data/inform_clean/inform_or_clean.csv")
 
 object.size(inform_or)
-st_write(inform_or, "data/inform_clean/inform_clean.shp")
+st_write(inform_or, "data/inform_clean/inform_clean.shp", append=FALSE)
 ```
 
 This is irrelevant for our purposes, started doing it and decided it was not necessary - keeping here in case we need it eventually for some reason. 
