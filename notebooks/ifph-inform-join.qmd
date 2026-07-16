@@ -21,11 +21,11 @@ library(sf)
 ```
 
 ```{r}
-ifph <- st_read("data/ifph_clean.shp")
-ifph_df <- read_csv("data/ifph_clean.csv")
+ifph <- st_read("data/ifph_clean/ifph_clean.shp")
+ifph_df <- read_csv("data/ifph_clean/ifph_clean.csv")
 
 inform <- read_csv("../DATA-510/inform_clean.csv")
-inform_shp <- st_read("data/inform_clean.shp")
+inform_shp <- st_read("data/inform_clean/inform_clean.shp")
 ```
 
 ```{r}

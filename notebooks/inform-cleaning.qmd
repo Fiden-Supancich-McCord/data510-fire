@@ -404,10 +404,10 @@ write_csv(inform_curr, "../DATA-510/inform_clean.csv")
 inform_or_df <- tibble(inform_or)
 object.size(inform_or_df)
 # this includes only OR data with present lat/lon
-write_csv(inform_or_df, "data/inform_or_clean.csv")
+write_csv(inform_or_df, "data/inform_clean/inform_or_clean.csv")
 
 object.size(inform_or)
-st_write(inform_or, "data/inform_clean.shp")
+st_write(inform_or, "data/inform_clean/inform_clean.shp")
 ```
 
 This is irrelevant for our purposes, started doing it and decided it was not necessary - keeping here in case we need it eventually for some reason. 
