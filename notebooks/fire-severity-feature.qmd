@@ -15,19 +15,23 @@ library(tidyverse)
 library(ggplot2)
 library(sf)
 library(viridis)
-# install.packages("reticulate")
+
 ```
+
+# Reading in data
+
+Created in ifph-inform-join
 
 ```{r}
-df <- read_csv("data/processed_grid.csv")
-shp <- st_read("data/processed_grid.shp")
-
-ifph_inform <- read_csv("data/ifph_inform.csv")
-fire_shp <- st_read("data/ifph_inform.shp")
+ifph_inform <- read_csv("data/ifph_inform_full.csv")
+fire_mp <- st_read("data/ifph_inform_multipolygon.shp")
+fire_pt <- st_read("data/ifph_inform_point.shp")
 
 ```
 
-## Fire Severity Feature
+# Fire Severity Feature
+
+## exploration
 
 ```{r}
 ifph_inform %>% 
@@ -84,15 +88,7 @@ ifph_inform %>%
 ```
 
 ```{r}
-fire_shp %>%
-    ggplot(aes(geometry=geometry)) +
-    geom_sf() +
-    theme_minimal()
-```
-
-
-```{r}
-names(fire_shp)
+names(fire_mp)
 
 ```
 
@@ -102,19 +98,12 @@ names(fire_shp)
 - Burn duration
 - Fire management complexity
 
-```{r}
-fire_df <- ifph_inform %>% filter(is_inform==TRUE) %>% select(-c(is_inform, is_ifph))
-fire_shp <- fire_shp %>% filter(!is.na(is_nfrm)) %>% select(-c(is_nfrm, is_ifph))
-
-head(fire_shp)
-```
-
 ## Acres burned
 
 Already exists with no missingness - GIS_ACR
 
 ```{r}
-dim(fire_shp %>%
+dim(fire_mp %>%
     filter(is.na(GIS_ACR)))
 ```
 
@@ -123,11 +112,12 @@ dim(fire_shp %>%
 Already exists - Fr_Mg_C
 
 ```{r}
-fire_shp %>%
+# THERE SHOULD BE MORE THAN THAT. 
+fire_mp %>%
     select(Fr_Mg_C) %>%
     filter(!is.na(Fr_Mg_C))
 
-fire_df %>%
+ifph_inform %>%
     group_by(Fire.Mgmt.Complexity) %>%
     summarize(n=n())
 

@@ -117,10 +117,19 @@ lengths(or_grid_df)
 
 # Add IFPH and InFORM data
 
+## Adding IFPH/InFORM Multipolygon data
+
 ```{r}
 # reading in combined IFPH and InFORM data created in ifph-inform-join
-fire_shp <- st_read("data/fire_shp.shp")
+fire_shp_full <- st_read("data/ifph_inform_multipolygon.shp")
 
+# separating into RX and WF
+# note that this removes fires that were present in IFPH but not InFORM (we would be missing duration/mgmt complexity info for these as well)
+rx_fire_shp <- fire_shp_full %>%
+    filter(Inc_T_C == "RX")
+
+fire_shp <- fire_shp_full %>%
+    filter(Inc_T_C != "RX")
 ```
 
 ## Adding fire count

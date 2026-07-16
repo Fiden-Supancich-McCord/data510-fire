@@ -78,7 +78,6 @@ inform %>%
 
 ```{r}
 inform %>%
-    filter(Calendar.Year <= 2025, Calendar.Year >= 2015) %>%
     group_by(Incident.Type.Category) %>%
     summarize(
         lat_missing = sum(is.na(Initial.Latitude)),
@@ -110,7 +109,14 @@ inform_shp %>%
 
 ```
 
+# Joining on UNQE_FIRE_
+
 ```{r}
+inform %>%
+    filter(UniqueFireIdentifier %in% ifph_df$UNQE_FIRE_) %>%
+    group_by(is.na(Fire.Mgmt.Complexity)) %>% 
+    summarize(n=n())
+
 ifph_df %>% 
     mutate(is_ifph = TRUE) %>%
     full_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
@@ -124,7 +130,7 @@ ifph_df %>%
 # left join on IFPH, as non-IFPH data will be point geometries from inform
 ifph_inform <- ifph %>% 
     mutate(is_ifph = TRUE) %>%
-    left_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
+    inner_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
 
 # assorted checks
 tibble(ifph_inform) %>% 
@@ -142,12 +148,17 @@ tibble(ifph_inform) %>%
     ) %>%
     arrange(desc(n)) 
 
+tibble(ifph_inform) %>%
+    filter(is.na(Fire.Mgmt.Complexity)) %>%
+    summarize(n=n())
+
 ifph_df %>%
     summarize(
         n=n(),
         quant_year = as_tibble_row(quantile(FIRE_YEAR_))
     )
 # this is a potential issue - the year spread is pretty distinct.
+# can no longer see bc i made it an inner join. lol
 
 tibble(ifph_inform) %>%
     filter(is_inform == TRUE) %>%
@@ -157,14 +168,15 @@ tibble(ifph_inform) %>%
         quant_diff = as_tibble_row(quantile(acre_diff))
     )
 
-tibble(ifph_inform) %>%
+ifph_inform %>%
     mutate(acre_diff = abs(Calculated.Acres - GIS_ACRES)) %>%
-    filter(acre_diff > 1) %>%
+    mutate(area = st_area(geometry)/4047) %>%
+    filter(acre_diff > 10) %>%
     arrange(desc(acre_diff)) %>%
-    select(GIS_ACRES, Calculated.Acres, acre_diff, FIRE_YEAR_, Calendar.Year)
+    select(GIS_ACRES, Calculated.Acres, acre_diff, area, FIRE_YEAR_)
+# some significant differences here. not ideal. 
+# GIS_ACRES align with calculation based on multipolygon
 ```
-
-Not much to be done about it, but should be noted! 
 
 # Adding coordinate data from inform records that don't match ifph
 
@@ -222,6 +234,9 @@ ifph_inform_full <- rbind(inform_shp_lim, ifph_inform_lim)
 
 # so it turns out. you can't write multipolygon and point geometries to the same shapefile. so it'll just have to be two shapefiles. whatever.
 
+ifph_inform_lim %>%
+    filter(is.na(Fire.Mgmt.Complexity))
+
 ```
 
 # Writing to shp/csv
@@ -229,9 +244,15 @@ ifph_inform_full <- rbind(inform_shp_lim, ifph_inform_lim)
 ```{r}
 object.size(ifph_inform_full)
 
-st_write(ifph_inform_lime, "data/ifph_inform_multipolygon.shp")
-st_write(inform_shp_lim, "data/ifph_inform_point.shp")
+st_write(ifph_inform_lim, "data/ifph_inform_multipolygon.shp", append=FALSE)
+st_write(inform_shp_lim, "data/ifph_inform_point.shp", append=FALSE)
 
-#st_write(ifph_inform, "data/ifph_inform.shp")
-#write_csv(ifph_inform, "data/ifph_inform.csv")
+ifph_inform_full_df <- tibble(ifph_inform_full) %>% select(-geometry)
+
+object.size(ifph_inform_full_df)
+
+write_csv(ifph_inform_full_df, "data/ifph_inform_full.csv")
+
+# st_write(ifph_inform, "data/ifph_inform.shp")
+# write_csv(ifph_inform, "data/ifph_inform.csv")
 ```
