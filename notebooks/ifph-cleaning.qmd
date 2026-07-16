@@ -21,7 +21,7 @@ library(sf)
 ```{r}
 ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
 ifph <- st_transform(ifph, crs="WGS84")
-ifph <- st_make_valid(ifph)
+ifph <- st_make_valid(ifph) # this takes some time to run
 ```
 
 # Limiting to OR
@@ -52,8 +52,10 @@ ifph_or = ifph[unlist(ifph_int),]
 dim(ifph_or)
 
 ifph_or %>% 
-    ggplot() + geom_sf(data=or, aes(geometry=geom)) + geom_sf(alpha=0.5, fill="firebrick") + theme_minimal()
-
+    ggplot() + 
+    geom_sf(data=or, aes(geometry=geom)) + 
+    geom_sf(alpha=0.5, fill="firebrick") + 
+    theme_minimal()
 
 lengths(ifph_or)
 ```
@@ -62,10 +64,12 @@ lengths(ifph_or)
 
 ```{r}
 ifph_df <- tibble(ifph_or)
-# tests run much much quicker on the tibble
+# summaries/tests run much quicker on the tibble as it doesn't need to join geometries
 ```
 
 # IFPH Cleaning
+
+Will be running cleaning on both the sf and tibble (that's why it's there twice). 
 
 ## Time bounds
 
@@ -107,7 +111,7 @@ ifph_df %>%
 
 ```{r}
 # converting DATE_CUR to actual datetime 
-# not sure what the timezone is. but it probably doesn't matter for our purposes
+# not sure what the timezone is (presumably PST) but it doesn't matter for our purposes
 ifph_df <- ifph_df %>%
     mutate(DATE_CUR = lubridate::ymd_hms(DATE_CUR))
 
@@ -180,5 +184,5 @@ object.size(ifph_df)
 write_csv(ifph_df, "data/ifph_clean/ifph_clean.csv")
 
 object.size(ifph_or)
-st_write(ifph_or, "data/ifph_clean/ifph_clean.shp", append=FALSE)
+st_write(ifph_or, "./data/ifph_clean/ifph_clean.shp", append=FALSE)
 ```
