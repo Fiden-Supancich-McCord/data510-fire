@@ -98,20 +98,20 @@ dim(or_lm)
 indigenous <- st_intersects(or_grid, or_lm, sparse=FALSE)
 indigenous_tibble <- tibble(indigenous)
 
-or_grid_df <- cbind(or_grid_df, indigenous_tibble)
+or_grid_ind <- cbind(or_grid_df, indigenous_tibble)
 
 # for each grid cell, convert all indigenous rows to 1 if TRUE/0 if FALSE
 # create is_indigenous column with sum of indigenous rows, so each cell has 1 if indigenous land and 0 if not
-or_grid_df <- or_grid_df %>%
+or_grid_ind <- or_grid_ind %>%
     mutate(across(starts_with("indigenous"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
     mutate(
         is_indigenous = ifelse(rowSums(across(starts_with("indigenous"))) == 0, 0, 1)
     )
 
 # remove interim rows
-or_grid_df <- or_grid_df %>% select(-indigenous)
+or_grid_ind <- or_grid_ind %>% select(-indigenous)
 
-lengths(or_grid_df)
+lengths(or_grid_ind)
 
 ```
 
@@ -121,54 +121,86 @@ lengths(or_grid_df)
 
 ```{r}
 # reading in combined IFPH and InFORM data created in ifph-inform-join
-fire_shp_full <- st_read("data/ifph_inform_multipolygon.shp")
+fire_mp <- st_read("data/ifph_inform_multipolygon/ifph_inform_multipolygon.shp")
+
+# reading in point data from InFORM lat/lon data (also created in ifph-inform-join)
+fire_pt <- st_read("data/ifph_inform_point/ifph_inform_point.shp")
 
 # separating into RX and WF
 # note that this removes fires that were present in IFPH but not InFORM (we would be missing duration/mgmt complexity info for these as well)
-rx_fire_shp <- fire_shp_full %>%
+rx_fire_mp <- fire_mp %>%
     filter(Inc_T_C == "RX")
 
-fire_shp <- fire_shp_full %>%
+fire_mp <- fire_mp %>%
     filter(Inc_T_C != "RX")
+
+rx_fire_pt <- fire_pt %>%
+    filter(Inc_T_C == "RX")
+
+fire_pt <- fire_pt %>%
+    filter(Inc_T_C != "RX")
+
 ```
 
 ## Adding fire count
 
 ```{r}
 # fire tibble with whether each fire occurred in each grid cell
-fire <- st_intersects(or_grid, fire_shp, sparse=FALSE)
-fire_tibble <- tibble(fire)
-head(fire_tibble)
-dim(fire_tibble)
-dim(fire_tibble$fire)
+fire_mp_int <- st_intersects(or_grid, fire_mp, sparse=FALSE)
+fire_mp_tibble <- tibble(fire_mp_int)
+head(fire_mp_tibble)
+dim(fire_mp_tibble)
+dim(fire_mp_tibble$fire_mp)
+
+# fire tibble for the point geometries
+fire_pt_int <- st_contains(or_grid, fire_pt, sparse=FALSE)
+fire_pt_tibble <- tibble(fire_pt_int)
 
 # combining fire_tibble and or_grid_df to get counts of fires
-or_grid_df <- cbind(or_grid_df, fire_tibble)
+or_grid_fire <- cbind(or_grid_ind, fire_mp_tibble)
 
 # creating sum of fires across each row/grid cell
-or_grid_df <- or_grid_df %>%
+or_grid_fire <- or_grid_fire %>%
     mutate(across(starts_with("fire"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
     mutate(
-        n_fires = rowSums(across(starts_with("fire")))
+        n_fires_mp = rowSums(across(starts_with("fire")))
     )
 
 # removing the interim fire columns
-or_grid_df <- or_grid_df %>% select(-fire)
+or_grid_fire <- or_grid_fire %>% select(-fire_mp_int)
 
-head(or_grid_df %>%
-    arrange(desc(n_fires))
+or_grid_fire2 <- cbind(or_grid_fire, fire_pt_tibble)
+
+or_grid_fire2 <- or_grid_fire2 %>%
+    mutate(across(starts_with("fire"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_fires_pt = rowSums(across(starts_with("fire")))
+    )
+
+or_grid_fire2 <- or_grid_fire2 %>% select(-fire_pt_int)
+
+names(or_grid_fire2)
+
+or_grid_fire2 <- or_grid_fire2 %>%
+    mutate(n_fires_tot = rowSums(across(starts_with("n_fires"))))
+
+head(or_grid_fire2 %>%
+    arrange(desc(n_fires_tot))
 )
-# max number of fires: 8
+
+sum(or_grid_fire2$n_fires_tot)
+# max number of mp fires: 8
+# max number of total fires: 128
 ```
 
-## Adding fire identifier
+## Adding fire identifier (MP)
 
 ```{r}
 # getting grid index as list
 grid_index <- or_grid_df$index
 
 # new tibble that doesn't have a matrix
-fire_tibble2 = cbind(tibble(data.frame(fire)), grid_index)
+fire_tibble2 = cbind(tibble(data.frame(fire_mp_int)), grid_index)
 names(fire_tibble2)
 
 # for every grid index and fire, shows the unique fire identifier (unique_id) and whether that fire was in that grid cell (is_fire)
@@ -176,14 +208,15 @@ long_fire <- fire_tibble2 %>%
     pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
     mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
     mutate(
-        unique_id = fire_shp$UNQE_FI[fire_index],
-        acres = fire_shp$GIS_ACR[fire_index],
-        fire_management_n = fire_shp$fr_mgm_[fire_index],
-        duration_hrs = fire_shp$fr_df__[fire_index]
+        unique_id = fire_mp$UNQE_FI[fire_index],
+        acres = fire_mp$GIS_ACR[fire_index],
+        fire_management_n = fire_mp$fr_mgm_[fire_index],
+        fire_management = fire_mp$Fr_Mg_C[fire_index],
+        duration_hrs = fire_mp$drtn_hr[fire_index]
     )
 
 # confirming the order didn't shift around for some reason
-(long_fire %>% pull(unique_id))[1:100] == (fire_shp %>% pull(UNQE_FI))[1:100]
+(long_fire %>% pull(unique_id))[1:100] == (fire_mp %>% pull(UNQE_FI))[1:100]
 
 # creating new limited id column that has unique identifier if fire is present in that square, otherwise NA
 # same for acres, fire_management_n, duration_hrs
@@ -207,10 +240,12 @@ fire_lst_tibble[,"min_mgmt"]=""
 fire_lst_tibble[,"max_duration"]=""
 head(fire_lst_tibble,5)
 
+start_index = which(1==names(wide_fire))-1
+
 # for every grid cell, pulling unique fire identifiers for fires that occurred in that cell, adding them to fire_lst_tibble
-for (x in 1:seq_len(dim(or_grid_df)[1])) {
+for (x in 1:max(grid_index)) {
     # pull list of NAs and fire identifiers for each col/grid cell
-    full_lst <- pull(wide_fire, x+6) # change 6 if more cols added
+    full_lst <- pull(wide_fire, x+start_index)
     # list of indexes for present fires
     fire_idx <- which(!is.na(full_lst))
     # list of present fire identifiers
@@ -243,9 +278,89 @@ ex8 == fire_lst_tibble$fire_lst[8]
 
 ```{r}
 # joining or_grid_df and fire_lst_tibble on the grid index
-or_grid_tib <- tibble(left_join(or_grid_df, fire_lst_tibble, by=c("index"="grid_index")))
+or_grid_firemp <- tibble(left_join(or_grid_fire2, fire_lst_tibble, by=c("index"="grid_index")))
 
-or_grid_tib
+or_grid_firemp
+names(or_grid_firemp)
+```
+
+## Adding fire identifier (PT)
+
+```{r}
+# new tibble that doesn't have a matrix
+fire_tibble2pt = cbind(tibble(data.frame(fire_pt_int)), grid_index)
+names(fire_tibble2pt)
+
+# for every grid index and fire, shows the unique fire identifier (unique_id) and whether that fire was in that grid cell (is_fire)
+long_firept <- fire_tibble2pt %>%
+    pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
+    mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
+    mutate(
+        unique_id = fire_pt$UNQE_FI[fire_index],
+        acres = fire_pt$GIS_ACR[fire_index],
+        fire_management_n = fire_pt$fr_mgm_[fire_index],
+        fire_management = fire_pt$Fr_Mg_C[fire_index],
+        duration_hrs = fire_pt$drtn_hr[fire_index]
+    )
+
+# confirming the order didn't shift around for some reason
+(long_firept %>% pull(unique_id))[1:100] == (fire_pt %>% pull(UNQE_FI))[1:100]
+
+# creating new limited id column that has unique identifier if fire is present in that square, otherwise NA
+# same for acres, fire_management_n, duration_hrs
+# then pivoting so the unique ID shows in grid index col where the fire is present
+wide_firept <- long_firept %>%
+    # mutating unique ID to "missing" if NA and adding the constructed fire_index for referencing
+    mutate(unique_id = ifelse(is.na(unique_id), paste("MISSING", as.symbol(fire_index)), unique_id)) %>%
+    mutate(
+        limited_uid = ifelse(is_fire==TRUE, unique_id, NA)
+    ) %>%
+    pivot_wider(names_from = grid_index, values_from = limited_uid)
+
+head(wide_firept)
+
+# creating new tibble with grid index
+# empty columns for unique identifiers, acres, mgmt complexity, duration 
+fire_lst_tibblept <- tibble(grid_index)
+fire_lst_tibblept[,"fire_lst"]=""
+fire_lst_tibblept[,"max_acres"]=""
+fire_lst_tibblept[,"min_mgmt"]=""
+fire_lst_tibblept[,"max_duration"]=""
+head(fire_lst_tibblept,5)
+
+start_indexpt = which(1==names(wide_firept))-1
+
+# for every grid cell, pulling unique fire identifiers for fires that occurred in that cell, adding them to fire_lst_tibble
+for (x in 1:max(grid_index)) {
+    # pull list of NAs and fire identifiers for each col/grid cell
+    full_lst <- pull(wide_firept, x+start_indexpt)
+    # list of indexes for present fires
+    fire_idx <- which(!is.na(full_lst))
+    # list of present fire identifiers
+    lst <- full_lst[!is.na(full_lst)]
+    # if no fires, NA or 0 as applicable
+    if (length(lst) == 0) {
+        fire_lst_tibblept$fire_lst[x] = NA
+        fire_lst_tibblept$max_acres[x] = 0
+        fire_lst_tibblept$min_mgmt[x] = NA
+        fire_lst_tibblept$max_duration[x] = 0
+    # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
+    } else {
+        fire_lst_tibblept$fire_lst[x] = paste(unlist(lst), collapse=", ")
+        fire_lst_tibblept$max_acres[x] = max(wide_firept$acres[fire_idx])
+        fire_lst_tibblept$min_mgmt[x] = min(wide_firept$fire_management_n[fire_idx])
+        fire_lst_tibble$max_duration[x] = max(wide_firept$duration_hrs[fire_idx])
+    }
+}
+
+# checking everything accurate
+ex4 <- pull(wide_firept, `4`)
+ex4_idx <- which(!is.na(ex4))
+max(wide_firept$duration_hrs[ex4_idx])
+ex4 <- ex4[!is.na(ex4)]
+ex4
+head(fire_lst_tibblept,4)
+
 ```
 
 ```{r}
