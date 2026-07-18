@@ -156,7 +156,7 @@ inform %>%
 ```{r}
 fire_shp <- ifph
 object.size(fire_shp)
-st_write(fire_shp, "data/fire_shp.shp")
+st_write(fire_shp, "data/fire_df_shp/fire_shp.shp")
 
 fire_df <- inform
 object.size(fire_df)
