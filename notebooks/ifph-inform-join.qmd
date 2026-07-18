@@ -21,20 +21,37 @@ library(sf)
 ```
 
 ```{r}
-ifph <- st_read("data/ifph_clean/ifph_clean.shp")
-ifph_df <- read_csv("data/ifph_clean/ifph_clean.csv")
+ifph <- st_read("data/fire_df_shp/fire_shp.shp")
+#ifph_df <- read_csv("data/ifph_clean/ifph_clean.csv")
 
-inform <- read_csv("../DATA-510/inform_clean.csv")
-inform_shp <- st_read("data/inform_clean/inform_clean.shp")
+inform <- read_csv("../DATA-510/fire_df.csv")
+#inform_shp <- st_read("data/inform_clean/inform_clean.shp")
+
+inform_shp <- st_as_sf(inform %>% filter(!is.na(Initial.Longitude)), coords=c("Initial.Longitude", "Initial.Latitude"), crs="WGS84")
+```
+
+Limiting inform_shp to OR.
+
+```{r}
+# read in oregon shapefile
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs="WGS84")
+
+inform_int = st_contains(or, inform_shp)
+dim(inform_int)
+
+# only landmark rows that were in the intersection list
+inform_or = inform_shp[unlist(inform_int),]
 ```
 
 ```{r}
 dim(inform)
-dim(inform_shp) 
-# different number of columns bc lat/lon -> geometry
-# different number of rows because shp includes only valid lat/lon in OR, inform df has everything
+dim(inform_shp) # fewer rows bc not including missing lat/lon
+# fewer cols because lat + lon -> geometry
+dim(inform_or)
 dim(ifph)
-dim(ifph_df)
 ```
 
 # Joining them
@@ -43,7 +60,7 @@ dim(ifph_df)
 
 ```{r}
 # making tibble for this so it runs faster
-ifph_df %>%
+tibble(ifph) %>%
     mutate(FORID = str_remove_all(FORID, "[{}]")) %>%
     mutate(
         unqe_match = ifelse(UNQE_FIRE_ %in% inform$UniqueFireIdentifier, T, F),
@@ -56,12 +73,12 @@ ifph_df %>%
 head(inform %>% select(UniqueFireIdentifier, FORID, GlobalID))
 head(ifph %>% select(UNQE_FIRE_, FORID, GlobalID))
 
-sum(ifph_df$UNQE_FIRE_ %in% inform$UniqueFireIdentifier)
+sum(tibble(ifph)$UNQE_FIRE_ %in% inform$UniqueFireIdentifier)
 
 ```
 
 ```{r}
-ifph_df %>%
+tibble(ifph) %>%
     group_by(UNQE_FIRE_, GlobalID) %>%
     summarize(n=n()) %>%
     filter(n > 1) %>%
@@ -90,7 +107,7 @@ inform %>%
         pct_present = 1 - (lat_missing/n)
     )
 
-ifph_df %>% 
+tibble(ifph) %>% 
     mutate(is_ifph = TRUE) %>%
     full_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
     group_by(is_ifph, is_inform, Incident.Type.Category) %>%
@@ -102,10 +119,10 @@ ifph_df %>%
         pct_present = 1 - (lat_missing/n)
     )
 
-inform_shp %>%
+inform_or %>%
     ggplot(aes(geometry=geometry)) +
     geom_sf(data=or, aes(geometry=geom)) +
-    geom_sf(aes(color=Inc_T_C, size=Clclt_A), alpha=0.5) +
+    geom_sf(aes(color=Incident.Type.Category, size=Calculated.Acres), alpha=0.5) +
     scale_color_discrete(palette=c("RX" = "green3", "WF" = "firebrick")) +
     theme_minimal()
 
@@ -119,7 +136,7 @@ inform %>%
     group_by(is.na(Fire.Mgmt.Complexity)) %>% 
     summarize(n=n())
 
-ifph_df %>% 
+tibble(ifph) %>% 
     mutate(is_ifph = TRUE) %>%
     full_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier")) %>%
     group_by(is_ifph, is_inform, Calendar.Year) %>%
@@ -155,7 +172,7 @@ tibble(ifph_inform) %>%
     filter(is.na(Fire.Mgmt.Complexity)) %>%
     summarize(n=n())
 
-ifph_df %>%
+tibble(ifph) %>%
     summarize(
         n=n(),
         quant_year = as_tibble_row(quantile(FIRE_YEAR_))
@@ -195,26 +212,18 @@ inform %>%
 
 # filtering to fire IDs not present in UNQE_FIRE_
 # selecting only columns we will use in our analysis
-inform_shp_lim <- inform_shp %>% 
-    filter(!(UnqFrId %in% ifph_inform$UNQE_FIRE_)) %>% 
-    select(UnqFrId, Clclt_A, Cntn_D_T, Cntr_D_T, Fr_Mg_C, FrOtDtT, Inc_T_C, AcrsTrb, Clndr_Y, geometry)
+inform_lim <- inform_or %>% 
+    filter(!(UniqueFireIdentifier %in% ifph_inform$UNQE_FIRE_)) %>% 
+    select(UniqueFireIdentifier, Calculated.Acres, size_class, latest_out, duration_hrs, Fire.Mgmt.Complexity, fire_mgmt_n, Incident.Type.Category, AcresTribal, Calendar.Year, geometry)
 
 # selecting only matching cols
 ifph_inform_lim <- ifph_inform %>%
-    select(GIS_ACRES, UNQE_FIRE_, FIRE_YEAR_, is_ifph, Calculated.Acres, Containment.Date.Time, Control.Date.Time, Fire.Mgmt.Complexity, FireOutDateTime, Incident.Type.Category, AcresTribal, Calendar.Year, is_inform, geometry)
+    select(GIS_ACRES, Calculated.Acres, UNQE_FIRE_, FIRE_YEAR_, is_ifph, size_class.x, latest_out, duration_hrs, Fire.Mgmt.Complexity, fire_mgmt_n, Incident.Type.Category, AcresTribal, Calendar.Year, is_inform, geometry)
 
 # renaming columns to match, adding NAs for cols that are ifph-specifc
-inform_shp_lim <- inform_shp_lim %>%
+inform_lim <- inform_lim %>%
     rename(c(
-        UNQE_FIRE_ = UnqFrId,
-        Calculated.Acres = Clclt_A,
-        Containment.Date.Time = Cntn_D_T,
-        Control.Date.Time = Cntr_D_T,
-        Fire.Mgmt.Complexity = Fr_Mg_C,
-        FireOutDateTime = FrOtDtT,
-        Incident.Type.Category = Inc_T_C,
-        AcresTribal = AcrsTrb,
-        Calendar.Year = Clndr_Y
+        UNQE_FIRE_ = UniqueFireIdentifier,
     )) %>%
     mutate(
         GIS_ACRES = NA,
@@ -223,39 +232,38 @@ inform_shp_lim <- inform_shp_lim %>%
         is_inform = TRUE
     )
 
+ifph_inform_lim <- ifph_inform_lim %>%
+    rename(size_class = size_class.x)
+
 # ensuring names all match
-names(inform_shp_lim) %in% names(ifph_inform_lim)
-names(ifph_inform_lim) %in% names(inform_shp_lim)
+names(inform_lim) %in% names(ifph_inform_lim)
+names(ifph_inform_lim) %in% names(inform_lim)
 
 # checking dims - everything lines up
-dim(inform_shp_lim)
+dim(inform_lim)
 dim(ifph_inform_lim)
-dim(rbind(inform_shp_lim, ifph_inform_lim))
+dim(rbind(inform_lim, ifph_inform_lim))
 
 # creating full version with rbind
-ifph_inform_full <- rbind(inform_shp_lim, ifph_inform_lim)
+ifph_inform_full <- rbind(inform_lim, ifph_inform_lim)
 
 # so it turns out. you can't write multipolygon and point geometries to the same shapefile. so it'll just have to be two shapefiles. whatever.
-
-ifph_inform_lim %>%
-    filter(is.na(Fire.Mgmt.Complexity))
 
 ```
 
 # Writing to shp/csv
 
 ```{r}
-object.size(ifph_inform_full)
+object.size(ifph_inform_lim)
+st_write(ifph_inform_lim, "data/ifph_inform_multipolygon/ifph_inform_multipolygon.shp", append=FALSE)
 
-st_write(ifph_inform_lim, "data/ifph_inform_multipolygon.shp", append=FALSE)
-st_write(inform_shp_lim, "data/ifph_inform_point.shp", append=FALSE)
+object.size(inform_lim)
+st_write(inform_lim, "data/ifph_inform_point/ifph_inform_point.shp", append=FALSE)
 
 ifph_inform_full_df <- tibble(ifph_inform_full) %>% select(-geometry)
 
 object.size(ifph_inform_full_df)
 
-write_csv(ifph_inform_full_df, "data/ifph_inform_full.csv")
+write_csv(ifph_inform_full_df, "data/ifph_inform/ifph_inform_full.csv")
 
-# st_write(ifph_inform, "data/ifph_inform.shp")
-# write_csv(ifph_inform, "data/ifph_inform.csv")
 ```
