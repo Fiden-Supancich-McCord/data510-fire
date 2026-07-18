@@ -30,7 +30,9 @@ inform_shp <- st_read("data/inform_clean/inform_clean.shp")
 
 ```{r}
 dim(inform)
-dim(inform_shp)
+dim(inform_shp) 
+# different number of columns bc lat/lon -> geometry
+# different number of rows because shp includes only valid lat/lon in OR, inform df has everything
 dim(ifph)
 dim(ifph_df)
 ```
@@ -127,7 +129,8 @@ ifph_df %>%
 ```
 
 ```{r}
-# left join on IFPH, as non-IFPH data will be point geometries from inform
+# inner join on IFPH
+# non-IFPH data will be point geometries from inform, IFPH fires without matched inform data will not have our other fire severity features
 ifph_inform <- ifph %>% 
     mutate(is_ifph = TRUE) %>%
     inner_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))

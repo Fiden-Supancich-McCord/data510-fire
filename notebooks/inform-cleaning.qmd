@@ -21,7 +21,7 @@ library(sf)
 ## Ingestion from download
 
 ```{r}
-inform <- read_csv("/Users/nikolefiden/Desktop/DATA-510/InFORM_FireOccurrence_Public.csv")
+inform <- read_csv("../DATA-510/InFORM_FireOccurrence_Public.csv")
 
 ```
 
@@ -193,7 +193,7 @@ inform <- inform %>%
 
 # converting Created.On.Date.Time to datetime
 inform <- inform %>%
-    mutate(Created.On.Date.Time = as_datetime(Created.On.Date.Time/1000)) 
+    mutate(Created.On.Date.Time = as_datetime(Created.On.Date.Time/1000))
 
 inform %>%
     select(Created.On.Date.Time)

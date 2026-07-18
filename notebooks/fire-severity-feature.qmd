@@ -20,79 +20,15 @@ library(viridis)
 
 # Reading in data
 
-Created in ifph-inform-join
+Created in inform-cleaning / ifph-cleaning
 
 ```{r}
-ifph_inform <- read_csv("data/ifph_inform_full.csv")
-fire_mp <- st_read("data/ifph_inform_multipolygon.shp")
-fire_pt <- st_read("data/ifph_inform_point.shp")
+inform <- read_csv("../DATA-510/inform_clean.csv")
+ifph <- st_read("data/ifph_clean/ifph_clean.shp")
 
 ```
 
-# Fire Severity Feature
-
-## exploration
-
-```{r}
-ifph_inform %>% 
-    group_by(is_inform, is_ifph) %>%
-    summarize(n=n())
-
-ifph_inform %>%
-    group_by(Fire.Mgmt.Complexity, Incident.Type.Category) %>%
-    summarize(
-        n=n(),
-        avg_acres = mean(GIS_ACRES, na.rm=TRUE)
-    ) %>%
-    arrange(avg_acres)
-
-ifph_inform %>%
-    group_by(is_inform) %>%
-    summarize(
-        n=n(),
-        avg_acres = mean(GIS_ACRES, na.rm=TRUE)
-    ) %>%
-    arrange(avg_acres)
-
-ifph_inform %>%
-    group_by(Incident.Type.Category) %>%
-    summarize(
-        n=n()
-    ) %>%
-    arrange(n)
-```
-
-```{r}
-ifph_inform %>%
-    group_by(Fire.Mgmt.Complexity, Incident.Type.Category) %>%
-    summarize(
-        n=n(),
-        avg_acres = mean(GIS_ACRES, na.rm=TRUE),
-        max_acres = max(GIS_ACRES, na.rm=TRUE),
-        min_acres = min(GIS_ACRES, na.rm=TRUE)
-    ) %>%
-    arrange(avg_acres) %>%
-    print(width=Inf)
-
-ifph_inform %>%
-    group_by(is_inform) %>%
-    summarize(
-        n=n(),
-        avg_acres = mean(GIS_ACRES, na.rm=TRUE),
-        max_acres = max(GIS_ACRES, na.rm=TRUE),
-        median_acres = median(GIS_ACRES, na.rm=TRUE),
-        min_acres = min(GIS_ACRES, na.rm=TRUE)
-    ) %>%
-    arrange(avg_acres) %>%
-    print(width=Inf)
-```
-
-```{r}
-names(fire_mp)
-
-```
-
-# FEATURES
+# Fire Severity Features
 
 - Acres burned
 - Burn duration
@@ -100,110 +36,129 @@ names(fire_mp)
 
 ## Acres burned
 
-Already exists with no missingness - GIS_ACR
+Already exists with no missingness - GIS_ACRES for IFPH, Calculated.Acres for InFORM
 
 ```{r}
-dim(fire_mp %>%
-    filter(is.na(GIS_ACR)))
+dim(inform %>%
+    filter(is.na(Calculated.Acres)))
+
+dim(ifph %>%
+    filter(is.na(GIS_ACRES)))
+```
+
+The National Wildfire Coordinating Group (NWCG) has size classifications for wildfires ([link](https://www.nwcg.gov/node/1737420)). We may limit smaller fires (which may represent minor incidents and not actual wildfires), so adding a factor for this classification.
+
+Class A - one-fourth acre or less;
+Class B - more than one-fourth acre, but less than 10 acres;
+Class C - 10 acres or more, but less than 100 acres;
+Class D - 100 acres or more, but less than 300 acres;
+Class E - 300 acres or more, but less than 1,000 acres;
+Class F - 1,000 acres or more, but less than 5,000 acres;
+Class G - 5,000 acres or more.
+
+```{r}
+inform %>%
+    select(Calculated.Acres) %>%
+    arrange(desc(Calculated.Acres))
+# max acres ~1050000 (a lot)
+
+inform <- inform %>%
+    mutate(size_class = cut(
+        Calculated.Acres, 
+        breaks=c(-0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000),
+        labels = c("Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G")
+    ))
+
+inform %>%
+    group_by(size_class) %>%
+    summarize(n=n())
+
+ifph <- ifph %>%
+    mutate(size_class = cut(
+        GIS_ACRES, 
+        breaks=c(-0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000),
+        labels = c("Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G")
+    )) 
+
+# running as a tibble so it doesn't take as long
+tibble(ifph) %>%
+    group_by(size_class) %>%
+    summarize(n=n())
+
 ```
 
 ## Fire management complexity
 
-Already exists - Fr_Mg_C
+Already exists - Fire.Mgmt.Complexity
 
 ```{r}
-# THERE SHOULD BE MORE THAN THAT. 
-fire_mp %>%
-    select(Fr_Mg_C) %>%
-    filter(!is.na(Fr_Mg_C))
-
-ifph_inform %>%
+inform %>%
     group_by(Fire.Mgmt.Complexity) %>%
     summarize(n=n())
+# many missing
 
-fire_df %>%
-    group_by(Fire.Mgmt.Complexity) %>%
-    summarize(n=n())
+inform %>%
+    group_by(Fire.Mgmt.Complexity, Incident.Type.Category) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# some mismatch between things listed as Prescribed Fire in mgmt complexity vs incident type category
+# to account for this I'll keep these two columns but also create fire_mgmt_n which extracts the number
 
-# significant missingness - 1531 missing total
-# 665 missing where inform data is present
-# can be converted to numeric category for modeling, all 1-5 no extra text
-fire_df <- fire_df %>%
-    mutate(fire_mgmt_n = as.numeric(str_extract(Fire.Mgmt.Complexity, "[1-5]"))) 
+inform <- inform %>%
+    mutate(fire_mgmt_n = as.numeric(str_extract(Fire.Mgmt.Complexity, "[1-5]")))
 
-fire_shp <- fire_shp %>%
-    mutate(fire_mgmt_n = as.numeric(str_extract(Fr_Mg_C, "[1-5]")))
+inform %>%
+    group_by(fire_mgmt_n) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
+# interesting that there are more 1s than 2s. also SIGNIFICANTLY missing :/
 
 ```
 
 ## Burn Duration
 
 ```{r}
-fire_df %>%
+inform %>%
     group_by(is.na(Containment.Date.Time), is.na(Control.Date.Time), is.na(FireOutDateTime)) %>%
     summarize(n=n()) %>%
     arrange(desc(n)) %>%
     print(width=Inf)
-# 17 missing all three
+# 48088 missing all three - these will not have a burn duration unfortunately
 
-fire_df <- fire_df %>%
-    filter(!(is.na(Containment.Date.Time) & is.na(Control.Date.Time) & is.na(FireOutDateTime)))
-
-# Cntn_D_T, Cntr_D_T, FrOtDtT
-fire_shp <- fire_shp %>%
-    filter(!(is.na(Cntn_D_T) & is.na(Cntr_D_T) & is.na(FrOtDtT)))
+inform %>% 
+    mutate(no_duration = (is.na(Containment.Date.Time) & is.na(Control.Date.Time) & is.na(FireOutDateTime))) %>%
+    group_by(no_duration, size_class) %>%
+    summarize(n=n())
+# missingness doesn't seem to be associated with particular fire size :/ 
 
 ```
 
 ```{r}
-# creating latest_out column
-fire_df %>%
-    rowwise %>%
-    mutate(
-        latest_out = max(c(Containment.Date.Time, Control.Date.Time, FireOutDateTime), na.rm=TRUE)
-    ) %>%
-    select(Containment.Date.Time, Control.Date.Time, FireOutDateTime, latest_out) %>%
-    print(width=Inf)
+# this will take a long time to run it's a lot of calculations
 
-fire_df <- fire_df %>%
-    rowwise %>%
-    mutate(
-        latest_out = max(c(Containment.Date.Time, Control.Date.Time, FireOutDateTime), na.rm=TRUE)
-    )
+inform <- inform %>%
+    rowwise() %>%
+    # finding latest fire out date
+    mutate(latest_out = max(c_across(c(Containment.Date.Time, Control.Date.Time, FireOutDateTime)))) %>%
+    # duration between fire discovery and latest_out
+    mutate(duration_hrs = ifelse(is.na(latest_out), NA, interval(Fire.Discovery.Date.Time, latest_out)/dhours(x=1))) 
 
-fire_shp %>%
-    rowwise %>%
-    mutate(
-        latest_out = max(c(Cntn_D_T, Cntr_D_T, FrOtDtT), na.rm=TRUE)
-    ) %>%
-    select(Cntn_D_T, Cntr_D_T, FrOtDtT, latest_out) %>%
-    print(width=Inf)
-
-fire_shp <- fire_shp %>%
-    rowwise %>%
-    mutate(
-        latest_out = max(c(Cntn_D_T, Cntr_D_T, FrOtDtT), na.rm=TRUE)
+inform %>%
+    group_by(size_class) %>%
+    summarize(
+        mean_duration = mean(duration_hrs, na.rm=TRUE),
+        n=n(),
+        pct_na = sum(is.na(duration_hrs))*100 / n
     )
 
 ```
 
 ```{r}
-# calculated the duration between fire discovery and latest out
-fire_df %>%
-    mutate(fire_duration = as.duration(interval(Fire.Discovery.Date.Time, latest_out))) %>%
-    mutate(duration_hrs = as.numeric(fire_duration, "hours")) %>%
-    select(Fire.Discovery.Date.Time, latest_out, fire_duration, duration_hrs) %>%
-    print(width=Inf)
-
-fire_df <- fire_df %>%
-    mutate(fire_duration = as.duration(interval(Fire.Discovery.Date.Time, latest_out))) %>%
-    mutate(duration_hrs = as.numeric(fire_duration, "hours"))
-
-fire_shp <- cbind(fire_shp, fire_df$duration_hrs)
-
-```
-
-```{r}
+fire_shp <- ifph
+object.size(fire_shp)
 st_write(fire_shp, "data/fire_shp.shp")
-write_csv(fire_df, "data/fire_df.csv")
+
+fire_df <- inform
+object.size(fire_df)
+write_csv(fire_df, "../DATA-510/fire_df.csv")
 ```
