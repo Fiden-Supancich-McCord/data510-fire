@@ -232,7 +232,6 @@ long_fire <- fire_tibble2 %>%
         unique_id = fire_mp$UNQE_FI[fire_index],
         acres = fire_mp$GIS_ACR[fire_index],
         fire_management_n = fire_mp$fr_mgm_[fire_index],
-        fire_management = fire_mp$Fr_Mg_C[fire_index],
         duration_hrs = fire_mp$drtn_hr[fire_index]
     )
 
@@ -286,6 +285,13 @@ for (x in 1:max(grid_index)) {
     }
 }
 
+fire_lst_tibblemp <- fire_lst_tibblemp %>%
+    mutate(
+        max_acresmp = as.numeric(max_acresmp),
+        min_mgmtmp = as.numeric(min_mgmtmp),
+        max_durationmp = as.numeric(max_durationmp),
+    )
+
 # checking everything accurate
 ex8 <- pull(wide_fire, `8`)
 ex8_idx <- which(!is.na(ex8))
@@ -318,10 +324,10 @@ long_firept <- fire_tibble2pt %>%
     mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
     mutate(
         unique_id = fire_pt$UNQE_FI[fire_index],
-        acres = fire_pt$GIS_ACR[fire_index],
+        acres = fire_pt$Clclt_A[fire_index],
         fire_management_n = fire_pt$fr_mgm_[fire_index],
-        fire_management = fire_pt$Fr_Mg_C[fire_index],
-        duration_hrs = fire_pt$drtn_hr[fire_index]
+        duration_hrs = fire_pt$drtn_hr[fire_index],
+        acres_tribal = fire_pt$AcrsTrb[fire_index]
     )
 
 # confirming the order didn't shift around for some reason
@@ -347,6 +353,7 @@ fire_lst_tibblept[,"fire_lstpt"]=""
 fire_lst_tibblept[,"max_acrespt"]=""
 fire_lst_tibblept[,"min_mgmtpt"]=""
 fire_lst_tibblept[,"max_durationpt"]=""
+fire_lst_tibblept[,"max_acres_tribal"]=""
 head(fire_lst_tibblept,5)
 
 start_indexpt = which(1==names(wide_firept))-1
@@ -365,14 +372,24 @@ for (x in 1:max(grid_index)) {
         fire_lst_tibblept$max_acrespt[x] = 0
         fire_lst_tibblept$min_mgmtpt[x] = NA
         fire_lst_tibblept$max_durationpt[x] = 0
+        fire_lst_tibblept$max_acres_tribal[x] = 0
     # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
     } else {
         fire_lst_tibblept$fire_lstpt[x] = paste(unlist(lst), collapse=", ")
         fire_lst_tibblept$max_acrespt[x] = max(wide_firept$acres[fire_idx])
         fire_lst_tibblept$min_mgmtpt[x] = min(wide_firept$fire_management_n[fire_idx])
         fire_lst_tibblept$max_durationpt[x] = max(wide_firept$duration_hrs[fire_idx])
+        fire_lst_tibblept$max_acres_tribal[x] = max(wide_firept$acres_tribal[fire_idx])
     }
 }
+
+fire_lst_tibblept <- fire_lst_tibblept %>%
+    mutate(
+        max_acrespt = as.numeric(max_acrespt),
+        min_mgmtpt = as.numeric(min_mgmtpt),
+        max_durationpt = as.numeric(max_durationpt),
+        max_acres_tribal = as.numeric(max_acres_tribal)
+    )
 
 # checking everything accurate
 ex3 <- pull(wide_firept, `3`)
@@ -401,9 +418,9 @@ or_grid_firemp_pt <- or_grid_firemp_pt %>%
     mutate(fire_lst = ifelse(fire_lst=="", NA, fire_lst)) %>%
     rowwise() %>%
     mutate(
-        max_acres = as.numeric(max(max_acresmp, max_acrespt, na.rm=TRUE)),
-        min_mgmt = as.numeric(min(min_mgmtmp, min_mgmtmp, na.rm=TRUE)),
-        max_duration = as.numeric(max(max_durationmp, max_durationpt, na.rm=TRUE))
+        max_acres = max(max_acresmp, max_acrespt, na.rm=TRUE),
+        min_mgmt = min(min_mgmtmp, min_mgmtmp, na.rm=TRUE),
+        max_duration = max(max_durationmp, max_durationpt, na.rm=TRUE)
     )
 
 or_grid_firemp_pt <- or_grid_firemp_pt %>%
@@ -412,6 +429,8 @@ or_grid_firemp_pt <- or_grid_firemp_pt %>%
         breaks=c(-0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000),
         labels = c("Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G")
     )) 
+
+str(or_grid_firemp_pt)
 
 ```
 
