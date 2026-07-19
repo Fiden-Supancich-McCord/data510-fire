@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggplot2)
 library(sf)
+library(viridis)
+
 ```
 
 # Creating grid cells for oregon
@@ -150,7 +152,7 @@ fire_mp_int <- st_intersects(or_grid, fire_mp, sparse=FALSE)
 fire_mp_tibble <- tibble(fire_mp_int)
 head(fire_mp_tibble)
 dim(fire_mp_tibble)
-dim(fire_mp_tibble$fire_mp)
+dim(fire_mp_tibble$fire_mp_int)
 
 # fire tibble for the point geometries
 fire_pt_int <- st_contains(or_grid, fire_pt, sparse=FALSE)
@@ -188,9 +190,19 @@ head(or_grid_fire2 %>%
     arrange(desc(n_fires_tot))
 )
 
-sum(or_grid_fire2$n_fires_tot)
 # max number of mp fires: 8
 # max number of total fires: 128
+```
+
+```{r}
+# n fires is log transformed!
+log_n_fires <- or_grid_fire2 %>%
+    ggplot(aes(geometry=geometry, fill=n_fires_tot)) +
+    geom_sf() +
+    scale_fill_viridis(option="inferno", trans="log", na.value="black") +
+    theme_minimal()
+
+ggsave("maps/log_n_fires.jpeg", log_n_fires)
 ```
 
 ## Adding fire identifier (MP)
@@ -363,10 +375,20 @@ head(fire_lst_tibblept,4)
 
 ```
 
+
+```{r}
+# fire_lst_tibblept %>%
+#     rename(c(fire_lst_pt = fire_lst, max_acres_pt = max_acres, min_mgmt_pt = min_mgmt, max_duration_pt = max_duration))
+
+# joining or_grid_df and fire_lst_tibble on the grid index
+or_grid_firemp_pt <- tibble(left_join(or_grid_firemp, fire_lst_tibblept, by=c("index"="grid_index")))
+
+or_grid_firemp
+names(or_grid_firemp)
+```
+
 ```{r}
 # test visualization
-library(viridis)
-
 or_grid_tib %>%
     mutate(is_indigenous = as_factor(is_indigenous)) %>%
     ggplot(aes(geometry=geometry, fill=n_fires, color=is_indigenous)) +
