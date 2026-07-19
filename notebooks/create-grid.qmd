@@ -119,8 +119,6 @@ lengths(or_grid_ind)
 
 # Add IFPH and InFORM data
 
-## Adding IFPH/InFORM Multipolygon data
-
 ```{r}
 # reading in combined IFPH and InFORM data created in ifph-inform-join
 fire_mp <- st_read("data/ifph_inform_multipolygon/ifph_inform_multipolygon.shp")
@@ -144,7 +142,9 @@ fire_pt <- fire_pt %>%
 
 ```
 
-## Adding fire count
+## Adding IFPH/InFORM wildfire data
+
+### Adding fire count
 
 ```{r}
 # fire tibble with whether each fire occurred in each grid cell
@@ -203,9 +203,18 @@ log_n_fires <- or_grid_fire2 %>%
     theme_minimal()
 
 ggsave("maps/log_n_fires.jpeg", log_n_fires)
+
+log_n_fires_ind <- or_grid_fire2 %>%
+    ggplot(aes(geometry=geometry, fill=n_fires_tot, alpha=is_indigenous)) +
+    geom_sf() +
+    scale_alpha_binned(range=c(0.6, 1)) + 
+    scale_fill_viridis(option="inferno", trans="log", na.value="black") +
+    theme_minimal()
+
+ggsave("maps/log_n_fires_indigenous.jpeg", log_n_fires_ind)
 ```
 
-## Adding fire identifier (MP)
+### Adding fire identifier (MP)
 
 ```{r}
 # getting grid index as list
@@ -245,12 +254,12 @@ head(wide_fire)
 
 # creating new tibble with grid index
 # empty columns for unique identifiers, acres, mgmt complexity, duration 
-fire_lst_tibble <- tibble(grid_index)
-fire_lst_tibble[,"fire_lst"]=""
-fire_lst_tibble[,"max_acres"]=""
-fire_lst_tibble[,"min_mgmt"]=""
-fire_lst_tibble[,"max_duration"]=""
-head(fire_lst_tibble,5)
+fire_lst_tibblemp <- tibble(grid_index)
+fire_lst_tibblemp[,"fire_lstmp"]=""
+fire_lst_tibblemp[,"max_acresmp"]=""
+fire_lst_tibblemp[,"min_mgmtmp"]=""
+fire_lst_tibblemp[,"max_durationmp"]=""
+head(fire_lst_tibblemp,5)
 
 start_index = which(1==names(wide_fire))-1
 
@@ -264,16 +273,16 @@ for (x in 1:max(grid_index)) {
     lst <- full_lst[!is.na(full_lst)]
     # if no fires, NA or 0 as applicable
     if (length(lst) == 0) {
-        fire_lst_tibble$fire_lst[x] = NA
-        fire_lst_tibble$max_acres[x] = 0
-        fire_lst_tibble$min_mgmt[x] = NA
-        fire_lst_tibble$max_duration[x] = 0
-    # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
+        fire_lst_tibblemp$fire_lstmp[x] = NA
+        fire_lst_tibblemp$max_acresmp[x] = 0
+        fire_lst_tibblemp$min_mgmtmp[x] = NA
+        fire_lst_tibblemp$max_durationmp[x] = 0
+    # if fires present,mp add list of identifiers, max acres, min mgmt complexity, max duration
     } else {
-        fire_lst_tibble$fire_lst[x] = paste(unlist(lst), collapse=", ")
-        fire_lst_tibble$max_acres[x] = max(wide_fire$acres[fire_idx])
-        fire_lst_tibble$min_mgmt[x] = min(wide_fire$fire_management_n[fire_idx])
-        fire_lst_tibble$max_duration[x] = max(wide_fire$duration_hrs[fire_idx])
+        fire_lst_tibblemp$fire_lstmp[x] = paste(unlist(lst), collapse=", ")
+        fire_lst_tibblemp$max_acresmp[x] = max(wide_fire$acres[fire_idx])
+        fire_lst_tibblemp$min_mgmtmp[x] = min(wide_fire$fire_management_n[fire_idx])
+        fire_lst_tibblemp$max_durationmp[x] = max(wide_fire$duration_hrs[fire_idx])
     }
 }
 
@@ -283,20 +292,20 @@ ex8_idx <- which(!is.na(ex8))
 max(wide_fire$duration_hrs[ex8_idx])
 ex8 <- ex8[!is.na(ex8)]
 ex8
-head(fire_lst_tibble,8)
+head(fire_lst_tibblemp,8)
 
-ex8 == fire_lst_tibble$fire_lst[8]
+ex8 == fire_lst_tibblemp$fire_lstmp[8]
 ```
 
 ```{r}
 # joining or_grid_df and fire_lst_tibble on the grid index
-or_grid_firemp <- tibble(left_join(or_grid_fire2, fire_lst_tibble, by=c("index"="grid_index")))
+or_grid_firemp <- tibble(left_join(or_grid_fire2, fire_lst_tibblemp, by=c("index"="grid_index")))
 
 or_grid_firemp
 names(or_grid_firemp)
 ```
 
-## Adding fire identifier (PT)
+### Adding fire identifier (PT)
 
 ```{r}
 # new tibble that doesn't have a matrix
@@ -334,10 +343,10 @@ head(wide_firept)
 # creating new tibble with grid index
 # empty columns for unique identifiers, acres, mgmt complexity, duration 
 fire_lst_tibblept <- tibble(grid_index)
-fire_lst_tibblept[,"fire_lst"]=""
-fire_lst_tibblept[,"max_acres"]=""
-fire_lst_tibblept[,"min_mgmt"]=""
-fire_lst_tibblept[,"max_duration"]=""
+fire_lst_tibblept[,"fire_lstpt"]=""
+fire_lst_tibblept[,"max_acrespt"]=""
+fire_lst_tibblept[,"min_mgmtpt"]=""
+fire_lst_tibblept[,"max_durationpt"]=""
 head(fire_lst_tibblept,5)
 
 start_indexpt = which(1==names(wide_firept))-1
@@ -352,57 +361,155 @@ for (x in 1:max(grid_index)) {
     lst <- full_lst[!is.na(full_lst)]
     # if no fires, NA or 0 as applicable
     if (length(lst) == 0) {
-        fire_lst_tibblept$fire_lst[x] = NA
-        fire_lst_tibblept$max_acres[x] = 0
-        fire_lst_tibblept$min_mgmt[x] = NA
-        fire_lst_tibblept$max_duration[x] = 0
+        fire_lst_tibblept$fire_lstpt[x] = NA
+        fire_lst_tibblept$max_acrespt[x] = 0
+        fire_lst_tibblept$min_mgmtpt[x] = NA
+        fire_lst_tibblept$max_durationpt[x] = 0
     # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
     } else {
-        fire_lst_tibblept$fire_lst[x] = paste(unlist(lst), collapse=", ")
-        fire_lst_tibblept$max_acres[x] = max(wide_firept$acres[fire_idx])
-        fire_lst_tibblept$min_mgmt[x] = min(wide_firept$fire_management_n[fire_idx])
-        fire_lst_tibble$max_duration[x] = max(wide_firept$duration_hrs[fire_idx])
+        fire_lst_tibblept$fire_lstpt[x] = paste(unlist(lst), collapse=", ")
+        fire_lst_tibblept$max_acrespt[x] = max(wide_firept$acres[fire_idx])
+        fire_lst_tibblept$min_mgmtpt[x] = min(wide_firept$fire_management_n[fire_idx])
+        fire_lst_tibblept$max_durationpt[x] = max(wide_firept$duration_hrs[fire_idx])
     }
 }
 
 # checking everything accurate
-ex4 <- pull(wide_firept, `4`)
-ex4_idx <- which(!is.na(ex4))
-max(wide_firept$duration_hrs[ex4_idx])
-ex4 <- ex4[!is.na(ex4)]
-ex4
+ex3 <- pull(wide_firept, `3`)
+ex3_idx <- which(!is.na(ex3))
+max(wide_firept$duration_hrs[ex3_idx])
+ex3 <- ex3[!is.na(ex3)]
+ex3
 head(fire_lst_tibblept,4)
 
+ex3 == fire_lst_tibblept$fire_lstpt[3]
 ```
 
-
 ```{r}
-# fire_lst_tibblept %>%
-#     rename(c(fire_lst_pt = fire_lst, max_acres_pt = max_acres, min_mgmt_pt = min_mgmt, max_duration_pt = max_duration))
-
 # joining or_grid_df and fire_lst_tibble on the grid index
 or_grid_firemp_pt <- tibble(left_join(or_grid_firemp, fire_lst_tibblept, by=c("index"="grid_index")))
 
-or_grid_firemp
-names(or_grid_firemp)
+or_grid_firemp_pt
+names(or_grid_firemp_pt)
+```
+
+### Combined MP/PT stats
+
+```{r}
+or_grid_firemp_pt <- or_grid_firemp_pt %>%
+    unite(fire_lst, fire_lstmp, fire_lstpt, na.rm=TRUE, remove=FALSE, sep=", ") %>%
+    mutate(fire_lst = ifelse(fire_lst=="", NA, fire_lst)) %>%
+    rowwise() %>%
+    mutate(
+        max_acres = as.numeric(max(max_acresmp, max_acrespt, na.rm=TRUE)),
+        min_mgmt = as.numeric(min(min_mgmtmp, min_mgmtmp, na.rm=TRUE)),
+        max_duration = as.numeric(max(max_durationmp, max_durationpt, na.rm=TRUE))
+    )
+
+or_grid_firemp_pt <- or_grid_firemp_pt %>%
+    mutate(max_size_class = cut(
+        max_acres, 
+        breaks=c(-0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000),
+        labels = c("Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G")
+    )) 
+
 ```
 
 ```{r}
 # test visualization
-or_grid_tib %>%
-    mutate(is_indigenous = as_factor(is_indigenous)) %>%
-    ggplot(aes(geometry=geometry, fill=n_fires, color=is_indigenous)) +
+or_grid_firemp_pt %>%
+    ggplot(aes(geometry=geometry, fill=max_acres)) +
     geom_sf(linewidth=0.1) +
-    scale_fill_viridis_c(option="inferno") +
-    scale_colour_discrete(palette=c("gray", "black")) +
+    scale_fill_viridis(option="inferno") +
     theme_void()
 
+size_class_plt <- or_grid_firemp_pt %>%
+    mutate(max_size_class = fct_reorder(max_size_class, max_acres)) %>%
+    ggplot(aes(geometry=geometry, fill=max_size_class)) +
+    geom_sf(linewidth=0.1) +
+    scale_fill_viridis_d(option="inferno") +
+    theme_void()
+
+ggsave("maps/fire_size_class.jpeg", size_class_plt)
 ```
 
 ```{r}
-or_grid_tib %>%
+or_grid_firemp_pt %>%
     group_by(is_indigenous) %>%
     summarize(n=n())
+```
+
+## Adding InFORM/IFPH prescribed burn data
+
+### Adding fire count
+
+```{r}
+# fire tibble with whether each fire occurred in each grid cell
+rx_mp_int <- st_intersects(or_grid, rx_fire_mp, sparse=FALSE)
+rx_mp_tibble <- tibble(rx_mp_int)
+head(rx_mp_tibble)
+dim(rx_mp_tibble)
+dim(rx_mp_tibble$rx_mp_int)
+
+# fire tibble for the point geometries
+rx_pt_int <- st_contains(or_grid, rx_fire_pt, sparse=FALSE)
+rx_pt_tibble <- tibble(rx_pt_int)
+dim(rx_pt_tibble)
+dim(rx_pt_tibble$rx_pt_int)
+
+# combining fire_tibble and or_grid_df to get counts of fires
+or_grid_rx_mp <- cbind(or_grid_firemp_pt, rx_mp_tibble)
+
+# creating sum of fires across each row/grid cell
+or_grid_rx_mp <- or_grid_rx_mp %>%
+    mutate(across(starts_with("rx"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_rx_mp = rowSums(across(starts_with("rx")))
+    )
+
+# removing the interim fire columns
+or_grid_rx_mp <- or_grid_rx_mp %>% select(-rx_mp_int)
+
+or_grid_rx_pt <- cbind(or_grid_rx_mp, rx_pt_tibble)
+
+or_grid_rx_pt <- or_grid_rx_pt %>%
+    mutate(across(starts_with("rx"), ~ ifelse(.x==TRUE, 1, 0))) %>% 
+    mutate(
+        n_rx_pt = rowSums(across(starts_with("rx")))
+    )
+
+or_grid_rx_pt <- or_grid_rx_pt %>% select(-rx_pt_int)
+
+names(or_grid_rx_pt)
+
+or_grid_rx_pt <- or_grid_rx_pt %>%
+    mutate(n_rx_tot = rowSums(across(starts_with("n_rx"))))
+
+head(or_grid_rx_pt %>%
+    arrange(desc(n_rx_tot))
+)
+
+# max number of rx fires: 8
+```
+
+```{r}
+# n fires is log transformed!
+rx_fires_plt <- or_grid_rx_pt %>%
+    ggplot(aes(geometry=geometry, fill=n_rx_tot)) +
+    geom_sf(color="black") +
+    scale_fill_viridis(option="inferno") +
+    theme_minimal()
+
+ggsave("maps/rx_fires.jpeg", rx_fires_plt)
+
+rx_fires_ind <- or_grid_rx_pt %>%
+    ggplot(aes(geometry=geometry, fill=n_rx_tot, alpha=is_indigenous)) +
+    geom_sf() +
+    scale_alpha_binned(range=c(0.6, 1)) + 
+    scale_fill_viridis(option="inferno") +
+    theme_minimal()
+
+ggsave("maps/rx_fires_indigenous.jpeg", rx_fires_ind)
 ```
 
 # Adding GBIF data
