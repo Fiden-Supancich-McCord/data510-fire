@@ -24,18 +24,18 @@ data/
 - Credentials, API keys, OAuth tokens, or `.env` files.
 - Multi-megabyte raw downloads. Document how to fetch them in this README instead.
 
-## Dataset registry (fill in)
+## Dataset registry (in progress)
 
-### Dataset 1: <name>
+### Dataset 1: LandMark
 
-- **Source:** <URL or contact>
-- **License:** <name and short summary>
-- **Date pulled:** <YYYY-MM-DD>
-- **Approximate size:** <rows, columns, bytes>
-- **Owner on this project:** <name>
-- **Where it lives in this repo:** `data/raw/<name>/` (gitignored) or `data/processed/<name>.csv`
-- **Ethics / consent notes:** <PII? consent process? data use agreement?>
-- **How to fetch (for a teammate cloning fresh):** <command, script, or contact>
+- **Source:** [URL](https://landmarkmap.org/data-methods/access-data)
+- **License:** Creative Commons -- Attribution-ShareAlike 4.0 International. Responsible non-commercial use
+- **Date pulled:** 2026-05-29
+- **Approximate size:** 20104 USA rows, ~2GB total (all countries)
+- **Owner on this project:** LandMark's Steering Group (consortium of local, regional, and international groups)
+- **Where it lives in this repo:** Raw file too large - lives on local system.
+- **Ethics / consent notes:** No PII, ensure that results will not negatively impact Indigenous Peoples or local communities.
+- **How to fetch (for a teammate cloning fresh):** One-time download from source.
 
 ### Dataset 2: <name>
 
