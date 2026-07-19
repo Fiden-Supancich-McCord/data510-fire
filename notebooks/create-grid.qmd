@@ -512,7 +512,6 @@ head(or_grid_rx_pt %>%
 ```
 
 ```{r}
-# n fires is log transformed!
 rx_fires_plt <- or_grid_rx_pt %>%
     ggplot(aes(geometry=geometry, fill=n_rx_tot)) +
     geom_sf(color="black") +
@@ -529,6 +528,169 @@ rx_fires_ind <- or_grid_rx_pt %>%
     theme_minimal()
 
 ggsave("maps/rx_fires_indigenous.jpeg", rx_fires_ind)
+```
+
+### Adding RX fire identifier (MP)
+
+```{r}
+# there is only one RX fire in the multipolygon data, so we can add it manually
+# in a world where there were more, we would repeat the process from the fires
+or_grid_rx_pt %>%
+    filter(n_rx_mp > 0)
+
+rx_fire_mp
+
+# creating new tibble with grid index
+fire_lst_tibblemp <- tibble(grid_index)
+fire_lst_tibblemp[,"fire_lstmp"]=""
+fire_lst_tibblemp[,"max_acresmp"]=""
+fire_lst_tibblemp[,"min_mgmtmp"]=""
+fire_lst_tibblemp[,"max_durationmp"]=""
+head(fire_lst_tibblemp,5)
+
+rx_grid_idmp <- (or_grid_rx_pt %>% filter(n_rx_mp > 0))$index
+rx_lstmp <- rx_fire_mp$UNQE_FI
+rx_max_acresmp <- rx_fire_mp$GIS_ACR
+rx_min_mgmtmp <- rx_fire_mp$fr_mgm_
+rx_max_durationmp <- rx_fire_mp$drtn_hr
+rx_lst_tibblemp <- tibble(rx_grid_idmp, rx_lstmp, rx_max_acresmp, rx_min_mgmtmp, rx_max_durationmp)
+
+rx_lst_tibblemp
+```
+
+```{r}
+# joining or_grid_df and fire_lst_tibble on the grid index
+or_grid_rxmp <- tibble(left_join(or_grid_rx_pt, rx_lst_tibblemp, by=c("index"="rx_grid_idmp")))
+
+or_grid_rxmp
+names(or_grid_rxmp)
+```
+
+### Adding RX fire identifier (PT)
+
+```{r}
+# new tibble that doesn't have a matrix
+rx_tibble2pt = cbind(tibble(data.frame(rx_pt_int)), grid_index)
+names(rx_tibble2pt)
+
+# for every grid index and fire, shows the unique fire identifier (unique_id) and whether that fire was in that grid cell (is_fire)
+long_rxpt <- rx_tibble2pt %>%
+    pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
+    mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
+    mutate(
+        unique_id = rx_fire_pt$UNQE_FI[fire_index],
+        acres = rx_fire_pt$Clclt_A[fire_index],
+        fire_management_n = rx_fire_pt$fr_mgm_[fire_index],
+        duration_hrs = rx_fire_pt$drtn_hr[fire_index],
+        acres_tribal = rx_fire_pt$AcrsTrb[fire_index]
+    )
+
+# confirming the order didn't shift around for some reason
+(long_rxpt %>% pull(unique_id))[1:100] == (rx_fire_pt %>% pull(UNQE_FI))[1:100]
+
+# creating new limited id column that has unique identifier if fire is present in that square, otherwise NA
+# same for acres, fire_management_n, duration_hrs
+# then pivoting so the unique ID shows in grid index col where the fire is present
+wide_rxpt <- long_rxpt %>%
+    # mutating unique ID to "missing" if NA and adding the constructed fire_index for referencing
+    mutate(unique_id = ifelse(is.na(unique_id), paste("MISSING", as.symbol(fire_index)), unique_id)) %>%
+    mutate(
+        limited_uid = ifelse(is_fire==TRUE, unique_id, NA)
+    ) %>%
+    pivot_wider(names_from = grid_index, values_from = limited_uid)
+
+head(wide_rxpt)
+
+# creating new tibble with grid index
+# empty columns for unique identifiers, acres, mgmt complexity, duration 
+rx_lst_tibblept <- tibble(grid_index)
+rx_lst_tibblept[,"rx_lstpt"]=""
+rx_lst_tibblept[,"rx_max_acrespt"]=""
+rx_lst_tibblept[,"rx_min_mgmtpt"]=""
+rx_lst_tibblept[,"rx_max_durationpt"]=""
+rx_lst_tibblept[,"rx_max_acres_tribal"]=""
+head(rx_lst_tibblept,5)
+
+start_indexrxpt = which(1==names(wide_rxpt))-1
+
+# for every grid cell, pulling unique fire identifiers for fires that occurred in that cell, adding them to fire_lst_tibble
+for (x in 1:max(grid_index)) {
+    # pull list of NAs and fire identifiers for each col/grid cell
+    full_lst <- pull(wide_rxpt, x+start_indexrxpt)
+    # list of indexes for present fires
+    fire_idx <- which(!is.na(full_lst))
+    # list of present fire identifiers
+    lst <- full_lst[!is.na(full_lst)]
+    # if no fires, NA or 0 as applicable
+    if (length(lst) == 0) {
+        rx_lst_tibblept$rx_lstpt[x] = NA
+        rx_lst_tibblept$rx_max_acrespt[x] = 0
+        rx_lst_tibblept$rx_min_mgmtpt[x] = NA
+        rx_lst_tibblept$rx_max_durationpt[x] = 0
+        rx_lst_tibblept$rx_max_acres_tribal[x] = 0
+    # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
+    } else {
+        rx_lst_tibblept$rx_lstpt[x] = paste(unlist(lst), collapse=", ")
+        rx_lst_tibblept$rx_max_acrespt[x] = max(wide_rxpt$acres[fire_idx])
+        rx_lst_tibblept$rx_min_mgmtpt[x] = min(wide_rxpt$fire_management_n[fire_idx])
+        rx_lst_tibblept$rx_max_durationpt[x] = max(wide_rxpt$duration_hrs[fire_idx])
+        rx_lst_tibblept$rx_max_acres_tribal[x] = max(wide_rxpt$acres_tribal[fire_idx])
+    }
+}
+
+rx_lst_tibblept <- rx_lst_tibblept %>%
+    mutate(
+        rx_max_acrespt = as.numeric(rx_max_acrespt),
+        rx_min_mgmtpt = as.numeric(rx_min_mgmtpt),
+        rx_max_durationpt = as.numeric(rx_max_durationpt),
+        rx_max_acres_tribal = as.numeric(rx_max_acres_tribal)
+    )
+
+rx_lst_tibblept %>%
+    filter(!is.na(rx_lstpt))
+
+# checking everything accurate
+ex195 <- pull(wide_rxpt, `195`)
+ex195_idx <- which(!is.na(ex195))
+max(wide_rxpt$duration_hrs[ex195_idx])
+ex195 <- ex195[!is.na(ex195)]
+ex195
+rx_lst_tibblept[195,]
+
+ex195 == rx_lst_tibblept$rx_lstpt[195]
+```
+
+```{r}
+# joining or_grid_df and fire_lst_tibble on the grid index
+or_grid_all_fire <- tibble(left_join(or_grid_rxmp, rx_lst_tibblept, by=c("index"="grid_index")))
+
+or_grid_all_fire
+names(or_grid_all_fire)
+```
+
+### Combined MP/PT stats for RX
+
+```{r}
+or_grid_all_fire <- or_grid_all_fire %>%
+    unite(rx_lst, rx_lstmp, rx_lstpt, na.rm=TRUE, remove=FALSE, sep=", ") %>%
+    mutate(rx_lst = ifelse(rx_lst=="", NA, rx_lst)) %>%
+    rowwise() %>%
+    mutate(
+        rx_max_acres = max(rx_max_acresmp, rx_max_acrespt, na.rm=TRUE),
+        rx_min_mgmt = min(rx_min_mgmtmp, rx_min_mgmtmp, na.rm=TRUE),
+        rx_max_duration = max(rx_max_durationmp, rx_max_durationpt, na.rm=TRUE)
+    ) %>%
+    mutate(rx_min_mgmt = ifelse(rx_min_mgmt==Inf, NA, rx_min_mgmt))
+
+or_grid_all_fire <- or_grid_all_fire %>%
+    mutate(rx_max_size_class = cut(
+        rx_max_acres, 
+        breaks=c(-0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000),
+        labels = c("Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G")
+    ))
+
+str(or_grid_all_fire)
+
 ```
 
 # Adding GBIF data
