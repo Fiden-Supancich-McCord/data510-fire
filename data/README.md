@@ -37,6 +37,46 @@ data/
 - **Ethics / consent notes:** No PII, ensure that results will not negatively impact Indigenous Peoples or local communities.
 - **How to fetch (for a teammate cloning fresh):** One-time download from source.
 
-### Dataset 2: <name>
+### Dataset 2: Global Biodiversity Information Facility (GBIF)
 
-- ...
+- **Source:** [URL](https://doi.org/10.15468/dl.a9m8pz)
+- **License:** CC BY-NC (non-commercial with attribution) at most strict
+- **Date pulled:** <YYYY-MM-DD>
+- **Approximate size:** 23571 OR rows, 14645 KB
+- **Owner on this project:** GBIF Secretariat
+- **Where it lives in this repo:** Raw file lives on local system, cleaned version (unnecessary columns or columns including PII removed) at `data/new_gbif_dataset.csv`
+- **Ethics / consent notes:** PII from individual entries has been removed before uploading. Occurrence records here do not represent a complete census of the species we're looking at, and our chosen species do not represent the whole of Oregon's biodiversity - need to be mindful of using these results as an indicator and not unbiased truth. More occurences were recorded in locations that are more accessible and/or more densely populated. 
+- **How to fetch (for a teammate cloning fresh):** One-time download from source, can use our generated DOI to get our species, time, and location specifications.
+
+### Dataset 3: NIFC InFORM Fire Occurence Data Records
+
+- **Source:** [URL](https://data-nifc.opendata.arcgis.com/datasets/nifc::inform-fire-occurrence-data-records/about)
+- **License:** Free for strategic use. 
+- **Date pulled:** 2026-06-15
+- **Approximate size:** 1221418 rows, ~580MB
+- **Owner on this project:** National Interagency Fire Center (NIFC)
+- **Where it lives in this repo:** Raw file lives on local system. Cleaned version also lives on local system as it is still too large. 
+- **Ethics / consent notes:** No PII. May not necessarily represent a complete record, as some fires in the IFPH dataset do not have a matching unique identifier in the InFORM dataset. 
+- **How to fetch (for a teammate cloning fresh):** One-time download from source.
+
+### Dataset 4: NIFC Interagency Wildland Fire Perimeter History (IFPH)
+
+- **Source:** [URL](https://data-nifc.opendata.arcgis.com/datasets/nifc::interagencyfireperimeterhistory-all-years-view/about)
+- **License:** Free for strategic use. 
+- **Date pulled:** 2026-05-29
+- **Approximate size:** 4262 OR rows, ~760MB total (USA)
+- **Owner on this project:** National Interagency Fire Center (NIFC)
+- **Where it lives in this repo:** Raw file lives on local system. Cleaned version at `data/ifph_clean`.
+- **Ethics / consent notes:** No PII. Does not represent a complete record, as many fires did not have their perimeters fully mapped (including many of those that are represented in the InFORM dataset). 
+- **How to fetch (for a teammate cloning fresh):** One-time download from source.
+
+### Dataset 5: Historic Vegetation
+
+- **Source:** [URL](https://geohub.oregon.gov/datasets/oregon-geo::historic-vegetation/about)
+- **License:** CC0 1.0 License (Public domain, no copyright)
+- **Date pulled:** 2026-05-29
+- **Approximate size:** 43729 rows, ~161MB
+- **Owner on this project:** State of Oregon
+- **Where it lives in this repo:** Raw file lives on local system. 
+- **Ethics / consent notes:** No PII. As a historic record, may not represent completely up-to-date ecology of Oregon. Primarily combined with GBIF occurence data to provide a more complete picture and for context about Oregon's ecology in general (e.g. what areas are forest vs. marsh vs. desert).
+- **How to fetch (for a teammate cloning fresh):** One-time download from source.
