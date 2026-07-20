@@ -24,7 +24,7 @@ data/
 - Credentials, API keys, OAuth tokens, or `.env` files.
 - Multi-megabyte raw downloads. Document how to fetch them in this README instead.
 
-## Dataset registry (in progress)
+## Dataset registry
 
 ### Dataset 1: LandMark
 
