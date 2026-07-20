@@ -14,3 +14,5 @@ src/
 ```
 
 If your project is primarily notebook-driven, you can collapse this folder into a single `src/` module of helpers that your notebooks import, and put the analytical narrative in [`../notebooks/`](../notebooks/).
+
+![pipeline diagram](./full-pipeline-capstone.png)
