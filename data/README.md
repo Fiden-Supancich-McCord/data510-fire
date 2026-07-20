@@ -24,6 +24,10 @@ data/
 - Credentials, API keys, OAuth tokens, or `.env` files.
 - Multi-megabyte raw downloads. Document how to fetch them in this README instead.
 
+## Data pipeline
+
+![data pipeline](./short-pipeline-capstone.png)
+
 ## Dataset registry
 
 ### Dataset 1: LandMark
