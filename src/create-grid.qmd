@@ -5,6 +5,17 @@ date: "2026-05-29"
 output: html_document
 ---
 
+Creates a processed grid with aggregated information from all of our data sources. 
+
+Reads from:
+- LandMark: local system (file too large)
+- IFPH/InFORM: `data/ifph_inform_multipolygon`
+- InFORM: `data/ifph_inform_point`
+- GBIF: `data/new_gbif_dataset.csv`
+- Historic Vegetation: local system (file too large)
+
+Writes to `data/processed_grid`. (Includes verbose version with all columns and regular version with selected & renamed columns).
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -71,7 +82,7 @@ class(or_grid_df)
 
 ```{r}
 # read in landmark data
-landmark <- st_read("/Users/nikolefiden/Desktop/DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
+landmark <- st_read("../DATA-510/Indigenous_comm_lands_v202509/LandMark_IPLC_poly_public_v202509.shp")
 # limit to USA, remove z-dimension, tranform coordinate system, make valid
 us_lm <- landmark %>% filter(iso_code == "USA")
 us_lm <- st_zm(us_lm)

@@ -5,6 +5,8 @@ date: "2026-05-29"
 output: html_document
 ---
 
+Adding fire severity features to cleaned IFPH and InFORM datasets. Reads from local system for InFORM (file to large) and `data/ifph_clean` for IFPH. Writes to `data/fire_df_shp` for IFPH and local system for InFORM (still too large). 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```

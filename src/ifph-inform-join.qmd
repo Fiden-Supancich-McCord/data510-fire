@@ -5,6 +5,10 @@ date: "2026-05-29"
 output: html_document
 ---
 
+Joining IFPH and InFORM information into two files (one with point geometry and one with multipolygon geometry). Reads from local system for InFORM, from `data/fire_df_shp` for IFPH. 
+
+Writes several files! Writes multipolygon (IFPH data inner joined with InFORM to include both records) to `data/ifph_inform_multipolygon`. Writes point (InFORM data with present lat/lon in Oregon as coordinate points) to `data/ifph_inform_point`. Writes a complete csv with all entries to `data/ifph_inform`. 
+
 # IFPH InFORM join
 
 ## Ingestion from download
@@ -22,34 +26,13 @@ library(sf)
 
 ```{r}
 ifph <- st_read("data/fire_df_shp/fire_shp.shp")
-#ifph_df <- read_csv("data/ifph_clean/ifph_clean.csv")
 
 inform <- read_csv("../DATA-510/fire_df.csv")
-#inform_shp <- st_read("data/inform_clean/inform_clean.shp")
 
-inform_shp <- st_as_sf(inform %>% filter(!is.na(Initial.Longitude)), coords=c("Initial.Longitude", "Initial.Latitude"), crs="WGS84")
-```
-
-Limiting inform_shp to OR.
-
-```{r}
-# read in oregon shapefile
-states <- usmap::us_map()
-or <- states %>% filter(abbr=="OR")
-# transforming OR so the coordinate system matches
-or <- st_transform(or, crs="WGS84")
-
-inform_int = st_contains(or, inform_shp)
-dim(inform_int)
-
-# only landmark rows that were in the intersection list
-inform_or = inform_shp[unlist(inform_int),]
 ```
 
 ```{r}
 dim(inform)
-dim(inform_shp) # fewer rows bc not including missing lat/lon
-# fewer cols because lat + lon -> geometry
 dim(inform_or)
 dim(ifph)
 ```

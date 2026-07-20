@@ -5,6 +5,8 @@ date: "2026-05-29"
 output: html_document
 ---
 
+Cleaning IFPH dataset. Reads from local downloaded file, writes to `data/ifph_clean`. 
+
 # Ingestion from download
 
 ```{r setup, include=FALSE}
@@ -19,7 +21,7 @@ library(sf)
 ```
 
 ```{r}
-ifph <- st_read("/Users/nikolefiden/Desktop/DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
+ifph <- st_read("../DATA-510/InterAgencyFirePerimeterHistory_All_Years_View/InteragencyFirePerimeterHistory.shp")
 ifph <- st_transform(ifph, crs="WGS84")
 ifph <- st_make_valid(ifph) # this takes some time to run
 ```
@@ -184,5 +186,5 @@ object.size(ifph_df)
 write_csv(ifph_df, "data/ifph_clean/ifph_clean.csv")
 
 object.size(ifph_or)
-st_write(ifph_or, "./data/ifph_clean/ifph_clean.shp", append=FALSE)
+st_write(ifph_or, "data/ifph_clean/ifph_clean.shp", append=FALSE)
 ```
