@@ -1081,6 +1081,13 @@ processed_grid <- or_grid_histveg %>%
 
 names(processed_grid)
 
+# i kind of thought I had removed all of these already. but evidently I had not!
+processed_grid <- processed_grid %>%
+    mutate(
+        min_mgmt = na_if(min_mgmt, Inf),
+        max_duration = na_if(max_duration, -Inf)
+    )
+
 ```
 
 ```{r}

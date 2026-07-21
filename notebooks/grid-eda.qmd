@@ -21,12 +21,31 @@ grid_df <- tibble(grid) # tibble will run summarize faster!
 names(grid)
 
 grid_df %>%
+    #filter(!is.na(wf_uids)) %>%
+    summarize(
+        na_drtn = sum(is.na(mx_drtn)),
+        inf_drtn = sum(mx_drtn == -Inf),
+        n=n()
+    )
+
+grid_df %>%
     mutate(has_rn = n_rx_fr > 0) %>%
     group_by(has_rn) %>%
     summarize(
-        mean_acres = mean(max_crs),
-        median_acres = median(max_crs),
+        mean_acres = mean(max_crs, na.rm=TRUE),
+        median_acres = median(max_crs, na.rm=TRUE),
         mean_dur = mean(mx_drtn, na.rm=TRUE),
-        median_dur = median(mx_drtn)
+        median_dur = median(mx_drtn, na.rm=TRUE),
+        n=n()
     )
+
+mean(grid_df$mx_drtn, na.rm=TRUE)
+
+max(grid_df$mx_drtn, na.rm=TRUE)
+
+min(grid_df$mx_drtn, na.rm=TRUE)
+
+grid_df %>%
+    filter(mx_drtn < 0)
+# i honestly have no idea why the mean duration is showing up as -Inf. that doesn't make any sense to me!
 ```
