@@ -21,16 +21,9 @@ grid_df <- tibble(grid) # tibble will run summarize faster!
 names(grid)
 
 grid_df %>%
-    #filter(!is.na(wf_uids)) %>%
-    summarize(
-        na_drtn = sum(is.na(mx_drtn)),
-        inf_drtn = sum(mx_drtn == -Inf),
-        n=n()
-    )
-
-grid_df %>%
-    mutate(has_rn = n_rx_fr > 0) %>%
-    group_by(has_rn) %>%
+    filter(n_wldfr > 0) %>%
+    mutate(has_rx = n_rx_fr > 0) %>%
+    group_by(has_rx) %>%
     summarize(
         mean_acres = mean(max_crs, na.rm=TRUE),
         median_acres = median(max_crs, na.rm=TRUE),
@@ -39,13 +32,34 @@ grid_df %>%
         n=n()
     )
 
-mean(grid_df$mx_drtn, na.rm=TRUE)
+```
 
-max(grid_df$mx_drtn, na.rm=TRUE)
+Grid cells with wildfires and without prescribed burns had more acres burned (by mean and median) than those with prescribed burns, and shorter mean duration but longer median duration.
 
-min(grid_df$mx_drtn, na.rm=TRUE)
+```{r}
+grid_df %>%
+    filter(n_wldfr > 0) %>%
+    mutate(has_rx = n_rx_fr > 0) %>%
+    ggplot(aes(has_rx, max_crs, fill=has_rx)) +
+    geom_boxplot() +
+    scale_y_log10() + 
+    theme_minimal()
 
 grid_df %>%
-    filter(mx_drtn < 0)
-# i honestly have no idea why the mean duration is showing up as -Inf. that doesn't make any sense to me!
+    filter(n_wldfr > 0) %>%
+    mutate(
+        has_rx = n_rx_fr > 0
+    ) %>%
+    group_by(has_rx, mx_sz_c) %>%
+    summarize(n=n()) %>%
+    group_by(has_rx) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    ggplot(aes(mx_sz_c, pct_sz, fill=has_rx)) +
+    geom_col(position="dodge") +
+    scale_y_continuous(labels=scales::percent) +
+    theme_minimal()
+
 ```
