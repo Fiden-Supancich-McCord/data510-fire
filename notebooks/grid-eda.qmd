@@ -1,0 +1,32 @@
+---
+title: "grid EDA"
+author: "Spencer Fiden"
+date: "2026-07-21"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(sf)
+library(viridis)
+```
+
+```{r}
+grid <- st_read("data/processed_grid/processed_grid.shp")
+grid_df <- tibble(grid) # tibble will run summarize faster!
+```
+
+```{r}
+names(grid)
+
+grid_df %>%
+    mutate(has_rn = n_rx_fr > 0) %>%
+    group_by(has_rn) %>%
+    summarize(
+        mean_acres = mean(max_crs),
+        median_acres = median(max_crs),
+        mean_dur = mean(mx_drtn, na.rm=TRUE),
+        median_dur = median(mx_drtn)
+    )
+```

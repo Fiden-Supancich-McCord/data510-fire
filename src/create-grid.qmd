@@ -132,23 +132,23 @@ lengths(or_grid_ind)
 
 ```{r}
 # reading in combined IFPH and InFORM data created in ifph-inform-join
-fire_mp <- st_read("data/ifph_inform_multipolygon/ifph_inform_multipolygon.shp")
+full_fire_mp <- st_read("data/ifph_inform_multipolygon/ifph_inform_multipolygon.shp")
 
 # reading in point data from InFORM lat/lon data (also created in ifph-inform-join)
-fire_pt <- st_read("data/ifph_inform_point/ifph_inform_point.shp")
+full_fire_pt <- st_read("data/ifph_inform_point/ifph_inform_point.shp")
 
 # separating into RX and WF
 # note that this removes fires that were present in IFPH but not InFORM (we would be missing duration/mgmt complexity info for these as well)
-rx_fire_mp <- fire_mp %>%
+rx_fire_mp <- full_fire_mp %>%
     filter(Inc_T_C == "RX")
 
-fire_mp <- fire_mp %>%
+fire_mp <- full_fire_mp %>%
     filter(Inc_T_C != "RX")
 
-rx_fire_pt <- fire_pt %>%
+rx_fire_pt <- full_fire_pt %>%
     filter(Inc_T_C == "RX")
 
-fire_pt <- fire_pt %>%
+fire_pt <- full_fire_pt %>%
     filter(Inc_T_C != "RX")
 
 ```
@@ -212,6 +212,8 @@ log_n_fires <- or_grid_fire2 %>%
     geom_sf() +
     scale_fill_viridis(option="inferno", trans="log", na.value="black") +
     theme_minimal()
+
+log_n_fires
 
 ggsave("maps/log_n_fires.jpeg", log_n_fires)
 
@@ -287,12 +289,12 @@ for (x in 1:max(grid_index)) {
         fire_lst_tibblemp$max_acresmp[x] = 0
         fire_lst_tibblemp$min_mgmtmp[x] = NA
         fire_lst_tibblemp$max_durationmp[x] = 0
-    # if fires present,mp add list of identifiers, max acres, min mgmt complexity, max duration
+    # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
     } else {
         fire_lst_tibblemp$fire_lstmp[x] = paste(unlist(lst), collapse=", ")
-        fire_lst_tibblemp$max_acresmp[x] = max(wide_fire$acres[fire_idx])
-        fire_lst_tibblemp$min_mgmtmp[x] = min(wide_fire$fire_management_n[fire_idx])
-        fire_lst_tibblemp$max_durationmp[x] = max(wide_fire$duration_hrs[fire_idx])
+        fire_lst_tibblemp$max_acresmp[x] = max(wide_fire$acres[fire_idx], na.rm=TRUE)
+        fire_lst_tibblemp$min_mgmtmp[x] = min(wide_fire$fire_management_n[fire_idx], na.rm=TRUE)
+        fire_lst_tibblemp$max_durationmp[x] = max(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
     }
 }
 
@@ -301,6 +303,10 @@ fire_lst_tibblemp <- fire_lst_tibblemp %>%
         max_acresmp = as.numeric(max_acresmp),
         min_mgmtmp = as.numeric(min_mgmtmp),
         max_durationmp = as.numeric(max_durationmp),
+    ) %>%
+    mutate(
+        min_mgmtmp = na_if(min_mgmtmp, Inf),
+        max_durationmp = na_if(max_durationmp, -Inf)
     )
 
 # checking everything accurate
@@ -387,10 +393,10 @@ for (x in 1:max(grid_index)) {
     # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
     } else {
         fire_lst_tibblept$fire_lstpt[x] = paste(unlist(lst), collapse=", ")
-        fire_lst_tibblept$max_acrespt[x] = max(wide_firept$acres[fire_idx])
-        fire_lst_tibblept$min_mgmtpt[x] = min(wide_firept$fire_management_n[fire_idx])
-        fire_lst_tibblept$max_durationpt[x] = max(wide_firept$duration_hrs[fire_idx])
-        fire_lst_tibblept$max_acres_tribal[x] = max(wide_firept$acres_tribal[fire_idx])
+        fire_lst_tibblept$max_acrespt[x] = max(wide_firept$acres[fire_idx], na.rm=TRUE)
+        fire_lst_tibblept$min_mgmtpt[x] = min(wide_firept$fire_management_n[fire_idx], na.rm=TRUE)
+        fire_lst_tibblept$max_durationpt[x] = max(wide_firept$duration_hrs[fire_idx], na.rm=TRUE)
+        fire_lst_tibblept$max_acres_tribal[x] = max(wide_firept$acres_tribal[fire_idx], na.rm=TRUE)
     }
 }
 
@@ -400,6 +406,9 @@ fire_lst_tibblept <- fire_lst_tibblept %>%
         min_mgmtpt = as.numeric(min_mgmtpt),
         max_durationpt = as.numeric(max_durationpt),
         max_acres_tribal = as.numeric(max_acres_tribal)
+    ) %>%
+    mutate(
+        min_mgmtpt = na_if(min_mgmtpt, Inf),
     )
 
 # checking everything accurate
@@ -432,9 +441,13 @@ or_grid_firemp_pt <- or_grid_firemp_pt %>%
         max_acres = max(max_acresmp, max_acrespt, na.rm=TRUE),
         min_mgmt = min(min_mgmtmp, min_mgmtmp, na.rm=TRUE),
         max_duration = max(max_durationmp, max_durationpt, na.rm=TRUE)
-    )
+    ) 
 
 or_grid_firemp_pt <- or_grid_firemp_pt %>%
+    mutate(
+        min_mgmt = na_if(min_mgmt, min_mgmt==Inf),
+        max_duration = na_if(max_duration, max_duration==-Inf)
+    ) %>%
     mutate(max_size_class = cut(
         max_acres, 
         breaks=c(-0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000),
@@ -459,6 +472,8 @@ size_class_plt <- or_grid_firemp_pt %>%
     geom_sf(linewidth=0.1) +
     scale_fill_viridis_d(option="inferno") +
     theme_void()
+
+size_class_plt
 
 ggsave("maps/fire_size_class.jpeg", size_class_plt)
 ```
@@ -528,6 +543,8 @@ rx_fires_plt <- or_grid_rx_pt %>%
     geom_sf(color="black") +
     scale_fill_viridis(option="inferno") +
     theme_minimal()
+
+rx_fires_plt
 
 ggsave("maps/rx_fires.jpeg", rx_fires_plt)
 
@@ -642,10 +659,10 @@ for (x in 1:max(grid_index)) {
     # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
     } else {
         rx_lst_tibblept$rx_lstpt[x] = paste(unlist(lst), collapse=", ")
-        rx_lst_tibblept$rx_max_acrespt[x] = max(wide_rxpt$acres[fire_idx])
-        rx_lst_tibblept$rx_min_mgmtpt[x] = min(wide_rxpt$fire_management_n[fire_idx])
-        rx_lst_tibblept$rx_max_durationpt[x] = max(wide_rxpt$duration_hrs[fire_idx])
-        rx_lst_tibblept$rx_max_acres_tribal[x] = max(wide_rxpt$acres_tribal[fire_idx])
+        rx_lst_tibblept$rx_max_acrespt[x] = max(wide_rxpt$acres[fire_idx], na.rm=TRUE)
+        rx_lst_tibblept$rx_min_mgmtpt[x] = min(wide_rxpt$fire_management_n[fire_idx], na.rm=TRUE)
+        rx_lst_tibblept$rx_max_durationpt[x] = max(wide_rxpt$duration_hrs[fire_idx], na.rm=TRUE)
+        rx_lst_tibblept$rx_max_acres_tribal[x] = max(wide_rxpt$acres_tribal[fire_idx], na.rm=TRUE)
     }
 }
 
@@ -655,6 +672,10 @@ rx_lst_tibblept <- rx_lst_tibblept %>%
         rx_min_mgmtpt = as.numeric(rx_min_mgmtpt),
         rx_max_durationpt = as.numeric(rx_max_durationpt),
         rx_max_acres_tribal = as.numeric(rx_max_acres_tribal)
+    ) %>%
+    mutate(
+        rx_min_mgmtpt = na_if(rx_min_mgmtpt, Inf),
+        rx_max_durationpt = na_if(rx_max_durationpt, -Inf)
     )
 
 rx_lst_tibblept %>%
@@ -684,16 +705,19 @@ names(or_grid_all_fire)
 ```{r}
 or_grid_all_fire <- or_grid_all_fire %>%
     unite(rx_lst, rx_lstmp, rx_lstpt, na.rm=TRUE, remove=FALSE, sep=", ") %>%
-    mutate(rx_lst = ifelse(rx_lst=="", NA, rx_lst)) %>%
+    mutate(rx_lst = na_if(rx_lst, "")) %>%
     rowwise() %>%
     mutate(
         rx_max_acres = max(rx_max_acresmp, rx_max_acrespt, na.rm=TRUE),
         rx_min_mgmt = min(rx_min_mgmtmp, rx_min_mgmtmp, na.rm=TRUE),
         rx_max_duration = max(rx_max_durationmp, rx_max_durationpt, na.rm=TRUE)
-    ) %>%
-    mutate(rx_min_mgmt = ifelse(rx_min_mgmt==Inf, NA, rx_min_mgmt))
+    ) 
 
 or_grid_all_fire <- or_grid_all_fire %>%
+    mutate(
+        rx_min_mgmt = na_if(rx_min_mgmt, Inf),
+        rx_max_duration = na_if(rx_max_duration, -Inf)
+    ) %>%
     mutate(rx_max_size_class = cut(
         rx_max_acres, 
         breaks=c(-0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000),
