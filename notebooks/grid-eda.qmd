@@ -69,7 +69,7 @@ grid_df %>%
         pct_sz = n/total
     ) %>%
     ggplot(aes(mx_sz_c, pct_sz, fill=has_rx)) +
-    geom_col(position="dodge", color="white", show.legend=FALSE) +
+    geom_col(position="dodge", color="white") +
     scale_y_continuous(labels=scales::percent) +
     theme_minimal() +
     labs(
@@ -100,7 +100,7 @@ grid_df %>%
     labs(
         x="Maximum size class of fires in cell",
         y="Percent of cells",
-        title="Fire size class for Indigenous vs non-Indigenous land"
+        title="Distribution of fire size class for Indigenous vs non-Indigenous land"
     )
 
 ```
@@ -123,7 +123,7 @@ grid_df %>%
 ```
 
 ```{r}
-grid_df %>%
+ind_rx_grid_hist <- grid_df %>%
     filter(n_wldfr > 0) %>%
     mutate(
         has_rx = ifelse(n_rx_fr > 0, "prescribed burns", "no prescribed burns"),
@@ -140,7 +140,14 @@ grid_df %>%
     geom_col(color="white", show.legend=FALSE) +
     facet_grid(is_ndgn~has_rx) +
     scale_y_continuous(labels=scales::percent) +
-    theme_minimal() 
+    theme_minimal() +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires",
+        title="Fire size distribution by presence of prescribed burn and whether \nfederally recognized Indigenous land"
+    )
+
+ggsave("images/ind_rx_grid_hist.jpeg", ind_rx_grid_hist, width=7, height=4, units="in")
 
 ```
 
