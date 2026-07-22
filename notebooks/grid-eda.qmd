@@ -36,6 +36,8 @@ grid_df %>%
 
 Grid cells with wildfires and without prescribed burns had more acres burned (by mean and median) than those with prescribed burns, and shorter mean duration but longer median duration.
 
+With vs without prescribed burns
+
 ```{r}
 # boxplot
 grid_df %>%
@@ -78,19 +80,44 @@ grid_df %>%
 
 ```
 
+Indigenous vs non-Indigeous
+
+```{r}
+grid_df %>%
+    filter(n_wldfr > 0) %>%
+    mutate(is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")) %>%
+    group_by(is_ndgn, mx_sz_c) %>%
+    summarize(n=n()) %>%
+    group_by(is_ndgn) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    ggplot(aes(mx_sz_c, pct_sz, fill=is_ndgn)) +
+    geom_col(position="dodge", color="white") +
+    scale_y_continuous(labels=scales::percent) +
+    theme_minimal() +
+    labs(
+        x="Maximum size class of fires in cell",
+        y="Percent of cells",
+        title="Fire size class for Indigenous vs non-Indigenous land"
+    )
+
+```
+
 ```{r}
 # boxplot duration
 grid_df %>%
     filter(n_wldfr > 0) %>%
-    mutate(has_rx = n_rx_fr > 0) %>%
-    ggplot(aes(has_rx, mx_drtn, fill=has_rx)) +
+    mutate(is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")) %>%
+    ggplot(aes(is_ndgn, mx_drtn, fill=is_ndgn)) +
     geom_boxplot(show.legend=FALSE) +
     scale_y_log10() + 
     theme_minimal() +
     labs(
-        x="Prescribed burns present in cell",
-        y="Maximum duration of fire in cell (log scale)",
-        title="Fire duration in areas with vs. without prescribed burns"
+        x="Whether Indigenous land",
+        y="Maximum acres burned during fire in cell (log scale)",
+        title="Maximum fire duration for Indigenous vs non-Indigenous land"
     )
 
 ```
@@ -115,6 +142,10 @@ grid_df %>%
     scale_y_continuous(labels=scales::percent) +
     theme_minimal() 
 
+```
+
+
+```{r}
 grid_df %>%
     filter(n_wldfr > 0) %>%
     mutate(
