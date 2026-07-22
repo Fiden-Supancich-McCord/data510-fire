@@ -15,22 +15,27 @@ library(viridis)
 ```
 
 ```{r}
-shp <- st_read("data/processed_grid.shp")
+shp <- st_read("data/processed_grid/processed_grid.shp")
 names(shp)
 ```
 
 ```{r}
 # make maps!
 n_fires_plt <- shp %>%
-    ggplot(aes(geometry=geometry, fill=n_fires)) +
-    geom_sf(linewidth=0.01) +
-    scale_fill_viridis_c(option="inferno") +
-    theme_void()
+    ggplot(aes(geometry=geometry, fill=n_wldfr)) +
+    geom_sf(linewidth=0.01, color="black") +
+    scale_fill_viridis_c(option="inferno", transform="log", na.value="black") +
+    theme_void() +
+    labs(fill="Number of wildfires\n(log transformed)")
+
+n_fires_plt
+
+ggsave("maps/log_n_fires.jpeg", n_fires_plt, height=4, width=7, units="in")
 
 shp %>%
-    ggplot(aes(geometry=geometry, fill=n_fires, alpha=is_ndgn)) +
+    ggplot(aes(geometry=geometry, fill=n_wldfr, alpha=is_ndgn)) +
     geom_sf(linewidth=0.01) +
-    scale_fill_viridis_c(option="inferno") +
+    scale_fill_viridis_c(option="inferno", transform="log", na.value="black") +
     scale_alpha_binned(range=c(0.6, 1)) +
     theme_void()
 

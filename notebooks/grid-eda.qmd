@@ -107,7 +107,7 @@ grid_df %>%
 
 ```{r}
 # boxplot duration
-grid_df %>%
+ind_fire_dur_boxplot <- grid_df %>%
     filter(n_wldfr > 0) %>%
     mutate(is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")) %>%
     ggplot(aes(is_ndgn, mx_drtn, fill=is_ndgn)) +
@@ -117,8 +117,10 @@ grid_df %>%
     labs(
         x="Whether Indigenous land",
         y="Maximum acres burned during fire in cell (log scale)",
-        title="Maximum fire duration for Indigenous vs non-Indigenous land"
+        title="Maximum fire duration for Indigenous vs \nnon-Indigenous land"
     )
+
+ggsave("images/ind_fire_dur_boxplot.jpeg", ind_fire_dur_boxplot, width=4, height=8, units="in")
 
 ```
 
