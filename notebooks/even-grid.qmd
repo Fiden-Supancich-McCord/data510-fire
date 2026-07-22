@@ -1,0 +1,75 @@
+---
+title: "Create grid!"
+author: "Spencer Fiden"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+library(viridis)
+library(units)
+
+```
+
+# Creating grid cells for oregon
+
+## OR
+
+```{r}
+# read in oregon shapefile
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+
+st_crs(or)
+# transforming OR so the coordinate system matches
+#or <- st_transform(or, crs="WGS84")
+
+```
+
+## Create grid
+
+```{r}
+# make grid that covers OR area (note: it's a full rectangle)
+# cellsize is based on lat/lon degrees
+
+grid_test <- st_make_grid(or, cellsize=5000, square=TRUE)
+
+plot(grid_test)
+plot(st_geometry(or), add=TRUE)
+plot(grid_test[or], col="#ff000088", add=TRUE)
+
+grid_areas <- st_area(grid_test)
+format(max(grid_areas), scientific=F)
+format(min(grid_areas), scientific=F)
+
+trans_grid <- st_transform(grid_test[or], crs="WGS84")
+
+trans_grid %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf(data=or, aes(geometry=geom)) +
+    geom_sf(alpha=0.2, fill="blue") +
+    theme_minimal()
+
+length(trans_grid)
+
+```
+
+
+```{r}
+hex_test <- st_make_grid(or, cellsize=5000, square=FALSE)
+
+plot(hex_test)
+plot(st_geometry(or), add=TRUE)
+plot(hex_test[or], col="#ff000088", add=TRUE)
+
+hex_areas <- st_area(hex_test)
+format(max(hex_areas), scientific=F)
+```
