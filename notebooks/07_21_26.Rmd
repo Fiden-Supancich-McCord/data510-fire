@@ -1,0 +1,350 @@
+---
+title: "07_21_26"
+author: "Amaya Supancich-McCord"
+date: "2026-07-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(effectsize)
+library(rstatix)
+library(car)
+library(caret)
+library(broom)
+library(performance)
+library(ggpubr)
+library(see)
+library(ggplot2)
+```
+
+```{r}
+grid <- read_csv("C://Users//amaya//Downloads//processed_grid_07_19.csv")
+
+names(grid)
+```
+
+```{r}
+species <- c(
+  "n_pinus",
+  "n_salix",
+  "n_quercus",
+  "n_populus",
+  "n_thuja",
+  "n_xerophyllum",
+  "n_rubus"
+)
+```
+
+```{r}
+grid$is_indigenous <- factor(
+  grid$is_indigenous,
+  levels = c(0,1),
+  labels = c("Non-Indigenous","Indigenous")
+)
+```
+
+```{r}
+ttest_results <- list()
+
+for(v in species){
+
+  formula <- as.formula(paste(v,"~ is_indigenous"))
+
+  test <- t.test(formula,
+                 data = grid)
+
+  effect <- cohens_d(formula,
+                     data = grid)
+
+  ttest_results[[v]] <-
+    tibble(
+
+      Variable = v,
+
+      Mean_NonIndigenous =
+        mean(grid[[v]][grid$is_indigenous=="Non-Indigenous"],
+             na.rm=TRUE),
+
+      Mean_Indigenous =
+        mean(grid[[v]][grid$is_indigenous=="Indigenous"],
+             na.rm=TRUE),
+
+      p_value = test$p.value,
+
+      Cohen_d = effect$Cohens_d
+    )
+
+}
+
+ttest_table <- bind_rows(ttest_results)
+
+ttest_table
+```
+
+```{}
+# checking normality
+# can't use a shapiro test to test for normality b/c the sample size must be between 3 and 5000
+for(v in species){
+
+  cat("\n",v,"\n")
+
+  print(
+    shapiro.test(grid[[v]])
+  )
+
+}
+```
+
+```{r}
+# Homogeneity of var
+for(v in species){
+
+  print(
+    leveneTest(
+      as.formula(
+        paste(v,"~ is_indigenous")
+      ),
+      data=grid
+    )
+  )
+
+}
+```
+
+```{r}
+# Mann-Whitney U test (if assumptions fail)
+mw_results <- list()
+
+for(v in species){
+
+  formula <- as.formula(paste(v,"~ is_indigenous"))
+
+  test <- wilcox.test(formula,
+                      data=grid)
+
+  mw_results[[v]] <-
+
+    tibble(
+
+      Variable=v,
+
+      p_value=test$p.value
+
+    )
+
+}
+
+bind_rows(mw_results)
+```
+
+```{r}
+# box plots w/ jitter
+ggplot(
+  grid_long,
+  aes(
+    x = is_indigenous,
+    y = Abundance,
+    fill = is_indigenous
+  )
+) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.7) +
+  geom_jitter(width = 0.15, alpha = 0.25, size = 0.8) +
+  facet_wrap(~Species, scales = "free_y") +
+  theme_bw() +
+  labs(
+    title = "Species Abundance by Indigenous Status",
+    x = "Land Type",
+    y = "Abundance"
+  ) +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(hjust = 0.5)
+  )
+```
+
+```{r}
+# box plots
+grid_long <- grid %>%
+  pivot_longer(
+    cols = all_of(species),
+    names_to = "Species",
+    values_to = "Abundance"
+  )
+
+ggplot(
+  grid_long,
+  aes(
+    x = is_indigenous,
+    y = Abundance,
+    fill = is_indigenous
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Species, scales = "free_y") +
+  theme_bw() +
+  labs(
+    title = "Species Abundance by Indigenous Status",
+    x = "Land Type",
+    y = "Abundance"
+  ) +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold"),
+    plot.title = element_text(hjust = 0.5)
+  )
+```
+
+```{r}
+# calculating shannon diversity
+library(vegan)
+
+grid$Shannon <-
+diversity(
+  grid[,species],
+  index="shannon"
+)
+```
+
+```{r}
+# comparing shannon diversity
+t.test(
+  Shannon ~ is_indigenous,
+  data=grid
+)
+
+cohens_d(
+  Shannon ~ is_indigenous,
+  data=grid
+)
+```
+
+```{r}
+#Baseline Regression
+## Only plant abundances
+
+baseline_model <-
+
+lm(
+Shannon ~
+
+n_pinus +
+n_salix +
+n_quercus +
+n_populus +
+n_thuja +
+n_xerophyllum +
+n_rubus,
+
+data=grid
+)
+
+summary(baseline_model)
+```
+
+```{r}
+#Full Regression
+## Plant abundance + Indigenous status
+
+full_model <- lm(Shannon ~ is_indigenous +
+                   n_pinus +
+                   n_salix +
+                   n_quercus +
+                   n_populus +
+                   n_thuja +
+                   n_xerophyllum +
+                   n_rubus,
+                 data=grid)
+
+summary(full_model)
+```
+
+```{r}
+# compare models
+## If the ANOVA is significant, then Indigenous status explains additional variation beyond plant abundances alone.
+anova(baseline_model,full_model)
+```
+
+```{r}
+# standardise coefficients
+library(parameters)
+
+model_parameters(full_model, standardize="refit")
+```
+
+```{r}
+# 5-fold cross validation
+set.seed(123)
+
+train_control <-trainControl(method="cv",number=5)
+
+cv_model <-train(Shannon ~ is_indigenous +
+                   n_pinus +
+                   n_salix +
+                   n_quercus +
+                   n_populus +
+                   n_thuja +
+                   n_xerophyllum +
+                   n_rubus,
+                 data=grid,
+                 method="lm",
+                 trControl=train_control)
+
+cv_model
+```
+
+```{r}
+#rmse
+cv_model$results$RMSE #0.247939
+
+#r^2
+cv_model$results$Rsquared #0.2164238
+```
+
+```{r}
+# resid diagnostics
+
+## Residual vs fitted
+### If points are randomly scattered around a flat red line, the relationship is linear (they are not, heavily clustered in upper left hand corner)
+plot(full_model, which=1)
+
+## QQ plots
+### If residuals follow the diagonal straight line, the error terms are normally distributed (not looking too sharp here bud)
+plot(full_model, which=2)
+
+## scale location
+### A flat line with randomly spread points means variance is equal (hehe not even close)
+plot(full_model, which=3)
+
+## cooks distance
+### influential outliers. Spikes extending past the threshold line indicate data points that disproportionately alter the regression results
+### look at those spikes
+plot(full_model, which=4)
+
+```
+
+```{r}
+# comprehensive diagnostics report
+## this is the ugliest thing i have ever seen, i don't even know whats going on
+## this is suppose to do the following: 
+### Generate six diagnostic plots: Provides an intuitive grid outlining how well your model meets its statistical assumptions.
+### Flags potential issues: Highlights non-linear relationships, influential data points, variance issues, and residual non-normality.
+###Provides interpretation text: Includes on-plot text to explain exactly what to look for, guiding you on how to fix detected issues.
+check_model(full_model)
+```
+
+```{r}
+# model comparison table
+## baseline
+glance(baseline_model)
+```
+
+```{r}
+## full
+glance(full_model)
+```
+
