@@ -170,3 +170,15 @@ grid_df %>%
     theme_minimal() 
 
 ```
+
+
+```{r}
+
+grid_cell_areas = st_area(grid)
+
+max(grid_cell_areas)
+min(grid_cell_areas)
+mean(grid_cell_areas)
+median(grid_cell_areas)
+
+```

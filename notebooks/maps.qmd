@@ -26,7 +26,10 @@ n_fires_plt <- shp %>%
     geom_sf(linewidth=0.01, color="black") +
     scale_fill_viridis_c(option="inferno", transform="log", na.value="black") +
     theme_void() +
-    labs(fill="Number of wildfires\n(log transformed)")
+    labs(
+        fill="Number of wildfires\n(log transformed)",
+        title="Number of wildfires per grid cell"
+    )
 
 n_fires_plt
 
