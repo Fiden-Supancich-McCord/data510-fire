@@ -37,17 +37,14 @@ library(viridis)
 # read in oregon shapefile
 states <- usmap::us_map()
 or <- states %>% filter(abbr=="OR")
-# transforming OR so the coordinate system matches
-or <- st_transform(or, crs="WGS84")
-
 ```
 
 ## Create grid
 
 ```{r}
 # make grid that covers OR area (note: it's a full rectangle)
-# cellsize is based on lat/lon degrees
-or_grid_square <- st_make_grid(or, cellsize=0.05) 
+# cellsize is 5km by 5km (using us_map original coordinate system)
+or_grid_square <- st_make_grid(or, cellsize=5000) 
 
 # test visualization
 plot(or_grid_square)
@@ -59,6 +56,9 @@ plot(or_grid_square[or], col="#ff000088", add=TRUE)
 head(or_grid_square)
 # limiting to grid cells that are actually in oregon (e.g. removing non-red cells from prev visualization)
 or_grid = or_grid_square[or]
+
+# transforming OR so the coordinate system matches our other data
+or_grid <- st_transform(or_grid, crs="WGS84")
 
 # confirm it is smaller now (fewer cells)
 length(or_grid_square)
@@ -97,7 +97,7 @@ us_lm <- st_make_valid(us_lm)
 
 # sparse geometry binary predicate list of length 1, where the predicate was "intersects"
 # e.g. indexes where geometry intersects with OR
-lm_int = st_intersects(or, us_lm)
+lm_int = st_intersects(st_transform(or, crs="WGS84"), us_lm)
 dim(lm_int)
 
 # only landmark rows that were in the intersection list
@@ -198,31 +198,42 @@ or_grid_fire2 <- or_grid_fire2 %>%
     mutate(n_fires_tot = rowSums(across(starts_with("n_fires"))))
 
 head(or_grid_fire2 %>%
+    arrange(desc(n_fires_mp))
+)
+
+head(or_grid_fire2 %>%
     arrange(desc(n_fires_tot))
 )
 
-# max number of mp fires: 8
-# max number of total fires: 128
+# max number of mp fires: 9
+# max number of total fires: 109
 ```
 
 ```{r}
+# n fires
+or_grid_fire2 %>%
+    ggplot(aes(geometry=geometry, fill=n_fires_tot)) +
+    geom_sf() +
+    scale_fill_viridis(option="inferno") +
+    theme_void()
+
 # n fires is log transformed!
 log_n_fires <- or_grid_fire2 %>%
     ggplot(aes(geometry=geometry, fill=n_fires_tot)) +
     geom_sf() +
     scale_fill_viridis(option="inferno", trans="log", na.value="black") +
-    theme_minimal()
+    theme_void()
 
 log_n_fires
-
-ggsave("maps/log_n_fires.jpeg", log_n_fires)
 
 log_n_fires_ind <- or_grid_fire2 %>%
     ggplot(aes(geometry=geometry, fill=n_fires_tot, alpha=is_indigenous)) +
     geom_sf() +
     scale_alpha_binned(range=c(0.6, 1)) + 
     scale_fill_viridis(option="inferno", trans="log", na.value="black") +
-    theme_minimal()
+    theme_void()
+
+log_n_fires_ind
 
 ggsave("maps/log_n_fires_indigenous.jpeg", log_n_fires_ind)
 ```
@@ -249,7 +260,7 @@ long_fire <- fire_tibble2 %>%
     )
 
 # confirming the order didn't shift around for some reason
-(long_fire %>% pull(unique_id))[1:100] == (fire_mp %>% pull(UNQE_FI))[1:100]
+sum(((long_fire %>% pull(unique_id))[1:100] == (fire_mp %>% pull(UNQE_FI))[1:100])==FALSE)
 
 # creating new limited id column that has unique identifier if fire is present in that square, otherwise NA
 # same for acres, fire_management_n, duration_hrs
@@ -267,10 +278,6 @@ head(wide_fire)
 # creating new tibble with grid index
 # empty columns for unique identifiers, acres, mgmt complexity, duration 
 fire_lst_tibblemp <- tibble(grid_index)
-fire_lst_tibblemp[,"fire_lstmp"]=""
-fire_lst_tibblemp[,"max_acresmp"]=""
-fire_lst_tibblemp[,"min_mgmtmp"]=""
-fire_lst_tibblemp[,"max_durationmp"]=""
 head(fire_lst_tibblemp,5)
 
 start_index = which(1==names(wide_fire))-1
@@ -298,26 +305,25 @@ for (x in 1:max(grid_index)) {
     }
 }
 
+str(fire_lst_tibblemp)
+
 fire_lst_tibblemp <- fire_lst_tibblemp %>%
-    mutate(
-        max_acresmp = as.numeric(max_acresmp),
-        min_mgmtmp = as.numeric(min_mgmtmp),
-        max_durationmp = as.numeric(max_durationmp),
-    ) %>%
     mutate(
         min_mgmtmp = na_if(min_mgmtmp, Inf),
         max_durationmp = na_if(max_durationmp, -Inf)
     )
 
-# checking everything accurate
-ex8 <- pull(wide_fire, `8`)
-ex8_idx <- which(!is.na(ex8))
-max(wide_fire$duration_hrs[ex8_idx])
-ex8 <- ex8[!is.na(ex8)]
-ex8
-head(fire_lst_tibblemp,8)
+fire_lst_tibblemp %>% filter(!is.na(fire_lstmp))
 
-ex8 == fire_lst_tibblemp$fire_lstmp[8]
+# checking everything accurate
+ex47 <- pull(wide_fire, `47`)
+ex47_idx <- which(!is.na(ex47))
+max(wide_fire$duration_hrs[ex47_idx])
+ex47 <- ex47[!is.na(ex47)]
+ex47
+fire_lst_tibblemp[47:50,]
+
+ex47 == fire_lst_tibblemp$fire_lstmp[47]
 ```
 
 ```{r}
@@ -366,11 +372,6 @@ head(wide_firept)
 # creating new tibble with grid index
 # empty columns for unique identifiers, acres, mgmt complexity, duration 
 fire_lst_tibblept <- tibble(grid_index)
-fire_lst_tibblept[,"fire_lstpt"]=""
-fire_lst_tibblept[,"max_acrespt"]=""
-fire_lst_tibblept[,"min_mgmtpt"]=""
-fire_lst_tibblept[,"max_durationpt"]=""
-fire_lst_tibblept[,"max_acres_tribal"]=""
 head(fire_lst_tibblept,5)
 
 start_indexpt = which(1==names(wide_firept))-1
@@ -400,26 +401,25 @@ for (x in 1:max(grid_index)) {
     }
 }
 
+str(fire_lst_tibblept)
+
 fire_lst_tibblept <- fire_lst_tibblept %>%
     mutate(
-        max_acrespt = as.numeric(max_acrespt),
-        min_mgmtpt = as.numeric(min_mgmtpt),
-        max_durationpt = as.numeric(max_durationpt),
-        max_acres_tribal = as.numeric(max_acres_tribal)
-    ) %>%
-    mutate(
         min_mgmtpt = na_if(min_mgmtpt, Inf),
+        max_durationpt = na_if(max_durationpt, -Inf)
     )
 
-# checking everything accurate
-ex3 <- pull(wide_firept, `3`)
-ex3_idx <- which(!is.na(ex3))
-max(wide_firept$duration_hrs[ex3_idx])
-ex3 <- ex3[!is.na(ex3)]
-ex3
-head(fire_lst_tibblept,4)
+fire_lst_tibblept %>% filter(!is.na(fire_lstpt))
 
-ex3 == fire_lst_tibblept$fire_lstpt[3]
+# checking everything accurate
+ex20 <- pull(wide_firept, `20`)
+ex20_idx <- which(!is.na(ex20))
+max(wide_firept$duration_hrs[ex20_idx])
+ex20 <- ex20[!is.na(ex20)]
+ex20
+fire_lst_tibblept[15:20,]
+
+ex20 == fire_lst_tibblept$fire_lstpt[20]
 ```
 
 ```{r}
