@@ -37,14 +37,23 @@ grid_df %>%
 Grid cells with wildfires and without prescribed burns had more acres burned (by mean and median) than those with prescribed burns, and shorter mean duration but longer median duration.
 
 ```{r}
+# boxplot
 grid_df %>%
     filter(n_wldfr > 0) %>%
     mutate(has_rx = n_rx_fr > 0) %>%
     ggplot(aes(has_rx, max_crs, fill=has_rx)) +
-    geom_boxplot() +
+    geom_boxplot(show.legend=FALSE) +
     scale_y_log10() + 
-    theme_minimal()
+    theme_minimal() +
+    labs(
+        x="Prescribed burns present in cell",
+        y="Maximum acres burned during fire in cell (log scale)",
+        title="Fire size in areas with vs. without prescribed burns"
+    )
 
+```
+
+```{r}
 grid_df %>%
     filter(n_wldfr > 0) %>%
     mutate(
@@ -58,8 +67,66 @@ grid_df %>%
         pct_sz = n/total
     ) %>%
     ggplot(aes(mx_sz_c, pct_sz, fill=has_rx)) +
-    geom_col(position="dodge") +
+    geom_col(position="dodge", color="white", show.legend=FALSE) +
     scale_y_continuous(labels=scales::percent) +
-    theme_minimal()
+    theme_minimal() +
+    labs(
+        x="Maximum size class of fires in cell",
+        y="Percent of cells",
+        title="Distribution of fire size class in areas with vs. without prescribed burns"
+    )
+
+```
+
+```{r}
+# boxplot duration
+grid_df %>%
+    filter(n_wldfr > 0) %>%
+    mutate(has_rx = n_rx_fr > 0) %>%
+    ggplot(aes(has_rx, mx_drtn, fill=has_rx)) +
+    geom_boxplot(show.legend=FALSE) +
+    scale_y_log10() + 
+    theme_minimal() +
+    labs(
+        x="Prescribed burns present in cell",
+        y="Maximum duration of fire in cell (log scale)",
+        title="Fire duration in areas with vs. without prescribed burns"
+    )
+
+```
+
+```{r}
+grid_df %>%
+    filter(n_wldfr > 0) %>%
+    mutate(
+        has_rx = ifelse(n_rx_fr > 0, "prescribed burns", "no prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "indigenous", "not indigenous")
+    ) %>%
+    group_by(has_rx, is_ndgn, mx_sz_c) %>%
+    summarize(n=n()) %>%
+    group_by(has_rx, is_ndgn) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    ggplot(aes(mx_sz_c, pct_sz, fill=has_rx)) +
+    geom_col(color="white", show.legend=FALSE) +
+    facet_grid(is_ndgn~has_rx) +
+    scale_y_continuous(labels=scales::percent) +
+    theme_minimal() 
+
+grid_df %>%
+    filter(n_wldfr > 0) %>%
+    mutate(
+        has_rx = ifelse(n_rx_fr > 0, "prescribed burns", "no prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "indigenous", "not indigenous")
+    ) %>%
+    group_by(has_rx, is_ndgn, mx_sz_c) %>%
+    summarize(n_fires=n()) %>%
+    ggplot(aes(mx_sz_c, n_fires, fill=has_rx)) +
+    geom_col(color="white", show.legend=FALSE) +
+    facet_grid(is_ndgn~has_rx, scales="free_y") +
+    #scale_y_continuous(labels=scales::percent) +
+    theme_minimal() 
 
 ```
