@@ -51,8 +51,6 @@ max_acres_plt <- shp %>%
 
 max_acres_plt
 
-shp %>%
-    ggplot(aes(geometry=geometry, alpha=totl_sm, ))
 ```
 
 
