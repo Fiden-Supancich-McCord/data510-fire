@@ -67,7 +67,7 @@ The new grid will add:
 ```{r}
 # setting start and end year
 START_YEAR <- 2015
-END_YEAR <- 2025
+END_YEAR <- 2024
 ```
 
 ```{r}
@@ -76,7 +76,7 @@ grid_year <- grid_base %>%
     mutate(year = START_YEAR)
 
 # for every year in our time frame, duplicate grid_base and add year column for that year, attach to grid_year df
-for (year in START_YEAR+1:END_YEAR) {
+for (year in (START_YEAR+1):END_YEAR) {
     df <- grid_base %>% mutate(year = year)
     grid_year <- rbind(grid_year, df)
 }
@@ -85,6 +85,16 @@ tibble(grid_year) %>%
     group_by(year) %>%
     summarize(n=n())
 
+```
+
+```{r}
+# creating unique row identifier - year and grid index (with 0s added as needed so that they're all the same length)
+max_id_char <- nchar(as.character(max(grid_year$index)))
+
+grid_year <- grid_year %>%
+    mutate(row_id = paste0(year, strrep("0", max_id_char-nchar(as.character(index))), index)) 
+
+tail(grid_year$row_id)
 ```
 
 # Fire data
@@ -109,36 +119,58 @@ rx_fire_pt <- full_fire_pt %>%
 
 fire_pt <- full_fire_pt %>%
     filter(Inc_T_C != "RX")
+
 ```
 
 ## Wildfires
 
+### Multipolygon wildfires
+
 ```{r}
+# grid index - single instance of grid index (not one per year)
 grid_index = seq(1:max(grid_base$index))
 
-fire_lst_tib_mp <- tibble(grid_year) %>% select(year, index)
+# initialize empty tibble to hold all values split by year
+full_tib_mp <- tibble(
+    row_id = numeric(),
+    year = numeric(),
+    index = numeric()
+)
 
-for (year in START_YEAR:END_YEAR) {
-    fire_mp_int <- st_intersects(grid_base, fire_mp %>% filter(Clndr_Y==year), sparse=FALSE)
+# note: this takes a couple of minutes to run
+# this is not a surprise as it's testing however many fires against 10k cells 10 times. 
+# there may be a more efficient way to do this but idk what it is
+
+for (i in START_YEAR:END_YEAR) {
+    # initialize empty tibble for current year
+    fire_lst_tib_mp <- tibble(grid_year) %>% select(row_id, year, index) %>% filter(year==i)
+    # intersecting fires by grid for current year
+    fire_mp_int <- st_intersects(grid_base, fire_mp %>% filter(Clndr_Y==i), sparse=FALSE)
+    # convert to tibble
     fire_mp_tib <- cbind(tibble(data.frame(fire_mp_int)), grid_index)
 
+    # fire_mp with only fires from current year
+    fire_mp_curr <- fire_mp %>% filter(Clndr_Y == i)
+
+    # long fire with information from every fire in current year
     long_fire <- fire_mp_tib %>%
         pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
         mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
         mutate(
-            unique_id = fire_mp$UNQE_FI[fire_index],
-            acres = fire_mp$GIS_ACR[fire_index],
-            fire_management_n = fire_mp$fr_mgm_[fire_index],
-            duration_hrs = fire_mp$drtn_hr[fire_index]
+            unique_id = fire_mp_curr$UNQE_FI[fire_index],
+            acres = fire_mp_curr$GIS_ACR[fire_index],
+            fire_management_n = fire_mp_curr$fr_mgm_[fire_index],
+            duration_hrs = fire_mp_curr$drtn_hr[fire_index]
         )
 
+    # wide fire that only includes uid if fire is present in cell
     wide_fire <- long_fire %>%
-        # mutating unique ID to "missing" if NA and adding the constructed fire_index for referencing
-        mutate(unique_id = ifelse(is.na(unique_id), paste("MISSING", as.symbol(fire_index)), unique_id)) %>%
         mutate(
             limited_uid = ifelse(is_fire==TRUE, unique_id, NA)
         ) %>%
         pivot_wider(names_from = grid_index, values_from = limited_uid)
+
+    start_index = which(1==names(wide_fire))-1
     
     for (x in 1:max(grid_index)) {
         # pull list of NAs and fire identifiers for each col/grid cell
@@ -151,81 +183,128 @@ for (year in START_YEAR:END_YEAR) {
         if (length(lst) == 0) {
             fire_lst_tib_mp$fire_lstmp[x] = NA
             fire_lst_tib_mp$max_acresmp[x] = 0
+            fire_lst_tib_mp$med_acresmp[x] = 0
             fire_lst_tib_mp$min_mgmtmp[x] = NA
             fire_lst_tib_mp$max_durationmp[x] = 0
+            fire_lst_tib_mp$med_durationmp[x] = 0
         # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
         } else {
             fire_lst_tib_mp$fire_lstmp[x] = paste(unlist(lst), collapse=", ")
             fire_lst_tib_mp$max_acresmp[x] = max(wide_fire$acres[fire_idx], na.rm=TRUE)
+            fire_lst_tib_mp$med_acresmp[x] = median(wide_fire$acres[fire_idx], na.rm=TRUE)
             fire_lst_tib_mp$min_mgmtmp[x] = min(wide_fire$fire_management_n[fire_idx], na.rm=TRUE)
             fire_lst_tib_mp$max_durationmp[x] = max(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
+            fire_lst_tib_mp$med_durationmp[x] = median(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
         }
     }
+
+    # add current year to full tibble
+    full_tib_mp <- rbind(full_tib_mp, fire_lst_tib_mp)
 }
 
+head(full_tib_mp)
 
-class(fire_mp$Clndr_Y)
-```
+unique(full_tib_mp$year)
 
-```{r}
-# TEST!!!
-year = 2015
-
-fire_mp_int <- st_intersects(grid_base, fire_mp %>% filter(Clndr_Y==year), sparse=FALSE)
-fire_mp_tib <- cbind(tibble(data.frame(fire_mp_int)), grid_index)
-
-long_fire <- fire_mp_tib %>%
-    pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
-    mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
-    mutate(
-        unique_id = fire_mp$UNQE_FI[fire_index],
-        acres = fire_mp$GIS_ACR[fire_index],
-        fire_management_n = fire_mp$fr_mgm_[fire_index],
-        duration_hrs = fire_mp$drtn_hr[fire_index]
+full_tib_mp %>%
+    group_by(year) %>%
+    summarize(
+        n_cells_fi = sum(!is.na(fire_lstmp)),
+        avg_med_acres = mean(med_acresmp),
+        avg_max_acres = mean(max_acresmp)
     )
 
-wide_fire <- long_fire %>%
-    # mutating unique ID to "missing" if NA and adding the constructed fire_index for referencing
-    mutate(unique_id = ifelse(is.na(unique_id), paste("MISSING", as.symbol(fire_index)), unique_id)) %>%
-    mutate(
-        limited_uid = ifelse(is_fire==TRUE, unique_id, NA)
-    ) %>%
-    pivot_wider(names_from = grid_index, values_from = limited_uid)
-
-start_index = which(1==names(wide_fire))-1
-
-for (x in 1:max(grid_index)) {
-    # pull list of NAs and fire identifiers for each col/grid cell
-    full_lst <- pull(wide_fire, x+start_index)
-    # list of indexes for present fires
-    fire_idx <- which(!is.na(full_lst))
-    # list of present fire identifiers
-    lst <- full_lst[!is.na(full_lst)]
-    # if no fires, NA or 0 as applicable
-    if (length(lst) == 0) {
-        fire_lst_tib_mp$fire_lstmp[x] = NA
-        fire_lst_tib_mp$max_acresmp[x] = 0
-        fire_lst_tib_mp$min_mgmtmp[x] = NA
-        fire_lst_tib_mp$max_durationmp[x] = 0
-    # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
-    } else {
-        fire_lst_tib_mp$fire_lstmp[x] = paste(unlist(lst), collapse=", ")
-        fire_lst_tib_mp$max_acresmp[x] = max(wide_fire$acres[fire_idx], na.rm=TRUE)
-        fire_lst_tib_mp$min_mgmtmp[x] = min(wide_fire$fire_management_n[fire_idx], na.rm=TRUE)
-        fire_lst_tib_mp$max_durationmp[x] = max(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
-    }
-}
-
-names(fire_lst_tib_mp)
-
-fire_lst_tib_mp %>%
-    filter(!is.na(fire_lstmp))
-
-# this is a good test. so. fire lst says 2023, year is 2015. need to check what's causing that
-# could EASILY be a data issue. could also a transformation issue. who's to say really. not me! fuck my whole life brother. 
 ```
 
+### Point wildfires
+
 ```{r}
-fire_pt_int <- st_contains(or_grid, fire_pt, sparse=FALSE)
+# initialize empty tibble to hold all values split by year
+full_tib_pt <- tibble(
+    row_id = numeric(),
+    year = numeric(),
+    index = numeric()
+)
+
+for (i in START_YEAR:END_YEAR) {
+    # initialize empty tibble for current year
+    fire_lst_tib_pt <- tibble(grid_year) %>% select(row_id, year, index) %>% filter(year==i)
+    # intersecting fires by grid for current year
+    fire_pt_int <- st_intersects(grid_base, fire_pt %>% filter(Clndr_Y==i), sparse=FALSE)
+    # convert to tibble
+    fire_pt_tib <- cbind(tibble(data.frame(fire_pt_int)), grid_index)
+
+    # fire_pt with only fires from current year
+    fire_pt_curr <- fire_pt %>% filter(Clndr_Y == i)
+
+    # long fire with information from every fire in current year
+    long_fire <- fire_pt_tib %>%
+        pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
+        mutate(fire_index = as.numeric(str_remove(fire_index, "X"))) %>%
+        mutate(
+            unique_id = fire_pt_curr$UNQE_FI[fire_index],
+            acres = fire_pt_curr$Clclt_A[fire_index],
+            acres_tribal = fire_pt_curr$AcrsTrb[fire_index],
+            fire_management_n = fire_pt_curr$fr_mgm_[fire_index],
+            duration_hrs = fire_pt_curr$drtn_hr[fire_index]
+        )
+
+    # wide fire that only includes uid if fire is present in cell
+    wide_fire <- long_fire %>%
+        mutate(
+            limited_uid = ifelse(is_fire==TRUE, unique_id, NA)
+        ) %>%
+        pivot_wider(names_from = grid_index, values_from = limited_uid)
+
+    start_index = which(1==names(wide_fire))-1
+    
+    for (x in 1:max(grid_index)) {
+        # pull list of NAs and fire identifiers for each col/grid cell
+        full_lst <- pull(wide_fire, x+start_index)
+        # list of indexes for present fires
+        fire_idx <- which(!is.na(full_lst))
+        # list of present fire identifiers
+        lst <- full_lst[!is.na(full_lst)]
+        # if no fires, NA or 0 as applicable
+        if (length(lst) == 0) {
+            fire_lst_tib_pt$fire_lstpt[x] = NA
+            fire_lst_tib_pt$max_acrespt[x] = 0
+            fire_lst_tib_pt$med_acrespt[x] = 0
+            fire_lst_tib_pt$max_acres_tribal[x] = 0
+            fire_lst_tib_pt$med_acres_tribal[x] = 0
+            fire_lst_tib_pt$min_mgmtpt[x] = NA
+            fire_lst_tib_pt$max_durationpt[x] = 0
+            fire_lst_tib_pt$med_durationpt[x] = 0
+        # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
+        } else {
+            fire_lst_tib_pt$fire_lstpt[x] = paste(unlist(lst), collapse=", ")
+            fire_lst_tib_pt$max_acrespt[x] = max(wide_fire$acres[fire_idx], na.rm=TRUE)
+            fire_lst_tib_pt$med_acrespt[x] = median(wide_fire$acres[fire_idx], na.rm=TRUE)
+            fire_lst_tib_pt$max_acres_tribal[x] = max(wide_fire$acres_tribal[fire_idx], na.rm=TRUE)
+            fire_lst_tib_pt$med_acres_tribal[x] = median(wide_fire$acres_tribal[fire_idx], na.rm=TRUE)
+            fire_lst_tib_pt$min_mgmtpt[x] = min(wide_fire$fire_management_n[fire_idx], na.rm=TRUE)
+            fire_lst_tib_pt$max_durationpt[x] = max(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
+            fire_lst_tib_pt$med_durationpt[x] = median(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
+        }
+    }
+
+    # add current year to full tibble
+    full_tib_pt <- rbind(full_tib_pt, fire_lst_tib_pt)
+}
+
+head(full_tib_pt)
+
+unique(full_tib_pt$year)
+
+full_tib_pt %>%
+    arrange(desc(max_acrespt))
+
+full_tib_pt %>%
+    group_by(year) %>%
+    summarize(
+        n_cells_fi = sum(!is.na(fire_lstpt)),
+        avg_med_acres = mean(med_acrespt, na.rm=TRUE),
+        avg_max_acres = mean(max_acrespt, na.rm=TRUE)
+    )
 
 ```
