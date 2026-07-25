@@ -179,6 +179,7 @@ for (i in START_YEAR:END_YEAR) {
         fire_idx <- which(!is.na(full_lst))
         # list of present fire identifiers
         lst <- full_lst[!is.na(full_lst)]
+        n_fires <- length(lst)
         # if no fires, NA or 0 as applicable
         if (length(lst) == 0) {
             fire_lst_tib_mp$fire_lstmp[x] = NA
@@ -196,6 +197,7 @@ for (i in START_YEAR:END_YEAR) {
             fire_lst_tib_mp$max_durationmp[x] = max(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
             fire_lst_tib_mp$med_durationmp[x] = median(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
         }
+        fire_lst_tib_mp$n_firesmp[x] = n_fires
     }
 
     # add current year to full tibble
@@ -209,7 +211,7 @@ unique(full_tib_mp$year)
 full_tib_mp %>%
     group_by(year) %>%
     summarize(
-        n_cells_fi = sum(!is.na(fire_lstmp)),
+        n_fire = sum(n_firesmp),
         avg_med_acres = mean(med_acresmp),
         avg_max_acres = mean(max_acresmp)
     )
@@ -265,6 +267,7 @@ for (i in START_YEAR:END_YEAR) {
         fire_idx <- which(!is.na(full_lst))
         # list of present fire identifiers
         lst <- full_lst[!is.na(full_lst)]
+        n_fires <- length(lst)
         # if no fires, NA or 0 as applicable
         if (length(lst) == 0) {
             fire_lst_tib_pt$fire_lstpt[x] = NA
@@ -286,6 +289,7 @@ for (i in START_YEAR:END_YEAR) {
             fire_lst_tib_pt$max_durationpt[x] = max(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
             fire_lst_tib_pt$med_durationpt[x] = median(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
         }
+        fire_lst_tib_pt$n_firespt[x] = n_fires
     }
 
     # add current year to full tibble
@@ -302,9 +306,17 @@ full_tib_pt %>%
 full_tib_pt %>%
     group_by(year) %>%
     summarize(
-        n_cells_fi = sum(!is.na(fire_lstpt)),
+        n_fire = sum(n_firespt),
         avg_med_acres = mean(med_acrespt, na.rm=TRUE),
         avg_max_acres = mean(max_acrespt, na.rm=TRUE)
     )
+
+```
+
+## Prescribed Burns
+
+### Multipolygon RX
+
+```{r}
 
 ```
