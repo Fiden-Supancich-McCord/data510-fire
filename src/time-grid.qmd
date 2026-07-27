@@ -319,4 +319,110 @@ full_tib_pt %>%
 
 ```{r}
 
+# initialize empty tibble to hold all values split by year
+full_tib_rxmp <- tibble(
+    row_id = numeric(),
+    year = numeric(),
+    index = numeric()
+)
+
+# note: this takes a couple of minutes to run
+# this is not a surprise as it's testing however many fires against 10k cells 10 times. 
+# there may be a more efficient way to do this but idk what it is
+
+for (i in START_YEAR:END_YEAR) {
+    print(paste("Year:", i))
+    # initialize empty tibble for current year
+    rx_lst_tib_mp <- tibble(grid_year) %>% select(row_id, year, index) %>% filter(year==i)
+    # intersecting fires by grid for current year
+    rx_mp_int <- st_intersects(grid_base, rx_fire_mp %>% filter(Clndr_Y==i), sparse=FALSE)
+    # convert to tibble
+    rx_mp_tib <- cbind(tibble(data.frame(rx_mp_int)), grid_index)
+
+    # fire_mp with only fires from current year
+    rx_mp_curr <- rx_fire_mp %>% filter(Clndr_Y == i)
+
+    if (dim(rx_mp_curr)[1] > 0) {
+        print(paste("N rx fires:", dim(rx_mp_curr)[1]))
+        # long fire with information from every fire in current year
+        long_fire <- rx_mp_tib %>%
+            pivot_longer(!grid_index, names_to="fire_index", values_to="is_fire") %>%
+            mutate(fire_index = ifelse(dim(rx_mp_curr)[1]>1, as.numeric(str_remove(fire_index, "X")), 1)) %>%
+            mutate(
+                unique_id = rx_mp_curr$UNQE_FI[fire_index],
+                acres = rx_mp_curr$GIS_ACR[fire_index],
+                fire_management_n = rx_mp_curr$fr_mgm_[fire_index],
+                duration_hrs = rx_mp_curr$drtn_hr[fire_index]
+            )
+
+        # wide fire that only includes uid if fire is present in cell
+        wide_fire <- long_fire %>%
+            mutate(
+                limited_uid = ifelse(is_fire==TRUE, unique_id, NA)
+            ) %>%
+            pivot_wider(names_from = grid_index, values_from = limited_uid)
+
+        start_index = which(1==names(wide_fire))-1
+        
+        for (x in 1:max(grid_index)) {
+            # pull list of NAs and fire identifiers for each col/grid cell
+            full_lst <- pull(wide_fire, x+start_index)
+            # list of indexes for present fires
+            fire_idx <- which(!is.na(full_lst))
+            # list of present fire identifiers
+            lst <- full_lst[!is.na(full_lst)]
+            n_fires <- length(lst)
+
+            # if no fires, NA or 0 as applicable
+            if (length(lst) == 0) {
+                rx_lst_tib_mp$rx_lstmp[x] = NA
+                rx_lst_tib_mp$max_acresmp_rx[x] = 0
+                rx_lst_tib_mp$med_acresmp_rx[x] = 0
+                rx_lst_tib_mp$min_mgmtmp_rx[x] = NA
+                rx_lst_tib_mp$max_durationmp_rx[x] = 0
+                rx_lst_tib_mp$med_durationmp_rx[x] = 0
+            # if fires present, add list of identifiers, max acres, min mgmt complexity, max duration
+            } else {
+                rx_lst_tib_mp$rx_lstmp[x] = paste(unlist(lst), collapse=", ")
+                rx_lst_tib_mp$max_acresmp_rx[x] = max(wide_fire$acres[fire_idx], na.rm=TRUE)
+                rx_lst_tib_mp$med_acresmp_rx[x] = median(wide_fire$acres[fire_idx], na.rm=TRUE)
+                rx_lst_tib_mp$min_mgmtmp_rx[x] = min(wide_fire$fire_management_n[fire_idx], na.rm=TRUE)
+                rx_lst_tib_mp$max_durationmp_rx[x] = max(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
+                rx_lst_tib_mp$med_durationmp_rx[x] = median(wide_fire$duration_hrs[fire_idx], na.rm=TRUE)
+            }
+            rx_lst_tib_mp$n_rxmp[x] = n_fires
+        }
+
+    } else {
+        print("No rx fires this year.")
+        for (x in 1:max(grid_index)) {
+            rx_lst_tib_mp$rx_lstmp[x] = NA
+            rx_lst_tib_mp$max_acresmp_rx[x] = 0
+            rx_lst_tib_mp$med_acresmp_rx[x] = 0
+            rx_lst_tib_mp$min_mgmtmp_rx[x] = NA
+            rx_lst_tib_mp$max_durationmp_rx[x] = 0
+            rx_lst_tib_mp$med_durationmp_rx[x] = 0
+            rx_lst_tib_mp$n_rxmp[x] = 0
+        }
+    
+    }
+
+    # add current year to full tibble
+    full_tib_rxmp <- rbind(full_tib_rxmp, rx_lst_tib_mp)
+
+}
+
+head(full_tib_rxmp)
+
+unique(full_tib_rxmp$year)
+
+full_tib_rxmp %>%
+    group_by(year) %>%
+    summarize(
+        n_rx = sum(n_rxmp),
+        avg_med_acres = mean(med_acresmp_rx),
+        avg_max_acres = mean(max_acresmp_rx)
+    )
+
 ```
+
