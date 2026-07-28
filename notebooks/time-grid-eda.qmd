@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(sf)
 library(ggplot2)
+library(dplyr)
+library(zoo)
 ```
 
 ```{r}
@@ -35,6 +37,26 @@ tgdf %>%
         has_plant = plnt_sm > 0
     ) %>%
     group_by(has_plant, had_rx, year) %>%
+    summarize(
+        mean_acres = mean(max_acres, na.rm=TRUE),
+        mean_dur = mean(max_duration, na.rm=TRUE),
+        n = n()
+    ) %>%
+    arrange(year) %>%
+    print(n=Inf)
+
+tgdf %>%
+    group_by(index) %>% 
+    mutate(
+        rx_csum = cumsum(n_rx),
+        rx_rollsum = rollapply(n_rx, 2, sum, partial=TRUE, na.rm=TRUE)
+    ) %>%
+    mutate(
+        had_rx = rx_rollsum > 0,
+        rx_lim = ifelse(rx_rollsum > 2, 3, rx_rollsum),
+        has_plant = plnt_sm > 0
+    ) %>%
+    group_by(has_plant, rx_lim, year) %>%
     summarize(
         mean_acres = mean(max_acres, na.rm=TRUE),
         mean_dur = mean(max_duration, na.rm=TRUE),
@@ -72,3 +94,22 @@ tgdf %>%
     facet_grid(year~had_rx)
 
 ```
+
+
+```{r}
+tgdf %>%
+    group_by(index) %>% 
+    mutate(rx_csum = cumsum(n_rx)) %>%
+    mutate(
+        had_rx = rx_csum > 0,
+        has_plant = plnt_sm > 0
+    ) %>%
+    filter(year>2020) %>%
+    ggplot(aes(y=max_acres, fill=had_rx)) +
+    geom_boxplot() +
+    facet_grid(year~had_rx) +
+    scale_y_log10(labels = scales::label_log(digits=2)) +
+    theme_bw()
+
+```
+
