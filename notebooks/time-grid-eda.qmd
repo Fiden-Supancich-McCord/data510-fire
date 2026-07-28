@@ -27,5 +27,48 @@ names(tgdf)
 Primary question: differences between wildfires in grid cells that have had previous RX burns vs those that have not.
 
 ```{r}
+tgdf %>%
+    group_by(index) %>% 
+    mutate(rx_csum = cumsum(n_rx)) %>%
+    mutate(
+        had_rx = rx_csum > 0,
+        has_plant = plnt_sm > 0
+    ) %>%
+    group_by(has_plant, had_rx, year) %>%
+    summarize(
+        mean_acres = mean(max_acres, na.rm=TRUE),
+        mean_dur = mean(max_duration, na.rm=TRUE),
+        n = n()
+    ) %>%
+    arrange(year) %>%
+    print(n=Inf)
+
+```
+
+
+```{r}
+tgdf %>%
+    group_by(index) %>% 
+    mutate(rx_csum = cumsum(n_rx)) %>%
+    mutate(
+        had_rx = rx_csum > 0,
+        has_plant = plnt_sm > 0
+    ) %>%
+    ggplot(aes(x=year, y=max_acres, color=had_rx)) +
+    geom_point() +
+    facet_wrap(~had_rx)
+
+# i think there's something here but it's hard to evaluate
+tgdf %>%
+    group_by(index) %>% 
+    mutate(rx_csum = cumsum(n_rx)) %>%
+    mutate(
+        had_rx = rx_csum > 0,
+        has_plant = plnt_sm > 0
+    ) %>%
+    filter(year>2020) %>%
+    ggplot(aes(x=log(max_acres), fill=had_rx)) +
+    geom_density() +
+    facet_grid(year~had_rx)
 
 ```

@@ -659,13 +659,23 @@ full_tib <- full_tib %>%
         min_mgmtpt_rx = na_if(min_mgmtpt_rx, Inf)
     )
 
-
 full_tib <- full_tib %>%
     rowwise() %>%
     mutate(
         n_fires = sum(n_firesmp, n_firespt, na.rm=TRUE),
         n_rx = sum(n_rxmp, n_rxpt, na.rm=TRUE)
     ) 
+
+full_tib <- full_tib %>%
+    rowwise() %>%
+    mutate(
+        max_duration = na_if(max_duration, -Inf),
+        max_durationmp = na_if(max_durationmp, -Inf),
+        max_durationpt = na_if(max_durationpt, -Inf),
+        max_duration_rx = na_if(max_duration_rx, -Inf),
+        max_durationmp_rx = na_if(max_durationmp_rx, -Inf),
+        max_durationpt_rx = na_if(max_durationpt_rx, -Inf)
+    )
 
 ```
 
