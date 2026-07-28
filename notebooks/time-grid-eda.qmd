@@ -17,9 +17,15 @@ library(ggplot2)
 
 ```{r}
 tg <- st_read("../DATA-510/time_grid/time_grid.shp")
-tgdf <- read_csv("../DATA-510/time_grid/time_grid.csv")
+tgdf <- read_csv("data/processed_grid/time_grid.csv")
 ```
 
 ```{r}
 names(tgdf)
+```
+
+Primary question: differences between wildfires in grid cells that have had previous RX burns vs those that have not.
+
+```{r}
+
 ```

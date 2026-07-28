@@ -659,6 +659,14 @@ full_tib <- full_tib %>%
         min_mgmtpt_rx = na_if(min_mgmtpt_rx, Inf)
     )
 
+
+full_tib <- full_tib %>%
+    rowwise() %>%
+    mutate(
+        n_fires = sum(n_firesmp, n_firespt, na.rm=TRUE),
+        n_rx = sum(n_rxmp, n_rxpt, na.rm=TRUE)
+    ) 
+
 ```
 
 ```{r}
