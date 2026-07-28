@@ -268,7 +268,7 @@ for (i in START_YEAR:END_YEAR) {
     # initialize empty tibble for current year
     fire_lst_tib_pt <- tibble(grid_year) %>% select(row_id, year, index) %>% filter(year==i)
     # intersecting fires by grid for current year
-    fire_pt_int <- st_intersects(grid_base, fire_pt %>% filter(Clndr_Y==i), sparse=FALSE)
+    fire_pt_int <- st_contains(grid_base, fire_pt %>% filter(Clndr_Y==i), sparse=FALSE)
     # convert to tibble
     fire_pt_tib <- cbind(tibble(data.frame(fire_pt_int)), grid_index)
 
@@ -515,7 +515,7 @@ for (i in START_YEAR:END_YEAR) {
     # initialize empty tibble for current year
     rx_lst_tib_pt <- tibble(grid_year) %>% select(row_id, year, index) %>% filter(year==i)
     # intersecting fires by grid for current year
-    rx_pt_int <- st_intersects(grid_base, rx_fire_pt %>% filter(Clndr_Y==i), sparse=FALSE)
+    rx_pt_int <- st_contains(grid_base, rx_fire_pt %>% filter(Clndr_Y==i), sparse=FALSE)
     # convert to tibble
     rx_pt_tib <- cbind(tibble(data.frame(rx_pt_int)), grid_index)
 
@@ -552,7 +552,8 @@ for (i in START_YEAR:END_YEAR) {
             ) %>%
             pivot_wider(names_from = grid_index, values_from = limited_uid)
 
-        print(dim(wide_fire))
+        print(dim(wide_fire)) # twice as many rows as there are fires
+        # this is because each has is_fire=FALSE and TRUE
 
         start_index = which(1==names(wide_fire))-1
         
@@ -629,10 +630,39 @@ full_tib_pt <- full_tib_pt %>% select(-c(year, index))
 full_tib_rxmp <- full_tib_rxmp %>% select(-c(year, index))
 full_tib_rxpt <- full_tib_rxpt %>% select(-c(year, index))
 
-time_grid <- full_join(grid_year, full_tib_mp, by="row_id")
-time_grid <- full_join(time_grid, full_tib_pt, by="row_id")
-time_grid <- full_join(time_grid, full_tib_rxmp, by="row_id")
-time_grid <- full_join(time_grid, full_tib_rxpt, by="row_id")
+full_tib <- full_join(full_tib_mp, full_tib_pt, by="row_id")
+full_tib <- full_join(full_tib, full_tib_rxmp, by="row_id")
+full_tib <- full_join(full_tib, full_tib_rxpt, by="row_id")
+
+```
+
+```{r}
+names(full_tib)
+full_tib <- full_tib %>%
+    rowwise() %>%
+    mutate(
+        max_acres = max(max_acresmp, max_acrespt, na.rm=TRUE),
+        max_duration = max(max_durationmp, max_durationpt, na.rm=TRUE),
+        min_mgmt = min(min_mgmtmp, min_mgmtpt, na.rm=TRUE),
+        max_acres_rx = max(max_acresmp_rx, max_acrespt_rx, na.rm=TRUE),
+        max_duration_rx = max(max_durationmp_rx, max_durationpt_rx, na.rm=TRUE),
+        min_mgmt_rx = min(min_mgmtmp_rx, min_mgmtpt_rx, na.rm=TRUE)
+    )
+
+full_tib <- full_tib %>%
+    mutate(
+        min_mgmt = na_if(min_mgmt, Inf),
+        min_mgmtmp = na_if(min_mgmtmp, Inf),
+        min_mgmtpt = na_if(min_mgmtpt, Inf),
+        min_mgmt_rx = na_if(min_mgmt_rx, Inf),
+        min_mgmtmp_rx = na_if(min_mgmtmp_rx, Inf),
+        min_mgmtpt_rx = na_if(min_mgmtpt_rx, Inf)
+    )
+
+```
+
+```{r}
+time_grid <- full_join(grid_year, full_tib, by="row_id")
 
 names(time_grid)
 dim(time_grid)

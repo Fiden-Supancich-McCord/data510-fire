@@ -1,0 +1,25 @@
+---
+title: "Time grid eda"
+author: "Spencer Fiden"
+date: "2026-07-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(sf)
+library(ggplot2)
+```
+
+```{r}
+tg <- st_read("../DATA-510/time_grid/time_grid.shp")
+tgdf <- read_csv("../DATA-510/time_grid/time_grid.csv")
+```
+
+```{r}
+names(tgdf)
+```
