@@ -103,6 +103,12 @@ head(ifph_df %>% select(DATE_CUR)) # should not be chr
 # FIRE_YEAR_
 summary(is.na(ifph_df$FIRE_YEAR_)) # no missing values
 summary(ifph_df$FIRE_YEAR_) # need to limit years
+ifph_df %>%
+    select(FIRE_YEAR_) %>%
+    filter(FIRE_YEAR_ >= 2015) %>%
+    group_by(FIRE_YEAR_) %>%
+    summarize(n=n()) %>%
+    arrange(desc(n))
 
 # UNIT_ID
 length(unique(ifph_df$UNIT_ID))

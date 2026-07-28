@@ -1,0 +1,31 @@
+---
+author: "Spencer Fiden"
+date: "2026-07-21"
+output: html_document
+---
+
+confirming the original data time scope 
+
+InFORM includes fires through 2025, IFPH does not (only through 2024)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+ifph <- read_csv("data/ifph_clean/ifph_clean.csv")
+inform <- read_csv("../DATA-510/inform_clean.csv")
+inform_ifph <- read_csv("../DATA-510/fire_df.csv")
+```
+
+```{r}
+names(ifph)
+unique(ifph$FIRE_YEAR_)
+
+names(inform)
+unique(inform$Calendar.Year)
+```
