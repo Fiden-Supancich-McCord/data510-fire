@@ -599,6 +599,7 @@ st_write(time_grid, "../DATA-510/time_grid.shp")
 time_grid_tibble <- tibble(time_grid %>% select(-geometry))
 object.size(time_grid_tibble)
 write_csv(time_grid_tibble, "../DATA-510/time_grid.csv")
+write_csv(time_grid_tibble, "data/processed_grid/time_grid.csv")
 ```
 
 Unfortunately the time grid is too large to upload to github! This is very sad. We will have to find another solution!
