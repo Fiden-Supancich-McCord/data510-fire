@@ -1,0 +1,469 @@
+---
+title: "Time grid eda"
+author: "Spencer Fiden"
+date: "2026-07-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(zoo)
+library(ranger)
+library(Metrics)
+library(caret)
+```
+
+```{r}
+tg <- st_read("../DATA-510/time_grid/time_grid.shp")
+tgdf <- read_csv("data/processed_grid/time_grid.csv")
+```
+
+```{r}
+names(tgdf)
+# creating limited df with only factors we'll use for modeling
+lim_tg <- tgdf %>% select(
+  year, index,
+  is_ndgn, max_acres_tribal,
+  n_pinus, n_salix, n_qurcs, n_popls, n_thuja, n_xrphy, n_rubus, plnt_sm, 
+  n_fires, max_acres, max_duration, min_mgmt,
+  n_rx, max_acres_rx, max_duration_rx, min_mgmt_rx
+)
+
+lim_tg <- lim_tg %>%
+  mutate(
+    rx_rollsum = rollapply(n_rx, 2, sum, partial=TRUE, na.rm=TRUE),
+    rx_csum = cumsum(n_rx)
+  )
+
+```
+
+```{r}
+lim_tg %>%
+  mutate(had_fire = (n_fires > 0) | (n_rx > 0)) %>%
+  group_by(had_fire) %>%
+  summarize(
+    n=n(),
+    mean_rx_rollsum = mean(rx_rollsum),
+    mean_fires = mean(n_fires),
+    mean_rx = mean(n_rx)
+  )
+
+lim_tg %>%
+  filter((n_fires > 0) | (n_rx > 0))
+
+# WAIT. this is per cell, not over time. hold on. 
+lim_tg <- lim_tg %>%
+  group_by(index) %>%
+  mutate(
+    sum_fires = sum(n_fires),
+    sum_rx = sum(n_rx)
+  )
+
+lim_tg %>%
+  mutate(had_fire = (sum_fires > 0) | (sum_rx > 0)) %>%
+  group_by(had_fire) %>%
+  summarize(
+    n=n(),
+    mean_rx_rollsum = mean(rx_rollsum),
+    avg_ann_fires = mean(n_fires),
+    avg_ann_rx = mean(n_rx)
+  ) 
+
+lim_tg %>%
+  mutate(
+    had_fire = sum_fires > 0,
+    had_rx = sum_rx > 0
+  ) %>%
+  group_by(had_fire, had_rx) %>%
+  summarize(
+    n=n(),
+    mean_rx_rollsum = mean(rx_rollsum),
+    avg_ann_fires = mean(n_fires),
+    avg_ann_rx = mean(n_rx)
+  ) 
+
+# dataset which only includes cells that have ever had a fire (prescribed or wildfire)
+lim_tg_fire <- lim_tg %>%
+  filter((sum_fires > 0) | (sum_rx > 0))
+
+```
+
+## Linear Regression
+
+### All cells (including those that have never had fire)
+
+```{r}
+lm_acres_plant <- lm(
+  max_acres ~
+    n_pinus + n_salix + n_qurcs + n_popls + n_thuja + n_xrphy + n_rubus + rx_rollsum,
+  data = lim_tg
+)
+
+summary(lm_acres_plant)
+
+errors_acres_plant <- lm_acres_plant$residuals
+rmse_plant <- sqrt(mean(errors_acres_plant^2))
+mae_plant <- mean(abs(errors_acres_plant))
+
+print(paste("RMSE:", rmse_plant))
+print(paste("MAE:", mae_plant))
+```
+
+RMSE: ~18473
+MAE: ~3045
+Best Pr: 0.0336 (rx_rollsum, t value 2.125)
+
+```{r}
+lm_acres <- lm(
+  max_acres ~
+    plnt_sm + rx_rollsum + is_ndgn,
+  data = lim_tg
+)
+
+summary(lm_acres)
+
+errors_acres <- lm_acres$residuals
+rmse <- sqrt(mean(errors_acres^2))
+mae <- mean(abs(errors_acres))
+
+print(paste("RMSE:", rmse))
+print(paste("MAE:", mae))
+```
+
+RMSE: ~18474
+MAE: ~3042
+Best Pr: 0.00833 (plnt_sm, t value -2.638)
+
+```{r}
+lm_acres2 <- lm(
+  max_acres ~
+    (plnt_sm + rx_csum + is_ndgn)^2,
+  data = lim_tg
+)
+
+summary(lm_acres2)
+
+errors_acres2 <- lm_acres2$residuals
+rmse2 <- sqrt(mean(errors_acres2^2))
+mae2 <- mean(abs(errors_acres2))
+
+print(paste("RMSE:", rmse2))
+print(paste("MAE:", mae2))
+
+```
+
+RMSE: ~18469
+MAE: ~3042
+Best Pr: 4.10e-12 (rx_csum, t value 6.935)
+(Followed by rx_csum:is_ndgn, 2.15e-05, t value -4.248)
+
+```{r}
+lm_acres3 <- lm(
+  max_acres ~
+    (plnt_sm + rx_csum + is_ndgn)^3,
+  data = lim_tg
+)
+
+summary(lm_acres3)
+
+errors_acres3 <- lm_acres3$residuals
+rmse3 <- sqrt(mean(errors_acres3^2))
+mae3 <- mean(abs(errors_acres3))
+
+print(paste("RMSE:", rmse3))
+print(paste("MAE:", mae3))
+```
+
+RMSE: ~18469
+MAE: ~3042
+Best Pr: 3.88e-12 (rx_csum, t value 6.942)
+
+```{r}
+plot(lm_acres2)
+```
+
+### Fire cells
+
+```{r}
+lm_fire_plant <- lm(
+  max_acres ~
+    n_pinus + n_salix + n_qurcs + n_popls + n_thuja + n_xrphy + n_rubus + rx_rollsum,
+  data = lim_tg_fire
+)
+
+summary(lm_acres_plant)
+
+errors_fire_plant <- lm_fire_plant$residuals
+rmse_fire_plant <- sqrt(mean(errors_fire_plant^2))
+mae_fire_plant <- mean(abs(errors_fire_plant))
+
+print(paste("RMSE:", rmse_fire_plant))
+print(paste("MAE:", mae_fire_plant))
+```
+
+RMSE: ~25744
+MAE: ~5880
+Best Pr: 0.0336 (rx_rollsum, t value 2.125)
+
+```{r}
+lm_fire <- lm(
+  max_acres ~
+    plnt_sm + rx_rollsum + is_ndgn,
+  data = lim_tg_fire
+)
+
+summary(lm_fire)
+
+errors_fire <- lm_fire$residuals
+rmse_fire <- sqrt(mean(errors_fire^2))
+mae_fire <- mean(abs(errors_fire))
+
+print(paste("RMSE:", rmse_fire))
+print(paste("MAE:", mae_fire))
+```
+
+RMSE: ~25746
+MAE: ~5874
+Best Pr: 0.000216 (plnt_sm, t value -3.699)
+
+```{r}
+lm_fire2 <- lm(
+  max_acres ~
+    (plnt_sm + rx_csum + is_ndgn)^2,
+  data = lim_tg_fire
+)
+
+summary(lm_fire2)
+
+errors_fire2 <- lm_fire2$residuals
+rmse_fire2 <- sqrt(mean(errors_fire2^2))
+mae_fire2 <- mean(abs(errors_fire2))
+
+print(paste("RMSE:", rmse_fire2))
+print(paste("MAE:", mae_fire2))
+
+```
+
+RMSE: ~25733
+MAE: ~5869
+Best Pr: 5.85e-13 (rx_csum, r value 7.206)
+
+```{r}
+# using rx_rollsum instead of cumulative
+lm_fire2_roll <- lm(
+  max_acres ~
+    (plnt_sm + rx_rollsum + is_ndgn)^2,
+  data = lim_tg_fire
+)
+
+summary(lm_fire2_roll)
+
+errors_fire2_roll <- lm_fire2_roll$residuals
+rmse_fire2_roll <- sqrt(mean(errors_fire2_roll^2))
+mae_fire2_roll <- mean(abs(errors_fire2_roll))
+
+print(paste("RMSE:", rmse_fire2_roll))
+print(paste("MAE:", mae_fire2_roll))
+
+```
+
+RMSE: ~25746
+MAE: ~5874
+Best Pr: 0.000391 (plnt_sm, r value -3.546)
+
+```{r}
+lm_fire3 <- lm(
+  max_acres ~
+    (plnt_sm + rx_csum + is_ndgn)^3,
+  data = lim_tg_fire
+)
+
+summary(lm_fire3)
+
+errors_fire3 <- lm_fire3$residuals
+rmse_fire3 <- sqrt(mean(errors_fire3^2))
+mae_fire3 <- mean(abs(errors_fire3))
+
+print(paste("RMSE:", rmse_fire3))
+print(paste("MAE:", mae_fire3))
+```
+
+RMSE: ~25733
+MAE: ~5869
+Best Pr: 4.95e-13 (rx_csum, r value 7.228)
+
+```{r}
+plot(lm_fire2)
+```
+
+## Random Forest
+
+### All Cells
+
+note: should also try with fire class as a classification problem instead of regression.
+
+```{r}
+set.seed(42)
+
+repeat_cv <- trainControl(method="repeatedcv", number=3, repeats=2, verboseIter=TRUE)
+
+train_index <- createDataPartition(
+  lim_tg$max_acres,
+  p = .7,
+  list = FALSE
+)
+
+train <- lim_tg[train_index, ]
+test <- lim_tg[-train_index, ]
+```
+
+```{r}
+# random forest for max acres
+
+rf_acres <- ranger(
+  max_acres ~
+    plnt_sm + rx_csum + is_ndgn,
+  data = train,
+  importance = "permutation",
+  num.trees = 500
+)
+
+# predict
+pred_rf <- predict(rf_acres, data = test)$predictions
+
+# evaluate
+rmse(test$max_acres, pred_rf) #17675.15
+
+mae(test$max_acres, pred_rf) #2954.363
+
+cor(test$max_acres, pred_rf)^2 #0.07223494
+
+#variable importance
+importance(rf_acres)
+
+#cross validation
+control <- trainControl(
+  method = "cv",
+  number = 10
+)
+
+rf_cv <- train(
+  max_acres ~
+    plnt_sm + rx_csum + is_ndgn,
+  data = lim_tg,
+  method = "ranger",
+  trControl = repeat_cv,
+  importance = "permutation"
+)
+
+rf_cv
+
+# R squared at best is 0.095, with mtry 2 splitrule variance
+# not good!
+```
+
+
+```{r}
+repeat_cv_long <- trainControl(method="repeatedcv", number=5, repeats=3, verboseIter=TRUE)
+
+# random forest for max acres
+
+rf_acres2 <- ranger(
+  max_acres ~
+    plnt_sm + rx_csum + is_ndgn,
+  data = train,
+  importance = "permutation",
+  num.trees = 250
+)
+
+# predict
+pred_rf2 <- predict(rf_acres2, data = test)$predictions
+
+# evaluate
+rmse(test$max_acres, pred_rf2) #17675.15
+
+mae(test$max_acres, pred_rf2) #2954.363
+
+cor(test$max_acres, pred_rf2)^2 #0.07223494
+
+#variable importance
+importance(rf_acres2)
+
+#cross validation
+rf_cv2 <- train(
+  max_acres ~
+    plnt_sm + rx_csum + is_ndgn,
+  data = lim_tg,
+  method = "ranger",
+  trControl = repeat_cv_long,
+  importance = "permutation"
+)
+
+rf_cv2
+```
+
+### Fire Cells
+
+```{r}
+train_index_f <- createDataPartition(
+  lim_tg_fire$max_acres,
+  p = .7,
+  list = FALSE
+)
+
+train_f <- lim_tg_fire[train_index_f, ]
+test_f <- lim_tg_fire[-train_index_f, ]
+```
+
+```{r}
+# random forest for max acres
+
+rf_acres_f <- ranger(
+  max_acres ~
+    plnt_sm + rx_csum + is_ndgn,
+  data = train_f,
+  importance = "permutation",
+  num.trees = 500
+)
+
+# predict
+pred_rf_f <- predict(rf_acres_f, data = test_f)$predictions
+
+# evaluate
+rmse(test_f$max_acres, pred_rf_f) #25673.89
+
+mae(test_f$max_acres, pred_rf_f) #5734.942
+
+cor(test_f$max_acres, pred_rf_f)^2 #0.1216258
+
+#variable importance
+importance(rf_acres_f)
+
+#cross validation
+control <- trainControl(
+  method = "cv",
+  number = 10
+)
+
+rf_cv_f <- train(
+  max_acres ~
+    plnt_sm + rx_csum + is_ndgn,
+  data = lim_tg_fire,
+  method = "ranger",
+  trControl = repeat_cv,
+  importance = "permutation"
+)
+
+rf_cv_f
+
+# R squared at best is 0.1351947, with mtry 2 splitrule variance
+# RMSE 23975.77, MAE 5144.613
+```
+
