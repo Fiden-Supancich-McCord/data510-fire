@@ -37,10 +37,15 @@ lim_tg <- tgdf %>% select(
 )
 
 lim_tg <- lim_tg %>%
+  group_by(index) %>%
   mutate(
-    rx_rollsum = rollapply(n_rx, 2, sum, partial=TRUE, na.rm=TRUE),
+    rx_rollsum = rollapply(n_rx, width=2, FUN=sum, partial=TRUE, align='right', na.rm=TRUE),
     rx_csum = cumsum(n_rx)
   )
+
+lim_tg %>%
+  select(index, year, n_rx, rx_rollsum, rx_csum) %>%
+  filter(n_rx > 0, index==8942)
 
 ```
 
@@ -95,6 +100,15 @@ lim_tg_fire <- lim_tg %>%
 
 ```
 
+```{r}
+lim_tg_fire %>%
+  group_by(year) %>%
+  summarize(
+    avg_csum = mean(rx_csum),
+    avg_sum = mean(sum_rx)
+  )
+```
+
 ## Linear Regression
 
 ### All cells (including those that have never had fire)
@@ -102,7 +116,7 @@ lim_tg_fire <- lim_tg %>%
 ```{r}
 lm_acres_plant <- lm(
   max_acres ~
-    n_pinus + n_salix + n_qurcs + n_popls + n_thuja + n_xrphy + n_rubus + rx_rollsum,
+    n_pinus + n_salix + n_qurcs + n_popls + n_thuja + n_xrphy + n_rubus + rx_csum,
   data = lim_tg
 )
 
@@ -117,13 +131,13 @@ print(paste("MAE:", mae_plant))
 ```
 
 RMSE: ~18473
-MAE: ~3045
-Best Pr: 0.0336 (rx_rollsum, t value 2.125)
+MAE: ~3046
+Best Pr: 0.0951 (n_qurcs, t value -1.669)
 
 ```{r}
 lm_acres <- lm(
   max_acres ~
-    plnt_sm + rx_rollsum + is_ndgn,
+    plnt_sm + rx_csum + is_ndgn,
   data = lim_tg
 )
 
@@ -139,7 +153,7 @@ print(paste("MAE:", mae))
 
 RMSE: ~18474
 MAE: ~3042
-Best Pr: 0.00833 (plnt_sm, t value -2.638)
+Best Pr: 0.00838 (plnt_sm, t value -2.637)
 
 ```{r}
 lm_acres2 <- lm(
@@ -159,10 +173,9 @@ print(paste("MAE:", mae2))
 
 ```
 
-RMSE: ~18469
+RMSE: ~18474
 MAE: ~3042
-Best Pr: 4.10e-12 (rx_csum, t value 6.935)
-(Followed by rx_csum:is_ndgn, 2.15e-05, t value -4.248)
+Best Pr: 0.0116 (plnt_sm, t value -2.523)
 
 ```{r}
 lm_acres3 <- lm(
@@ -181,9 +194,9 @@ print(paste("RMSE:", rmse3))
 print(paste("MAE:", mae3))
 ```
 
-RMSE: ~18469
+RMSE: ~18474
 MAE: ~3042
-Best Pr: 3.88e-12 (rx_csum, t value 6.942)
+Best Pr: 0.0117 (plnt_sm, t value -2.522)
 
 ```{r}
 plot(lm_acres2)
@@ -194,11 +207,11 @@ plot(lm_acres2)
 ```{r}
 lm_fire_plant <- lm(
   max_acres ~
-    n_pinus + n_salix + n_qurcs + n_popls + n_thuja + n_xrphy + n_rubus + rx_rollsum,
+    n_pinus + n_salix + n_qurcs + n_popls + n_thuja + n_xrphy + n_rubus + rx_csum,
   data = lim_tg_fire
 )
 
-summary(lm_acres_plant)
+summary(lm_fire_plant)
 
 errors_fire_plant <- lm_fire_plant$residuals
 rmse_fire_plant <- sqrt(mean(errors_fire_plant^2))
@@ -208,14 +221,14 @@ print(paste("RMSE:", rmse_fire_plant))
 print(paste("MAE:", mae_fire_plant))
 ```
 
-RMSE: ~25744
+RMSE: ~25745
 MAE: ~5880
-Best Pr: 0.0336 (rx_rollsum, t value 2.125)
+Best Pr: 0.00815 (n_pinus, t value -2.646)
 
 ```{r}
 lm_fire <- lm(
   max_acres ~
-    plnt_sm + rx_rollsum + is_ndgn,
+    plnt_sm + rx_csum + is_ndgn,
   data = lim_tg_fire
 )
 
@@ -231,7 +244,7 @@ print(paste("MAE:", mae_fire))
 
 RMSE: ~25746
 MAE: ~5874
-Best Pr: 0.000216 (plnt_sm, t value -3.699)
+Best Pr: 0.000234 (plnt_sm, t value -3.679)
 
 ```{r}
 lm_fire2 <- lm(
@@ -251,9 +264,9 @@ print(paste("MAE:", mae_fire2))
 
 ```
 
-RMSE: ~25733
-MAE: ~5869
-Best Pr: 5.85e-13 (rx_csum, r value 7.206)
+RMSE: ~25746
+MAE: ~5874
+Best Pr: 0.000404 (plnt_sm, t value -3.538)
 
 ```{r}
 # using rx_rollsum instead of cumulative
@@ -275,29 +288,8 @@ print(paste("MAE:", mae_fire2_roll))
 ```
 
 RMSE: ~25746
-MAE: ~5874
-Best Pr: 0.000391 (plnt_sm, r value -3.546)
-
-```{r}
-lm_fire3 <- lm(
-  max_acres ~
-    (plnt_sm + rx_csum + is_ndgn)^3,
-  data = lim_tg_fire
-)
-
-summary(lm_fire3)
-
-errors_fire3 <- lm_fire3$residuals
-rmse_fire3 <- sqrt(mean(errors_fire3^2))
-mae_fire3 <- mean(abs(errors_fire3))
-
-print(paste("RMSE:", rmse_fire3))
-print(paste("MAE:", mae_fire3))
-```
-
-RMSE: ~25733
-MAE: ~5869
-Best Pr: 4.95e-13 (rx_csum, r value 7.228)
+MAE: ~5875
+Best Pr: 0.000399 (plnt_sm, r value -3.541)
 
 ```{r}
 plot(lm_fire2)

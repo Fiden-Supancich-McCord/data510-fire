@@ -643,7 +643,12 @@ full_tib <- full_tib %>%
     mutate(
         max_acres = max(max_acresmp, max_acrespt, na.rm=TRUE),
         max_duration = max(max_durationmp, max_durationpt, na.rm=TRUE),
-        min_mgmt = min(min_mgmtmp, min_mgmtpt, na.rm=TRUE),
+        min_mgmt = min(min_mgmtmp, min_mgmtpt, na.rm=TRUE)
+    )
+
+full_tib <- full_tib %>%
+    rowwise() %>%
+    mutate(
         max_acres_rx = max(max_acresmp_rx, max_acrespt_rx, na.rm=TRUE),
         max_duration_rx = max(max_durationmp_rx, max_durationpt_rx, na.rm=TRUE),
         min_mgmt_rx = min(min_mgmtmp_rx, min_mgmtpt_rx, na.rm=TRUE)
@@ -660,14 +665,6 @@ full_tib <- full_tib %>%
     )
 
 full_tib <- full_tib %>%
-    rowwise() %>%
-    mutate(
-        n_fires = sum(n_firesmp, n_firespt, na.rm=TRUE),
-        n_rx = sum(n_rxmp, n_rxpt, na.rm=TRUE)
-    ) 
-
-full_tib <- full_tib %>%
-    rowwise() %>%
     mutate(
         max_duration = na_if(max_duration, -Inf),
         max_durationmp = na_if(max_durationmp, -Inf),
@@ -676,6 +673,13 @@ full_tib <- full_tib %>%
         max_durationmp_rx = na_if(max_durationmp_rx, -Inf),
         max_durationpt_rx = na_if(max_durationpt_rx, -Inf)
     )
+
+full_tib <- full_tib %>%
+    rowwise() %>%
+    mutate(
+        n_fires = sum(n_firesmp, n_firespt, na.rm=TRUE),
+        n_rx = sum(n_rxmp, n_rxpt, na.rm=TRUE)
+    ) 
 
 ```
 
@@ -686,14 +690,34 @@ names(time_grid)
 dim(time_grid)
 ```
 
+Adding a rolling sum and cumulative sum for prescribed burns.
+
+```{r}
+library(zoo)
+time_grid <- time_grid %>%
+  group_by(index) %>%
+  mutate(
+    rx_rollsum = rollapply(n_rx, width=2, FUN=sum, partial=TRUE, align='right', na.rm=TRUE),
+    rx_csum = cumsum(n_rx)
+  )
+```
+
+Note: limiting the columns removes the median, as I haven't yet found a way to combine them between pt and mp. Removing those lines of code would likely make things run faster, but for now I'll refrain since it might be reinstated later on. 
+
+```{r}
+time_grid <- time_grid %>%
+    select(-contains("mp")) %>%
+    select(-contains("pt"))
+```
+
 ```{r}
 object.size(time_grid)
 st_write(time_grid, "../DATA-510/time_grid.shp", append=FALSE)
 
-time_grid_tibble <- tibble(time_grid %>% select(-geometry))
+time_grid_tibble <- tibble(time_grid) %>% select(-geometry)
 object.size(time_grid_tibble)
 write_csv(time_grid_tibble, "../DATA-510/time_grid.csv")
 write_csv(time_grid_tibble, "data/processed_grid/time_grid.csv")
 ```
 
-Unfortunately the time grid shapefile is too large to upload to github! This is very sad. We will have to find another solution!
+Unfortunately the time grid shapefile is too large to upload to github! This is very sad. It will instead be a local download. 

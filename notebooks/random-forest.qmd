@@ -1,0 +1,196 @@
+
+Using Python to do a random forest classification
+
+```{python}
+# import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+```
+
+```{python}
+# import data with pandas
+tg = pd.read_csv("../data/processed_grid/time_grid.csv")
+tg.head()
+```
+
+The National Wildfire Coordinating Group (NWCG) has size classifications for wildfires ([link](https://www.nwcg.gov/node/1737420)). We may limit smaller fires (which may represent minor incidents and not actual wildfires), so adding a factor for this classification.
+
+Class A - one-fourth acre or less;
+Class B - more than one-fourth acre, but less than 10 acres;
+Class C - 10 acres or more, but less than 100 acres;
+Class D - 100 acres or more, but less than 300 acres;
+Class E - 300 acres or more, but less than 1,000 acres;
+Class F - 1,000 acres or more, but less than 5,000 acres;
+Class G - 5,000 acres or more.
+
+```{python}
+# categorizing max_acres into class bins
+bins = [0, 0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000]
+labels = ["No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"]
+
+tg['size_class'] = pd.cut(x = tg['max_acres'], bins = bins, labels = labels, include_lowest=True)
+```
+
+```{python}
+# more libraries
+# %pip install scikit-learn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import LabelEncoder
+from sklearn.datasets import make_classification
+from sklearn.model_selection import (
+    train_test_split, cross_val_score, StratifiedKFold
+)
+from sklearn.metrics import accuracy_score, roc_auc_score, r2_score, mean_squared_error
+
+```
+
+```{python}
+# label encoder for target variable
+label_encoder = LabelEncoder()
+target = label_encoder.fit_transform(tg["size_class"])
+
+data = tg[['is_ndgn', 'plnt_sm', 'rx_csum']]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    data, target, test_size=0.2, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf = RandomForestClassifier(random_state=42)
+
+rf.fit(X_train, y_train)
+
+pred = rf.predict(X_test)
+
+print(f"Accuracy: {accuracy_score(y_test, pred):.4f}")
+```
+
+```{python}
+# trying with rolling sum instead of cumulative
+data_r = tg[['is_ndgn', 'plnt_sm', 'rx_rollsum']]
+
+X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(
+    data_r, target, test_size=0.2, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_r = RandomForestClassifier(random_state=42)
+
+rf_r.fit(X_train_r, y_train_r)
+
+pred_r = rf_r.predict(X_test_r)
+
+print(f"Accuracy: {accuracy_score(y_test_r, pred_r):.4f}")
+```
+
+It's the same accuracy with a rolling sum instead of a cumulative sum which seems strange but I guess who am I to judge. 
+
+Trying without plant sum. 
+
+```{python}
+# trying with rolling sum instead of cumulative
+data_np = tg[['is_ndgn', 'rx_csum']]
+
+X_train_np, X_test_np, y_train_np, y_test_np = train_test_split(
+    data_np, target, test_size=0.2, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_np = RandomForestClassifier(random_state=42)
+
+rf_np.fit(X_train_np, y_train_np)
+
+pred_np = rf_np.predict(X_test_np)
+
+print(f"Accuracy: {accuracy_score(y_test_np, pred_np):.4f}")
+```
+
+Looking at feature importance. 
+
+```{python}
+# %pip install shap
+import shap
+```
+
+```{python}
+explainer = shap.TreeExplainer(rf)
+shap_values = explainer.shap_values(data)
+
+# calculate mean absolute SHAP values
+shap_summary = np.abs(shap_values).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list = [np.mean(shap_summary[i]) for i in range(shap_summary.shape[0])]
+
+# list of feature names
+feature_names = ['is_ndgn', 'plnt_sm', 'rx_csum']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df = pd.DataFrame({'Feature': feature_names, 'SHAP values': shap_summary_list})
+
+print(shap_summary_df)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df = pd.DataFrame({'Feature': feature_names, 'Gini Importance': rf.feature_importances_})
+
+print(feature_imp_df)
+```
+
+Feature importance for rolling sum of rx.
+
+```{python}
+feature_names_r = ['is_ndgn', 'plnt_sm', 'rx_rollsum']
+
+# creating dataframe of gini importances
+feature_imp_df_r = pd.DataFrame({'Feature': feature_names_r, 'Gini Importance': rf_r.feature_importances_})
+
+print(feature_imp_df_r)
+```
+
+It appears that the rolling sum is worse! 
+
+Feature importance without plant sum. 
+
+```{python}
+explainer_np = shap.TreeExplainer(rf_np)
+shap_values_np = explainer_np.shap_values(data_np)
+
+# calculate mean absolute SHAP values
+shap_summary_np = np.abs(shap_values_np).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_np = [np.mean(shap_summary_np[i]) for i in range(shap_summary_np.shape[0])]
+
+# list of feature names
+feature_names_np = ['is_ndgn', 'rx_csum']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_np = pd.DataFrame({'Feature': feature_names_np, 'SHAP values': shap_summary_list_np})
+
+print(shap_summary_df_np)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_np = pd.DataFrame({'Feature': feature_names_np, 'Gini Importance': rf_np.feature_importances_})
+
+print(feature_imp_df_np)
+```
+
+In this case, Gini importance and SHAP values do not align! Fascinating. What a world. I need to go to sleep it is now one in the morning. 
