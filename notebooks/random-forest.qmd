@@ -56,7 +56,7 @@ target = label_encoder.fit_transform(tg["size_class"])
 data = tg[['is_ndgn', 'plnt_sm', 'rx_csum']]
 
 X_train, X_test, y_train, y_test = train_test_split(
-    data, target, test_size=0.2, random_state=42
+    data, target, test_size=0.3, random_state=42
 )
 ```
 
@@ -76,7 +76,7 @@ print(f"Accuracy: {accuracy_score(y_test, pred):.4f}")
 data_r = tg[['is_ndgn', 'plnt_sm', 'rx_rollsum']]
 
 X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(
-    data_r, target, test_size=0.2, random_state=42
+    data_r, target, test_size=0.3, random_state=42
 )
 ```
 
@@ -100,7 +100,7 @@ Trying without plant sum.
 data_np = tg[['is_ndgn', 'rx_csum']]
 
 X_train_np, X_test_np, y_train_np, y_test_np = train_test_split(
-    data_np, target, test_size=0.2, random_state=42
+    data_np, target, test_size=0.3, random_state=42
 )
 ```
 
