@@ -48,7 +48,7 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import (
     train_test_split, cross_val_score, StratifiedKFold
 )
-from sklearn.metrics import accuracy_score, roc_auc_score, r2_score, mean_squared_error
+from sklearn.metrics import accuracy_score, f1_score
 
 ```
 
@@ -141,6 +141,167 @@ plt.show()
 ```{python}
 report = classification_report(y_test, pred, labels=n_labs, target_names=labels)
 print(report)
+
+```
+
+## Prior RX and current RX
+
+### Model
+
+```{python}
+tg['rx_prev'] = tg['rx_csum'] - tg['n_rx']
+```
+
+```{python}
+# including cumulative sum of rx fires from previous years and number of rx fires in current year
+data_rx2 = tg[['is_ndgn', 'plnt_sm', 'n_rx', 'rx_prev']]
+
+X_train_rx2, X_test_rx2, y_train_rx2, y_test_rx2 = train_test_split(
+    data_rx2, target, test_size=0.3, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_rx2 = RandomForestClassifier(random_state=42)
+
+rf_rx2.fit(X_train_rx2, y_train_rx2)
+
+pred_rx2 = rf_rx2.predict(X_test_rx2)
+
+print(f"Accuracy: {accuracy_score(y_test_rx2, pred_rx2):.4f}")
+```
+
+### Feature Importance
+
+```{python}
+explainer_rx2 = shap.TreeExplainer(rf_rx2)
+shap_values_rx2 = explainer_rx2.shap_values(data_rx2)
+
+# calculate mean absolute SHAP values
+shap_summary_rx2 = np.abs(shap_values_rx2).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_rx2 = [np.mean(shap_summary_rx2[i]) for i in range(shap_summary_rx2.shape[0])]
+
+# list of feature names
+feature_names_rx2 = ['is_ndgn', 'plnt_sm', 'n_rx', 'rx_prev']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_rx2 = pd.DataFrame({'Feature': feature_names_rx2, 'SHAP values': shap_summary_list_rx2})
+
+print(shap_summary_df_rx2)
+```
+
+More importance for rx_prev than n_rx.
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_rx2 = pd.DataFrame({'Feature': feature_names_rx2, 'Gini Importance': rf_rx2.feature_importances_})
+
+print(feature_imp_df_rx2)
+```
+
+### Metrics
+
+```{python}
+c_matrix_rx2 = confusion_matrix(y_test_rx2, pred_rx2, labels=n_labs)
+print(c_matrix_rx2)
+```
+
+```{python}
+sns.heatmap(c_matrix_rx2, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_rx2 = classification_report(y_test_rx2, pred_rx2, labels=n_labs, target_names=labels)
+print(report_rx2)
+
+```
+
+## Cumulative sum RX with all plant species
+
+### Model
+
+```{python}
+data_plant = tg[['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls',
+       'n_thuja', 'n_xrphy', 'n_rubus', 'rx_csum']]
+
+X_train_plant, X_test_plant, y_train_plant, y_test_plant = train_test_split(
+    data_plant, target, test_size=0.3, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_plant = RandomForestClassifier(random_state=42)
+
+rf_plant.fit(X_train_plant, y_train_plant)
+
+pred_plant = rf_plant.predict(X_test_plant)
+
+print(f"Accuracy: {accuracy_score(y_test_plant, pred_plant):.4f}")
+```
+
+### Feature Importance
+
+```{python}
+explainer_plant = shap.TreeExplainer(rf_plant)
+shap_values_plant = explainer_plant.shap_values(data_plant)
+
+# calculate mean absolute SHAP values
+shap_summary_plant = np.abs(shap_values_plant).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_plant = [np.mean(shap_summary_plant[i]) for i in range(shap_summary_plant.shape[0])]
+
+# list of feature names
+feature_names_plant = ['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls',
+       'n_thuja', 'n_xrphy', 'n_rubus', 'rx_csum']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_plant = pd.DataFrame({'Feature': feature_names_plant, 'SHAP values': shap_summary_list_plant})
+
+print(shap_summary_df_plant)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_plant = pd.DataFrame({'Feature': feature_names_plant, 'Gini Importance': rf_plant.feature_importances_})
+
+print(feature_imp_df_plant)
+```
+
+### Metrics
+
+```{python}
+c_matrix_plant = confusion_matrix(y_test_plant, pred_plant, labels=n_labs)
+print(c_matrix_plant)
+```
+
+```{python}
+sns.heatmap(c_matrix_plant, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_plant = classification_report(y_test_plant, pred_plant, labels=n_labs, target_names=labels)
+print(report_plant)
 
 ```
 
@@ -458,7 +619,7 @@ Limiting to 2020 and beyond, as before that there weren't any recorded prescribe
 ```{python}
 tg_fire = tg[(tg['sum_fires'] > 0) | (tg['sum_rx'] > 0)]
 tg_fire_cur = tg_fire[tg['year']>=2020]
-data_fire_cur = tg_fire_cur[['is_ndgn', 'plnt_sm', 'rx_csum']]
+data_fire_cur = tg_fire_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'n_rx']]
 
 target_fire_cur = label_encoder.fit_transform(tg_fire_cur["size_class"])
 
@@ -480,6 +641,8 @@ print(f"Accuracy: {accuracy_score(y_test_fire_cur, pred_fire_cur):.4f}")
 
 This is worse than previous models (possibly because the data is less skewed? will check other metrics soon). Accuracy is 0.7841 with plant sums, 0.7857 without. 
 
+Using both rx_prev and n_rx instead of rx_csum, the accuracy is 0.7837.
+
 ### Feature importance
 
 ```{python}
@@ -492,8 +655,7 @@ shap_summary_fire_cur = np.abs(shap_values_fire_cur).mean(axis=0)
 # list to store shap values for each feature
 shap_summary_list_fire_cur = [np.mean(shap_summary_fire_cur[i]) for i in range(shap_summary_fire_cur.shape[0])]
 
-# list of feature names
-feature_names_fire_cur = ['is_ndgn', 'plnt_sm', 'rx_csum']
+feature_names_fire_cur = ['is_ndgn', 'plnt_sm', 'rx_prev', 'n_rx']
 
 # dataframe using 1d list of SHAP values
 shap_summary_df_fire_cur = pd.DataFrame({'Feature': feature_names_fire_cur, 'SHAP values': shap_summary_list_fire_cur})
@@ -623,23 +785,15 @@ Based on classification report, so far current fire and the first one have been 
 
 # Optuna tuning best models
 
-optimize for macro avg or weighted avg or something, not regular accuracy because that doesn't work augh
+Optimizing for macro average f1 score. 
 
 ```{python}
-%pip install optuna
+# %pip install optuna
 import optuna
 optuna.logging.set_verbosity(optuna.logging.INFO)
 ```
 
-## Original (all data, using rx_csum, is_ndgn, plnt_sm)
-
 ```{python}
-# with optuna tuning
-# pulled from prof.cheng's code
-X_tr, X_val, y_tr, y_val = train_test_split(
-    X_train, y_train, test_size=0.3, random_state=42
-)
-
 def tune_random_forest_optuna(X_train, y_train, X_test, y_test, n_trials=100):
     """
     Random Forest tuning with Optuna (Multi-class support)
@@ -661,9 +815,10 @@ def tune_random_forest_optuna(X_train, y_train, X_test, y_test, n_trials=100):
 
         y_pred = model.predict(X_test)
 
-        accuracy = accuracy_score(y_test, y_pred)
+        #accuracy = accuracy_score(y_test, y_pred)
+        macro_f1 = f1_score(y_test, y_pred, average='macro')
 
-        return accuracy
+        return macro_f1
 
     study = optuna.create_study(
         direction='maximize',
@@ -677,13 +832,25 @@ def tune_random_forest_optuna(X_train, y_train, X_test, y_test, n_trials=100):
         callbacks=[
             lambda study, trial: print(
                 f"  Trial {trial.number}: "
-                f"Accuracy={trial.value:.4f}"
+                f"F1={trial.value:.4f}"
                 if trial.number % 10 == 0 else None
             )
         ]
     )
 
     return study
+
+```
+
+## Original (all data, using rx_csum, is_ndgn, plnt_sm)
+
+```{python}
+# with optuna tuning
+# pulled from prof.cheng's code
+X_tr, X_val, y_tr, y_val = train_test_split(
+    X_train, y_train, test_size=0.3, random_state=42
+)
+
 print("Tuning Random Forest with Optuna...")
 print("-" * 55)
 rf_study = tune_random_forest_optuna(
@@ -696,7 +863,7 @@ for key, value in rf_study.best_params.items():
         print(f"  {key}: {value:.6f}")
     else:
         print(f"  {key}: {value}")
-print(f"\n  Best Accuracy: {rf_study.best_value:.4f}")
+print(f"\n  Best F1: {rf_study.best_value:.4f}")
 
 ```
 
@@ -729,12 +896,64 @@ print(report_t)
 
 ```
 
-## Fire current
+## Double RX (using rx_csum and n_rx)
 
 ```{python}
-# X_train_fire_cur, X_test_fire_cur, y_train_fire_cur, y_test_fire_cur
 # with optuna tuning
 # pulled from prof.cheng's code
+X_tr_rx2, X_val_rx2, y_tr_rx2, y_val_rx2 = train_test_split(
+    X_train_rx2, y_train_rx2, test_size=0.3, random_state=42
+)
+
+print("Tuning Random Forest with Optuna...")
+print("-" * 55)
+rf_study_rx2 = tune_random_forest_optuna(
+    X_tr_rx2, y_tr_rx2, X_val_rx2, y_val_rx2, n_trials=100
+)
+print(f"\n Best Random Forest Parameters:")
+print("=" * 100)
+for key, value in rf_study_rx2.best_params.items():
+    if isinstance(value, float):
+        print(f"  {key}: {value:.6f}")
+    else:
+        print(f"  {key}: {value}")
+print(f"\n  Best F1: {rf_study_rx2.best_value:.4f}")
+
+```
+
+```{python}
+rf_t_rx2 = RandomForestClassifier(**rf_study_rx2.best_params)
+rf_t_rx2.fit(X_train_rx2, y_train_rx2)
+pred_t_rx2 = rf_t_rx2.predict(X_test_rx2)
+
+print(f"Accuracy: {accuracy_score(pred_t_rx2, y_test_rx2):.4f}")
+```
+
+```{python}
+c_matrix_t_rx2 = confusion_matrix(y_test_rx2, pred_t_rx2, labels=n_labs)
+print(c_matrix_t_rx2)
+```
+
+```{python}
+sns.heatmap(c_matrix_t_rx2, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_t_rx2 = classification_report(y_test_rx2, pred_t_rx2, labels=n_labs, target_names=labels)
+print(report_t_rx2)
+
+```
+
+## Fire current (using rx_prev and n_rx)
+
+```{python}
+# with optuna tuning
 X_tr_fc, X_val_fc, y_tr_fc, y_val_fc = train_test_split(
     X_train_fire_cur, y_train_fire_cur, test_size=0.3, random_state=42
 )
@@ -751,7 +970,7 @@ for key, value in rf_study.best_params.items():
         print(f"  {key}: {value:.6f}")
     else:
         print(f"  {key}: {value}")
-print(f"\n  Best Accuracy: {rf_study.best_value:.4f}")
+print(f"\n  Best F1: {rf_fc_study.best_value:.4f}")
 
 ```
 

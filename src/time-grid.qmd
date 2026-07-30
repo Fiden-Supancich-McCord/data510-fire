@@ -717,6 +717,15 @@ Note: limiting the columns removes the median, as I haven't yet found a way to c
 
 ```{r}
 time_grid <- time_grid %>%
+    mutate(size_class = cut(
+        max_acres, 
+        breaks=c(-0.01, 0, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000),
+        labels = c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G")
+    ))
+```
+
+```{r}
+time_grid <- time_grid %>%
     select(-contains("mp")) %>%
     select(-contains("pt"))
 ```
