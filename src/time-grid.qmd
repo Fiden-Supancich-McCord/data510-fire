@@ -702,6 +702,17 @@ time_grid <- time_grid %>%
   )
 ```
 
+Adding sum by index of wildfires and prescribed burns (to be able to sort by whether a cell has had any fire in it).
+
+```{r}
+time_grid <- time_grid %>%
+  group_by(index) %>%
+  mutate(
+    sum_fires = sum(n_fires),
+    sum_rx = sum(n_rx)
+  )
+```
+
 Note: limiting the columns removes the median, as I haven't yet found a way to combine them between pt and mp. Removing those lines of code would likely make things run faster, but for now I'll refrain since it might be reinstated later on. 
 
 ```{r}

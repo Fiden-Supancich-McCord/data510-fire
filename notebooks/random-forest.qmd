@@ -16,6 +16,8 @@ tg = pd.read_csv("../data/processed_grid/time_grid.csv")
 tg.head()
 ```
 
+## Creating size_class feature
+
 The National Wildfire Coordinating Group (NWCG) has size classifications for wildfires ([link](https://www.nwcg.gov/node/1737420)). We may limit smaller fires (which may represent minor incidents and not actual wildfires), so adding a factor for this classification.
 
 Class A - one-fourth acre or less;
@@ -34,6 +36,8 @@ labels = ["No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Cla
 tg['size_class'] = pd.cut(x = tg['max_acres'], bins = bins, labels = labels, include_lowest=True)
 ```
 
+# Random Forest Classifier
+
 ```{python}
 # more libraries
 # %pip install scikit-learn
@@ -47,6 +51,10 @@ from sklearn.model_selection import (
 from sklearn.metrics import accuracy_score, roc_auc_score, r2_score, mean_squared_error
 
 ```
+
+## Cumulative sum RX
+
+### Model
 
 ```{python}
 # label encoder for target variable
@@ -71,51 +79,7 @@ pred = rf.predict(X_test)
 print(f"Accuracy: {accuracy_score(y_test, pred):.4f}")
 ```
 
-```{python}
-# trying with rolling sum instead of cumulative
-data_r = tg[['is_ndgn', 'plnt_sm', 'rx_rollsum']]
-
-X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(
-    data_r, target, test_size=0.3, random_state=42
-)
-```
-
-```{python}
-# random forest classifier with defaults
-rf_r = RandomForestClassifier(random_state=42)
-
-rf_r.fit(X_train_r, y_train_r)
-
-pred_r = rf_r.predict(X_test_r)
-
-print(f"Accuracy: {accuracy_score(y_test_r, pred_r):.4f}")
-```
-
-It's the same accuracy with a rolling sum instead of a cumulative sum which seems strange but I guess who am I to judge. 
-
-Trying without plant sum. 
-
-```{python}
-# trying with rolling sum instead of cumulative
-data_np = tg[['is_ndgn', 'rx_csum']]
-
-X_train_np, X_test_np, y_train_np, y_test_np = train_test_split(
-    data_np, target, test_size=0.3, random_state=42
-)
-```
-
-```{python}
-# random forest classifier with defaults
-rf_np = RandomForestClassifier(random_state=42)
-
-rf_np.fit(X_train_np, y_train_np)
-
-pred_np = rf_np.predict(X_test_np)
-
-print(f"Accuracy: {accuracy_score(y_test_np, pred_np):.4f}")
-```
-
-Looking at feature importance. 
+### Feature Importance
 
 ```{python}
 # %pip install shap
@@ -150,6 +114,66 @@ feature_imp_df = pd.DataFrame({'Feature': feature_names, 'Gini Importance': rf.f
 print(feature_imp_df)
 ```
 
+### Metrics
+
+```{python}
+from sklearn.metrics import confusion_matrix, classification_report
+
+```
+
+```{python}
+n_labs = np.arange(7,-1,-1)
+
+c_matrix = confusion_matrix(y_test, pred, labels=n_labs)
+print(c_matrix)
+```
+
+```{python}
+sns.heatmap(c_matrix, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report = classification_report(y_test, pred, labels=n_labs, target_names=labels)
+print(report)
+
+```
+
+## Rolling sum RX
+
+Using rolling sum instead of cumulative. 
+
+### Model
+
+```{python}
+# trying with rolling sum instead of cumulative
+data_r = tg[['is_ndgn', 'plnt_sm', 'rx_rollsum']]
+
+X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(
+    data_r, target, test_size=0.3, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_r = RandomForestClassifier(random_state=42)
+
+rf_r.fit(X_train_r, y_train_r)
+
+pred_r = rf_r.predict(X_test_r)
+
+print(f"Accuracy: {accuracy_score(y_test_r, pred_r):.4f}")
+```
+
+It's the same accuracy with a rolling sum instead of a cumulative sum which seems strange but I guess who am I to judge. 
+
+### Feature Importance
+
 Feature importance for rolling sum of rx.
 
 ```{python}
@@ -162,6 +186,55 @@ print(feature_imp_df_r)
 ```
 
 It appears that the rolling sum is worse! 
+
+### Metrics
+
+```{python}
+c_matrix_r = confusion_matrix(y_test_r, pred_r, labels=n_labs)
+print(c_matrix_r)
+```
+
+```{python}
+sns.heatmap(c_matrix_r, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_r = classification_report(y_test_r, pred_r, labels=n_labs, target_names=labels)
+print(report_r)
+
+```
+
+## Modeling without plant sum
+
+Trying without plant sum. 
+
+```{python}
+# trying with rolling sum instead of cumulative
+data_np = tg[['is_ndgn', 'rx_csum']]
+
+X_train_np, X_test_np, y_train_np, y_test_np = train_test_split(
+    data_np, target, test_size=0.3, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_np = RandomForestClassifier(random_state=42)
+
+rf_np.fit(X_train_np, y_train_np)
+
+pred_np = rf_np.predict(X_test_np)
+
+print(f"Accuracy: {accuracy_score(y_test_np, pred_np):.4f}")
+```
+
+### Feature Importance
 
 Feature importance without plant sum. 
 
@@ -194,3 +267,356 @@ print(feature_imp_df_np)
 ```
 
 In this case, Gini importance and SHAP values do not align! Fascinating. What a world. I need to go to sleep it is now one in the morning. 
+
+### Metrics
+
+```{python}
+c_matrix_np = confusion_matrix(y_test_np, pred_np, labels=n_labs)
+print(c_matrix_np)
+```
+
+```{python}
+sns.heatmap(c_matrix_np, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_np = classification_report(y_test_np, pred_np, labels=n_labs, target_names=labels)
+print(report_np)
+
+```
+
+## 2020-2025 only
+
+Limiting to 2020 and beyond, as before that there weren't any recorded prescribed burns. 
+
+```{python}
+# label encoder for target variable
+tg_cur = tg[tg['year']>=2020]
+target_cur = label_encoder.fit_transform(tg_cur["size_class"])
+
+data_cur = tg_cur[['is_ndgn', 'plnt_sm', 'rx_csum']]
+
+X_train_cur, X_test_cur, y_train_cur, y_test_cur = train_test_split(
+    data_cur, target_cur, test_size=0.3, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_cur = RandomForestClassifier(random_state=42)
+
+rf_cur.fit(X_train_cur, y_train_cur)
+
+pred_cur = rf_cur.predict(X_test_cur)
+
+print(f"Accuracy: {accuracy_score(y_test_cur, pred_cur):.4f}")
+```
+
+### Feature importance
+
+```{python}
+explainer_cur = shap.TreeExplainer(rf_cur)
+shap_values_cur = explainer_cur.shap_values(data_cur)
+
+# calculate mean absolute SHAP values
+shap_summary_cur = np.abs(shap_values_cur).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_cur = [np.mean(shap_summary_cur[i]) for i in range(shap_summary_cur.shape[0])]
+
+# list of feature names
+feature_names_cur = ['is_ndgn', 'plnt_sm','rx_csum']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_cur = pd.DataFrame({'Feature': feature_names_cur, 'SHAP values': shap_summary_list_cur})
+
+print(shap_summary_df_cur)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_cur = pd.DataFrame({'Feature': feature_names_cur, 'Gini Importance': rf_cur.feature_importances_})
+
+print(feature_imp_df_cur)
+```
+
+### Metrics
+
+```{python}
+c_matrix_cur = confusion_matrix(y_test_cur, pred_cur, labels=n_labs)
+print(c_matrix_cur)
+```
+
+```{python}
+sns.heatmap(c_matrix_cur, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_cur = classification_report(y_test_cur, pred_cur, labels=n_labs, target_names=labels)
+print(report_cur)
+
+```
+
+## 2020-2025 only without plant sum
+
+Limiting to 2020 and beyond, as before that there weren't any recorded prescribed burns. 
+
+```{python}
+data_cur_np = tg_cur[['is_ndgn', 'rx_csum']]
+
+X_train_cur_np, X_test_cur_np, y_train_cur_np, y_test_cur_np = train_test_split(
+    data_cur_np, target_cur, test_size=0.3, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_cur_np = RandomForestClassifier(random_state=42)
+
+rf_cur_np.fit(X_train_cur_np, y_train_cur_np)
+
+pred_cur_np = rf_cur_np.predict(X_test_cur_np)
+
+print(f"Accuracy: {accuracy_score(y_test_cur_np, pred_cur_np):.4f}")
+```
+
+Slightly more accurate than with plant information! Fascinating!
+
+### Feature importance
+
+```{python}
+explainer_cur_np = shap.TreeExplainer(rf_cur_np)
+shap_values_cur_np = explainer_cur_np.shap_values(data_cur_np)
+
+# calculate mean absolute SHAP values
+shap_summary_cur_np = np.abs(shap_values_cur_np).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_cur_np = [np.mean(shap_summary_cur_np[i]) for i in range(shap_summary_cur_np.shape[0])]
+
+# list of feature names
+feature_names_cur_np = ['is_ndgn', 'rx_csum']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_cur_np = pd.DataFrame({'Feature': feature_names_cur_np, 'SHAP values': shap_summary_list_cur_np})
+
+print(shap_summary_df_cur_np)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_cur_np = pd.DataFrame({'Feature': feature_names_cur_np, 'Gini Importance': rf_cur_np.feature_importances_})
+
+print(feature_imp_df_cur_np)
+```
+
+Most of the feature importance is coming from rx cumulative sum, and is somewhat even between SHAP and Gini. 
+
+### Metrics
+
+```{python}
+c_matrix_cur_np = confusion_matrix(y_test_cur_np, pred_cur_np, labels=n_labs)
+print(c_matrix_cur_np)
+```
+
+```{python}
+sns.heatmap(c_matrix_cur_np, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_cur_np = classification_report(y_test_cur_np, pred_cur_np, labels=n_labs, target_names=labels)
+print(report_cur_np)
+
+```
+
+## 2020-2025, only including cells that have had wildfires/prescribed burns since 2015
+
+Limiting to 2020 and beyond, as before that there weren't any recorded prescribed burns. 
+
+```{python}
+tg_fire = tg[(tg['sum_fires'] > 0) | (tg['sum_rx'] > 0)]
+tg_fire_cur = tg_fire[tg['year']>=2020]
+data_fire_cur = tg_fire_cur[['is_ndgn', 'plnt_sm', 'rx_csum']]
+
+target_fire_cur = label_encoder.fit_transform(tg_fire_cur["size_class"])
+
+X_train_fire_cur, X_test_fire_cur, y_train_fire_cur, y_test_fire_cur = train_test_split(
+    data_fire_cur, target_fire_cur, test_size=0.3, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_fire_cur = RandomForestClassifier(random_state=42)
+
+rf_fire_cur.fit(X_train_fire_cur, y_train_fire_cur)
+
+pred_fire_cur = rf_fire_cur.predict(X_test_fire_cur)
+
+print(f"Accuracy: {accuracy_score(y_test_fire_cur, pred_fire_cur):.4f}")
+```
+
+This is worse than previous models (possibly because the data is less skewed? will check other metrics soon). Accuracy is 0.7841 with plant sums, 0.7857 without. 
+
+### Feature importance
+
+```{python}
+explainer_fire_cur = shap.TreeExplainer(rf_fire_cur)
+shap_values_fire_cur = explainer_fire_cur.shap_values(data_fire_cur)
+
+# calculate mean absolute SHAP values
+shap_summary_fire_cur = np.abs(shap_values_fire_cur).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_fire_cur = [np.mean(shap_summary_fire_cur[i]) for i in range(shap_summary_fire_cur.shape[0])]
+
+# list of feature names
+feature_names_fire_cur = ['is_ndgn', 'plnt_sm', 'rx_csum']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_fire_cur = pd.DataFrame({'Feature': feature_names_fire_cur, 'SHAP values': shap_summary_list_fire_cur})
+
+print(shap_summary_df_fire_cur)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_fire_cur = pd.DataFrame({'Feature': feature_names_fire_cur, 'Gini Importance': rf_fire_cur.feature_importances_})
+
+print(feature_imp_df_fire_cur)
+```
+
+When plant sum is included, Gini importance is 0.922344 plnt_sm. 
+
+Without plant sum, SHAP values and Gini importance are again misaligned - for Gini, 0.731176 is rx_csum. 
+
+### Metrics
+
+```{python}
+c_matrix_fire_cur = confusion_matrix(y_test_fire_cur, pred_fire_cur, labels=n_labs)
+print(c_matrix_fire_cur)
+```
+
+```{python}
+sns.heatmap(c_matrix_fire_cur, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_fire_cur = classification_report(y_test_fire_cur, pred_fire_cur, labels=n_labs, target_names=labels)
+print(report_fire_cur)
+
+```
+
+## All years, only including cells that have had wildfires/prescribed burns
+
+```{python}
+data_fire = tg_fire[['is_ndgn', 'plnt_sm', 'rx_csum']]
+
+target_fire = label_encoder.fit_transform(tg_fire["size_class"])
+
+X_train_fire, X_test_fire, y_train_fire, y_test_fire = train_test_split(
+    data_fire, target_fire, test_size=0.3, random_state=42
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_fire = RandomForestClassifier(random_state=42)
+
+rf_fire.fit(X_train_fire, y_train_fire)
+
+pred_fire = rf_fire.predict(X_test_fire)
+
+print(f"Accuracy: {accuracy_score(y_test_fire, pred_fire):.4f}")
+```
+
+This is worse than previous models (possibly because the data is less skewed? will check other metrics soon). Accuracy is 0.7841 with plant sums, 0.7857 without. 
+
+### Feature importance
+
+```{python}
+explainer_fire = shap.TreeExplainer(rf_fire)
+shap_values_fire = explainer_fire.shap_values(data_fire)
+
+# calculate mean absolute SHAP values
+shap_summary_fire = np.abs(shap_values_fire).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_fire = [np.mean(shap_summary_fire[i]) for i in range(shap_summary_fire.shape[0])]
+
+# list of feature names
+feature_names_fire = ['is_ndgn', 'plnt_sm', 'rx_csum']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_fire = pd.DataFrame({'Feature': feature_names_fire, 'SHAP values': shap_summary_list_fire})
+
+print(shap_summary_df_fire)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_fire = pd.DataFrame({'Feature': feature_names_fire, 'Gini Importance': rf_fire.feature_importances_})
+
+print(feature_imp_df_fire)
+```
+
+When plant sum is included, Gini importance is 0.922344 plnt_sm. 
+
+Without plant sum, SHAP values and Gini importance are again misaligned - for Gini, 0.731176 is rx_csum. 
+
+### Metrics
+
+```{python}
+c_matrix_fire = confusion_matrix(y_test_fire, pred_fire, labels=n_labs)
+print(c_matrix_fire)
+```
+
+```{python}
+sns.heatmap(c_matrix_fire, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_fire = classification_report(y_test_fire, pred_fire, labels=n_labs, target_names=labels)
+print(report_fire)
+
+```
+
+Based on classification report, so far current fire and the first one have been best at classifying classes that are not "No fire". Still quite bad at it, but a bit better. May try an XGBoost shortly.
