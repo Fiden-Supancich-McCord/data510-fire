@@ -620,3 +620,166 @@ print(report_fire)
 ```
 
 Based on classification report, so far current fire and the first one have been best at classifying classes that are not "No fire". Still quite bad at it, but a bit better. May try an XGBoost shortly.
+
+# Optuna tuning best models
+
+optimize for macro avg or weighted avg or something, not regular accuracy because that doesn't work augh
+
+```{python}
+%pip install optuna
+import optuna
+optuna.logging.set_verbosity(optuna.logging.INFO)
+```
+
+## Original (all data, using rx_csum, is_ndgn, plnt_sm)
+
+```{python}
+# with optuna tuning
+# pulled from prof.cheng's code
+X_tr, X_val, y_tr, y_val = train_test_split(
+    X_train, y_train, test_size=0.3, random_state=42
+)
+
+def tune_random_forest_optuna(X_train, y_train, X_test, y_test, n_trials=100):
+    """
+    Random Forest tuning with Optuna (Multi-class support)
+    """
+    def objective(trial):
+        params = {
+            'n_estimators': trial.suggest_int('n_estimators', 100, 500),
+            'max_features': trial.suggest_categorical('max_features', ['sqrt', 'log2']),
+            'max_depth': trial.suggest_int('max_depth', 5, 100),
+            'min_samples_split': trial.suggest_int('min_samples_split', 2, 10),
+            'min_samples_leaf': trial.suggest_int('min_samples_leaf', 1, 4),
+
+            'random_state': 42
+        }
+
+        model = RandomForestClassifier(**params)
+
+        model.fit(X_train, y_train)
+
+        y_pred = model.predict(X_test)
+
+        accuracy = accuracy_score(y_test, y_pred)
+
+        return accuracy
+
+    study = optuna.create_study(
+        direction='maximize',
+        study_name='random_forest_tuning',
+        sampler=optuna.samplers.TPESampler(seed=42)
+    )
+
+    study.optimize(
+        objective, n_trials=n_trials,
+        show_progress_bar=True,
+        callbacks=[
+            lambda study, trial: print(
+                f"  Trial {trial.number}: "
+                f"Accuracy={trial.value:.4f}"
+                if trial.number % 10 == 0 else None
+            )
+        ]
+    )
+
+    return study
+print("Tuning Random Forest with Optuna...")
+print("-" * 55)
+rf_study = tune_random_forest_optuna(
+    X_tr, y_tr, X_val, y_val, n_trials=100
+)
+print(f"\n Best Random Forest Parameters:")
+print("=" * 100)
+for key, value in rf_study.best_params.items():
+    if isinstance(value, float):
+        print(f"  {key}: {value:.6f}")
+    else:
+        print(f"  {key}: {value}")
+print(f"\n  Best Accuracy: {rf_study.best_value:.4f}")
+
+```
+
+```{python}
+rf_t = RandomForestClassifier(**rf_study.best_params)
+rf_t.fit(X_train, y_train)
+pred_t = rf_t.predict(X_test)
+
+print(f"Accuracy: {accuracy_score(pred_t, y_test):.4f}")
+```
+
+```{python}
+c_matrix_t = confusion_matrix(y_test, pred_t, labels=n_labs)
+print(c_matrix_t)
+```
+
+```{python}
+sns.heatmap(c_matrix_t, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_t = classification_report(y_test, pred_t, labels=n_labs, target_names=labels)
+print(report_t)
+
+```
+
+## Fire current
+
+```{python}
+# X_train_fire_cur, X_test_fire_cur, y_train_fire_cur, y_test_fire_cur
+# with optuna tuning
+# pulled from prof.cheng's code
+X_tr_fc, X_val_fc, y_tr_fc, y_val_fc = train_test_split(
+    X_train_fire_cur, y_train_fire_cur, test_size=0.3, random_state=42
+)
+
+print("Tuning Random Forest with Optuna...")
+print("-" * 55)
+rf_fc_study = tune_random_forest_optuna(
+    X_tr_fc, y_tr_fc, X_val_fc, y_val_fc, n_trials=100
+)
+print(f"\n Best Random Forest Parameters:")
+print("=" * 100)
+for key, value in rf_study.best_params.items():
+    if isinstance(value, float):
+        print(f"  {key}: {value:.6f}")
+    else:
+        print(f"  {key}: {value}")
+print(f"\n  Best Accuracy: {rf_study.best_value:.4f}")
+
+```
+
+```{python}
+rf_fc_t = RandomForestClassifier(**rf_fc_study.best_params)
+rf_fc_t.fit(X_train_fire_cur, y_train_fire_cur)
+pred_fc_t = rf_fc_t.predict(X_test_fire_cur)
+
+print(f"Accuracy: {accuracy_score(pred_fc_t, y_test_fire_cur):.4f}")
+```
+
+```{python}
+c_matrix_fc_t = confusion_matrix(y_test_fire_cur, pred_fc_t, labels=n_labs)
+print(c_matrix_fc_t)
+```
+
+```{python}
+sns.heatmap(c_matrix_fc_t, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_fc_t = classification_report(y_test_fire_cur, pred_fc_t, labels=n_labs, target_names=labels)
+print(report_fc_t)
+
+```
