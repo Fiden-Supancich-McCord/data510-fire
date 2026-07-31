@@ -30,10 +30,10 @@ Class G - 5,000 acres or more.
 
 ```{python}
 # categorizing max_acres into class bins
-bins = [0, 0.01, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000]
+bins = [-0.1, 0, 0.25, 9.99, 99.99, 299.99, 999.99, 4999.99, 9000000]
 labels = ["No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"]
 
-tg['size_class'] = pd.cut(x = tg['max_acres'], bins = bins, labels = labels, include_lowest=True)
+tg['size_class'] = pd.cut(x = tg['max_acres'], bins = bins, labels = labels, include_lowest=False)
 ```
 
 # Random Forest Classifier
@@ -707,7 +707,7 @@ data_fire = tg_fire[['is_ndgn', 'plnt_sm', 'rx_csum']]
 target_fire = label_encoder.fit_transform(tg_fire["size_class"])
 
 X_train_fire, X_test_fire, y_train_fire, y_test_fire = train_test_split(
-    data_fire, target_fire, test_size=0.3, random_state=42
+    data_fire, target_fire, test_size=0.3, random_state=42, stratify=target_fire
 )
 ```
 
@@ -783,6 +783,101 @@ print(report_fire)
 
 Based on classification report, so far current fire and the first one have been best at classifying classes that are not "No fire". Still quite bad at it, but a bit better. May try an XGBoost shortly.
 
+## ONLY FIRES Prior RX and current RX
+
+### Model
+
+```{python}
+tg_only_fire = tg[tg['n_fires']>0]
+```
+
+```{python}
+tg_only_fire[tg_only_fire['size_class']=="No fire"]['max_acres']
+```
+
+```{python}
+tg_only_fire_cur = tg_only_fire[tg_only_fire['year']>=2020]
+```
+
+```{python}
+# including cumulative sum of rx fires from previous years and number of rx fires in current year
+data_only_fire = tg_only_fire_cur[['is_ndgn', 'plnt_sm', 'n_rx', 'rx_prev']]
+
+target_only_fire = label_encoder.fit_transform(tg_only_fire_cur["size_class"])
+
+X_train_of, X_test_of, y_train_of, y_test_of = train_test_split(
+    data_only_fire, target_only_fire, test_size=0.3, random_state=42, stratify=target_only_fire
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_of = RandomForestClassifier(random_state=42)
+
+rf_of.fit(X_train_of, y_train_of)
+
+pred_of = rf_of.predict(X_test_of)
+
+print(f"Accuracy: {accuracy_score(y_test_of, pred_of):.4f}")
+```
+
+### Feature Importance
+
+```{python}
+explainer_of = shap.TreeExplainer(rf_of)
+shap_values_of = explainer_of.shap_values(data_only_fire)
+
+# calculate mean absolute SHAP values
+shap_summary_of = np.abs(shap_values_of).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_of = [np.mean(shap_summary_of[i]) for i in range(shap_summary_of.shape[0])]
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_of = pd.DataFrame({'Feature': feature_names_rx2, 'SHAP values': shap_summary_list_of})
+
+print(shap_summary_df_of)
+```
+
+More importance for rx_prev than n_rx.
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_of = pd.DataFrame({'Feature': feature_names_rx2, 'Gini Importance': rf_of.feature_importances_})
+
+print(feature_imp_df_of)
+```
+
+### Metrics
+
+```{python}
+precision = precision_score(y_test_of, pred_of, average='weighted', zero_division=0.0)
+print(precision)
+```
+
+```{python}
+c_matrix_of = confusion_matrix(y_test_of, pred_of, labels=n_labs)
+print(c_matrix_of)
+```
+
+```{python}
+sns.heatmap(c_matrix_of, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_of = classification_report(y_test_of, pred_of, labels=n_labs, target_names=labels)
+print(report_of)
+
+```
+
 # Optuna tuning best models
 
 Optimizing for macro average f1 score. 
@@ -794,7 +889,11 @@ optuna.logging.set_verbosity(optuna.logging.INFO)
 ```
 
 ```{python}
-def tune_random_forest_optuna(X_train, y_train, X_test, y_test, n_trials=100):
+from sklearn.metrics import precision_score
+```
+
+```{python}
+def tune_random_forest_optuna(X_train, y_train, X_test, y_test, labels=labels, n_trials=100):
     """
     Random Forest tuning with Optuna (Multi-class support)
     """
@@ -816,9 +915,10 @@ def tune_random_forest_optuna(X_train, y_train, X_test, y_test, n_trials=100):
         y_pred = model.predict(X_test)
 
         #accuracy = accuracy_score(y_test, y_pred)
-        macro_f1 = f1_score(y_test, y_pred, average='macro')
+        #macro_f1 = f1_score(y_test, y_pred, average='macro')
+        precision = precision_score(y_test, y_pred, average='macro', zero_division=0.0)
 
-        return macro_f1
+        return precision
 
     study = optuna.create_study(
         direction='maximize',
@@ -965,7 +1065,7 @@ rf_fc_study = tune_random_forest_optuna(
 )
 print(f"\n Best Random Forest Parameters:")
 print("=" * 100)
-for key, value in rf_study.best_params.items():
+for key, value in rf_fc_study.best_params.items():
     if isinstance(value, float):
         print(f"  {key}: {value:.6f}")
     else:
@@ -1000,5 +1100,58 @@ plt.show()
 ```{python}
 report_fc_t = classification_report(y_test_fire_cur, pred_fc_t, labels=n_labs, target_names=labels)
 print(report_fc_t)
+
+```
+
+## Only fires, 2020-2025
+
+```{python}
+# with optuna tuning
+X_tr_of, X_val_of, y_tr_of, y_val_of = train_test_split(
+    X_train_of, y_train_of, test_size=0.3, random_state=42, stratify=y_train_of
+)
+
+print("Tuning Random Forest with Optuna...")
+print("-" * 55)
+rf_of_study = tune_random_forest_optuna(
+    X_tr_of, y_tr_of, X_val_of, y_val_of, n_trials=100
+)
+print(f"\n Best Random Forest Parameters:")
+print("=" * 100)
+for key, value in rf_of_study.best_params.items():
+    if isinstance(value, float):
+        print(f"  {key}: {value:.6f}")
+    else:
+        print(f"  {key}: {value}")
+print(f"\n  Best F1: {rf_of_study.best_value:.4f}")
+
+```
+
+```{python}
+rf_of_t = RandomForestClassifier(**rf_of_study.best_params)
+rf_of_t.fit(X_train_of, y_train_of)
+pred_of_t = rf_of_t.predict(X_test_of)
+
+print(f"Accuracy: {accuracy_score(pred_of_t, y_test_of):.4f}")
+```
+
+```{python}
+c_matrix_of_t = confusion_matrix(y_test_of, pred_of_t, labels=n_labs)
+print(c_matrix_of_t)
+```
+
+```{python}
+sns.heatmap(c_matrix_of_t, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_of_t = classification_report(y_test_of, pred_of_t, labels=n_labs, target_names=labels)
+print(report_of_t)
 
 ```
