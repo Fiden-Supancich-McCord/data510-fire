@@ -916,7 +916,7 @@ def tune_random_forest_optuna(X_train, y_train, X_test, y_test, labels=labels, n
 
         #accuracy = accuracy_score(y_test, y_pred)
         #macro_f1 = f1_score(y_test, y_pred, average='macro')
-        precision = precision_score(y_test, y_pred, average='macro', zero_division=0.0)
+        precision = precision_score(y_test, y_pred, average='weighted', zero_division=0.0)
 
         return precision
 
@@ -932,7 +932,7 @@ def tune_random_forest_optuna(X_train, y_train, X_test, y_test, labels=labels, n
         callbacks=[
             lambda study, trial: print(
                 f"  Trial {trial.number}: "
-                f"F1={trial.value:.4f}"
+                f"Score={trial.value:.4f}"
                 if trial.number % 10 == 0 else None
             )
         ]
@@ -1106,6 +1106,16 @@ print(report_fc_t)
 ## Only fires, 2020-2025
 
 ```{python}
+data_only_fire = tg_only_fire_cur[['is_ndgn', 'n_rx', 'rx_prev']]
+
+target_only_fire = label_encoder.fit_transform(tg_only_fire_cur["size_class"])
+
+X_train_of, X_test_of, y_train_of, y_test_of = train_test_split(
+    data_only_fire, target_only_fire, test_size=0.3, random_state=42, stratify=target_only_fire
+)
+```
+
+```{python}
 # with optuna tuning
 X_tr_of, X_val_of, y_tr_of, y_val_of = train_test_split(
     X_train_of, y_train_of, test_size=0.3, random_state=42, stratify=y_train_of
@@ -1123,7 +1133,7 @@ for key, value in rf_of_study.best_params.items():
         print(f"  {key}: {value:.6f}")
     else:
         print(f"  {key}: {value}")
-print(f"\n  Best F1: {rf_of_study.best_value:.4f}")
+print(f"\n  Best Score: {rf_of_study.best_value:.4f}")
 
 ```
 
@@ -1154,4 +1164,35 @@ plt.show()
 report_of_t = classification_report(y_test_of, pred_of_t, labels=n_labs, target_names=labels)
 print(report_of_t)
 
+```
+
+### Feature Importance
+
+```{python}
+explainer_of = shap.TreeExplainer(rf_of_t)
+shap_values_of = explainer_of.shap_values(data_only_fire)
+
+# calculate mean absolute SHAP values
+shap_summary_of = np.abs(shap_values_of).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_of = [np.mean(shap_summary_of[i]) for i in range(shap_summary_of.shape[0])]
+
+features = ['is_ndgn', 'n_rx', 'rx_prev']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_of = pd.DataFrame({'Feature': features, 'SHAP values': shap_summary_list_of})
+
+print(shap_summary_df_of)
+```
+
+More importance for rx_prev than n_rx.
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_of = pd.DataFrame({'Feature': features, 'Gini Importance': rf_of_t.feature_importances_})
+
+print(feature_imp_df_of)
 ```

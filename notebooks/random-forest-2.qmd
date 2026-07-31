@@ -1,0 +1,570 @@
+# Random Forest Classifier pt 2
+
+```{python}
+# import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+```
+
+```{python}
+# more libraries
+# %pip install scikit-learn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import LabelEncoder
+from sklearn.datasets import make_classification
+from sklearn.model_selection import (
+    train_test_split, cross_val_score, StratifiedKFold
+)
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, classification_report, precision_score
+
+```
+
+```{python}
+# %pip install shap
+import shap
+```
+
+```{python}
+# import data with pandas
+tg = pd.read_csv("../data/processed_grid/time_grid.csv")
+tg.head()
+```
+
+## DF and Size Class Creation
+
+```{python}
+tg['rx_prev'] = tg['rx_csum'] - tg['n_rx']
+```
+
+```{python}
+# filtering to only cells with fire
+tg_fire = tg[tg['n_fires']>0]
+```
+
+```{python}
+labels = ['small', 'medium', 'large']
+print(pd.qcut(x=tg_fire['max_acres'], q=3, labels=labels, retbins=True))
+tg_fire['target'] = pd.qcut(x=tg_fire['max_acres'], q=3, labels=labels)
+```
+
+```{python}
+# filtering to only cells with fire
+tg_f_cur = tg_fire[tg_fire['year']>=2020]
+```
+
+```{python}
+print(pd.qcut(x=tg_f_cur['max_acres'], q=3, labels=labels, retbins=True))
+tg_f_cur['target'] = pd.qcut(x=tg_f_cur['max_acres'], q=3, labels=labels)
+```
+
+## rx_prev and max_acres_rx with new size class
+
+### Model
+
+```{python}
+# label encoder for target variable
+label_encoder = LabelEncoder()
+target = label_encoder.fit_transform(tg_fire["target"])
+
+data = tg_fire[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    data, target, test_size=0.3, random_state=42, stratify=target
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf = RandomForestClassifier(random_state=42)
+
+rf.fit(X_train, y_train)
+
+pred = rf.predict(X_test)
+
+print(f"Accuracy: {accuracy_score(y_test, pred):.4f}")
+```
+
+Accuracy: 0.4339
+
+### Feature Importance
+
+```{python}
+explainer = shap.TreeExplainer(rf)
+shap_values = explainer.shap_values(data)
+
+# calculate mean absolute SHAP values
+shap_summary = np.abs(shap_values).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list = [np.mean(shap_summary[i]) for i in range(shap_summary.shape[0])]
+
+# list of feature names
+feature_names = ['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df = pd.DataFrame({'Feature': feature_names, 'SHAP values': shap_summary_list})
+
+print(shap_summary_df)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df = pd.DataFrame({'Feature': feature_names, 'Gini Importance': rf.feature_importances_})
+
+print(feature_imp_df)
+```
+
+### Metrics
+
+```{python}
+n_labs = np.arange(2,-1,-1)
+
+c_matrix = confusion_matrix(y_test, pred, labels=n_labs)
+print(c_matrix)
+```
+
+```{python}
+sns.heatmap(c_matrix, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+report = classification_report(y_test, pred, labels=n_labs, target_names=labels)
+print(report)
+```
+
+## rx_prev and n_rx with new size class
+
+### Model
+
+```{python}
+data_nrx = tg_fire[['is_ndgn', 'plnt_sm', 'rx_prev', 'n_rx']]
+
+X_train_nrx, X_test_nrx, y_train_nrx, y_test_nrx = train_test_split(
+    data_nrx, target, test_size=0.3, random_state=42, stratify=target
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_nrx = RandomForestClassifier(random_state=42)
+
+rf_nrx.fit(X_train_nrx, y_train_nrx)
+
+pred_nrx = rf_nrx.predict(X_test_nrx)
+
+print(f"Accuracy: {accuracy_score(y_test_nrx, pred_nrx):.4f}")
+```
+
+Accuracy: 0.4339
+
+### Feature Importance
+
+```{python}
+explainer_nrx = shap.TreeExplainer(rf_nrx)
+shap_values_nrx = explainer_nrx.shap_values(data_nrx)
+
+# calculate mean absolute SHAP values
+shap_summary_nrx = np.abs(shap_values_nrx).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_nrx = [np.mean(shap_summary_nrx[i]) for i in range(shap_summary_nrx.shape[0])]
+
+# list of feature names
+feature_names_nrx = ['is_ndgn', 'plnt_sm', 'rx_prev', 'n_rx']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_nrx = pd.DataFrame({'Feature': feature_names_nrx, 'SHAP values': shap_summary_list_nrx})
+
+print(shap_summary_df_nrx)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_nrx = pd.DataFrame({'Feature': feature_names_nrx, 'Gini Importance': rf_nrx.feature_importances_})
+
+print(feature_imp_df_nrx)
+```
+
+### Metrics
+
+```{python}
+c_matrix_nrx = confusion_matrix(y_test_nrx, pred_nrx, labels=n_labs)
+print(c_matrix_nrx)
+```
+
+```{python}
+sns.heatmap(c_matrix_nrx, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+report_nrx = classification_report(y_test_nrx, pred_nrx, labels=n_labs, target_names=labels)
+print(report_nrx)
+```
+
+## all plants, rx_prev and max_acres_rx with new size class
+
+### Model
+
+```{python}
+data_p = tg_fire[['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls',
+       'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'max_acres_rx']]
+
+X_train_p, X_test_p, y_train_p, y_test_p = train_test_split(
+    data_p, target, test_size=0.3, random_state=42, stratify=target
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_p = RandomForestClassifier(random_state=42)
+
+rf_p.fit(X_train_p, y_train_p)
+
+pred_p = rf_p.predict(X_test_p)
+
+print(f"Accuracy: {accuracy_score(y_test_p, pred_p):.4f}")
+```
+
+Accuracy: 0.4317
+
+### Feature Importance
+
+```{python}
+explainer_p = shap.TreeExplainer(rf_p)
+shap_values_p = explainer.shap_values(data_p)
+
+# calculate mean absolute SHAP values
+shap_summary_p = np.abs(shap_values_p).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_p = [np.mean(shap_summary_p[i]) for i in range(shap_summary_p.shape[0])]
+
+# list of feature names
+feature_names_p = ['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls',
+       'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'max_acres_rx']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_p = pd.DataFrame({'Feature': feature_names_p, 'SHAP values': shap_summary_list_p})
+
+print(shap_summary_df_p)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_p = pd.DataFrame({'Feature': feature_names_p, 'Gini Importance': rf_p.feature_importances_})
+
+print(feature_imp_df_p)
+```
+
+### Metrics
+
+```{python}
+c_matrix_p = confusion_matrix(y_test_p, pred_p, labels=n_labs)
+print(c_matrix_p)
+```
+
+```{python}
+sns.heatmap(c_matrix_p, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+report = classification_report(y_test, pred, labels=n_labs, target_names=labels)
+print(report)
+```
+
+## 2020-2025 rx_prev and max_acres_rx 
+
+### Model
+
+```{python}
+# label encoder for target variable
+target_c = label_encoder.fit_transform(tg_f_cur["target"])
+
+data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']]
+
+X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
+    data_c, target_c, test_size=0.3, random_state=42, stratify=target_c
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_c = RandomForestClassifier(random_state=42)
+
+rf_c.fit(X_train_c, y_train_c)
+
+pred_c = rf_c.predict(X_test_c)
+
+print(f"Accuracy: {accuracy_score(y_test_c, pred_c):.4f}")
+```
+
+Accuracy: 0.4490
+
+### Feature Importance
+
+```{python}
+explainer_c = shap.TreeExplainer(rf_c)
+shap_values_c = explainer_c.shap_values(data_c)
+
+# calculate mean absolute SHAP values
+shap_summary_c = np.abs(shap_values_c).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_c = [np.mean(shap_summary_c[i]) for i in range(shap_summary_c.shape[0])]
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_c = pd.DataFrame({'Feature': feature_names, 'SHAP values': shap_summary_list_c})
+
+print(shap_summary_df_c)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_c = pd.DataFrame({'Feature': feature_names, 'Gini Importance': rf_c.feature_importances_})
+
+print(feature_imp_df_c)
+```
+
+### Metrics
+
+```{python}
+c_matrix_c = confusion_matrix(y_test_c, pred_c, labels=n_labs)
+print(c_matrix_c)
+```
+
+```{python}
+sns.heatmap(c_matrix_c, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+report_c = classification_report(y_test_c, pred_c, labels=n_labs, target_names=labels)
+print(report_c)
+```
+
+# Tuning
+
+```{python}
+# %pip install optuna
+import optuna
+optuna.logging.set_verbosity(optuna.logging.INFO)
+```
+
+```{python}
+def tune_random_forest_optuna(X_train, y_train, X_test, y_test, labels=labels, n_trials=100):
+    """
+    Random Forest tuning with Optuna (Multi-class support)
+    """
+    def objective(trial):
+        params = {
+            'n_estimators': trial.suggest_int('n_estimators', 100, 500),
+            'max_features': trial.suggest_categorical('max_features', ['sqrt', 'log2']),
+            'max_depth': trial.suggest_int('max_depth', 5, 100),
+            'min_samples_split': trial.suggest_int('min_samples_split', 2, 10),
+            'min_samples_leaf': trial.suggest_int('min_samples_leaf', 1, 4),
+
+            'random_state': 42
+        }
+
+        model = RandomForestClassifier(**params)
+
+        model.fit(X_train, y_train)
+
+        y_pred = model.predict(X_test)
+
+        accuracy = accuracy_score(y_test, y_pred)
+        #macro_f1 = f1_score(y_test, y_pred, average='macro')
+        #precision = precision_score(y_test, y_pred, average='weighted', zero_division=0.0)
+
+        return accuracy
+
+    study = optuna.create_study(
+        direction='maximize',
+        study_name='random_forest_tuning',
+        sampler=optuna.samplers.TPESampler(seed=42)
+    )
+
+    study.optimize(
+        objective, n_trials=n_trials,
+        show_progress_bar=True,
+        callbacks=[
+            lambda study, trial: print(
+                f"  Trial {trial.number}: "
+                f"Score={trial.value:.4f}"
+                if trial.number % 10 == 0 else None
+            )
+        ]
+    )
+
+    return study
+```
+
+## rx_prev and max_acres_rx with new size class
+
+```{python}
+# with optuna tuning
+# pulled from prof.cheng's code
+X_tr, X_val, y_tr, y_val = train_test_split(
+    X_train, y_train, test_size=0.3, random_state=42
+)
+
+print("Tuning Random Forest with Optuna...")
+print("-" * 55)
+rf_study = tune_random_forest_optuna(
+    X_tr, y_tr, X_val, y_val, n_trials=100
+)
+print(f"\n Best Random Forest Parameters:")
+print("=" * 100)
+for key, value in rf_study.best_params.items():
+    if isinstance(value, float):
+        print(f"  {key}: {value:.6f}")
+    else:
+        print(f"  {key}: {value}")
+print(f"\n  Best Accuracy: {rf_study.best_value:.4f}")
+
+```
+
+```{python}
+rf_t = RandomForestClassifier(**rf_study.best_params)
+rf_t.fit(X_train, y_train)
+pred_t = rf_t.predict(X_test)
+
+print(f"Accuracy: {accuracy_score(pred_t, y_test):.4f}")
+print(f"Old accuracy: {accuracy_score(pred, y_test):.4f}")
+print(f"Precision: {precision_score(y_test, pred_t, average='weighted', zero_division=0.0):.4f}")
+```
+
+```{python}
+c_matrix_t = confusion_matrix(y_test, pred_t, labels=n_labs)
+print(c_matrix_t)
+```
+
+```{python}
+sns.heatmap(c_matrix_t, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_t = classification_report(y_test, pred_t, labels=n_labs, target_names=labels)
+print(report_t)
+```
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_t = pd.DataFrame({'Feature': feature_names, 'Gini Importance': rf_t.feature_importances_})
+
+print(f"Old feature importance:\n{feature_imp_df}")
+print("="*35)
+print(f"Trained feature importance:\n{feature_imp_df_t}")
+```
+
+## 2020-2025 rx_prev and max_acres_rx with new size class
+
+```{python}
+# with optuna tuning
+# pulled from prof.cheng's code
+X_tr_c, X_val_c, y_tr_c, y_val_c = train_test_split(
+    X_train_c, y_train_c, test_size=0.3, random_state=42
+)
+
+print("Tuning Random Forest with Optuna...")
+print("-" * 55)
+rf_study_c = tune_random_forest_optuna(
+    X_tr_c, y_tr_c, X_val_c, y_val_c, n_trials=100
+)
+print(f"\n Best Random Forest Parameters:")
+print("=" * 100)
+for key, value in rf_study_c.best_params.items():
+    if isinstance(value, float):
+        print(f"  {key}: {value:.6f}")
+    else:
+        print(f"  {key}: {value}")
+print(f"\n  Best Accuracy: {rf_study_c.best_value:.4f}")
+
+```
+
+```{python}
+rf_c_t = RandomForestClassifier(**rf_study_c.best_params)
+rf_c_t.fit(X_train_c, y_train_c)
+pred_c_t = rf_c_t.predict(X_test_c)
+
+print(f"Accuracy: {accuracy_score(pred_c_t, y_test_c):.4f}")
+print(f"Old accuracy: {accuracy_score(pred_c, y_test_c):.4f}")
+print(f"Precision: {precision_score(y_test_c, pred_c_t, average='weighted', zero_division=0.0):.4f}")
+print(f"Old precision: {precision_score(y_test_c, pred_c, average='weighted', zero_division=0.0):.4f}")
+```
+
+Accuracy: 0.4527
+Old accuracy: 0.4490
+Precision: 0.4741
+Old precision: 0.4086
+
+When stratified for y, got worse precision at 0.4017. 
+
+```{python}
+c_matrix_c_t = confusion_matrix(y_test_c, pred_c_t, labels=n_labs)
+print(c_matrix_c_t)
+```
+
+```{python}
+sns.heatmap(c_matrix_c_t, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_c_t = classification_report(y_test_c, pred_c_t, labels=n_labs, target_names=labels)
+print(f"Report:\n{report_c_t}")
+print("="*55)
+print(f"Old report:\n{report_c}")
+```
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_c_t = pd.DataFrame({'Feature': feature_names, 'Gini Importance': rf_c_t.feature_importances_})
+
+print(f"Old feature importance:\n{feature_imp_df_c}")
+print("="*35)
+print(f"Trained feature importance:\n{feature_imp_df_c_t}")
+```
+
