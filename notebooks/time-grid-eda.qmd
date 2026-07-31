@@ -113,3 +113,15 @@ tgdf %>%
 
 ```
 
+
+```{r}
+tgdf %>%
+    filter(year >= 2020) %>%
+    group_by(n_fires) %>%
+    summarize(
+        max = max(max_acres),
+        avg = mean(max_acres),
+        n=n()
+    ) %>%
+    arrange(desc(n_fires))
+```
