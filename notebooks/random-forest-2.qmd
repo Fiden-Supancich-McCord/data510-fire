@@ -143,6 +143,82 @@ report = classification_report(y_test, pred, labels=n_labs, target_names=labels)
 print(report)
 ```
 
+## 2020-2025 rx_prev and max_duration_rx with new size class
+
+### Model
+
+```{python}
+data_d = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_duration_rx']]
+
+X_train_d, X_test_d, y_train_d, y_test_d = train_test_split(
+    data_d, target_c, test_size=0.3, random_state=42, stratify=target_c
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_d = RandomForestClassifier(random_state=42)
+
+rf_d.fit(X_train_d, y_train_d)
+
+pred_d = rf_d.predict(X_test_d)
+
+print(f"Accuracy: {accuracy_score(y_test_d, pred_d):.4f}")
+```
+
+Accuracy: 0.4503
+
+### Feature Importance
+
+```{python}
+explainer_d = shap.TreeExplainer(rf_d)
+shap_values_d = explainer_d.shap_values(data_d)
+
+# calculate mean absolute SHAP values
+shap_summary_d = np.abs(shap_values_d).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_d = [np.mean(shap_summary_d[i]) for i in range(shap_summary_d.shape[0])]
+
+# list of feature names
+feature_names_d = ['is_ndgn', 'plnt_sm', 'rx_prev', 'max_duration_rx']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_d = pd.DataFrame({'Feature': feature_names_d, 'SHAP values': shap_summary_list_d})
+
+print(shap_summary_df_d)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_d = pd.DataFrame({'Feature': feature_names_d, 'Gini Importance': rf_d.feature_importances_})
+
+print(feature_imp_df_d)
+```
+
+### Metrics
+
+```{python}
+c_matrix_d = confusion_matrix(y_test_d, pred_d, labels=n_labs)
+print(c_matrix_d)
+```
+
+```{python}
+sns.heatmap(c_matrix_d, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+report_d = classification_report(y_test_d, pred_d, labels=n_labs, target_names=labels)
+print(report_d)
+```
+
 ## rx_prev and n_rx with new size class
 
 ### Model
@@ -218,6 +294,16 @@ plt.show()
 report_nrx = classification_report(y_test_nrx, pred_nrx, labels=n_labs, target_names=labels)
 print(report_nrx)
 ```
+
+Comparing n_rx to max_acres_rx.
+
+```{python}
+print(f"n_rx report:\n{report_nrx}")
+print("="*55)
+print(f"max_acres_rx report:\n{report}")
+```
+
+Almost identical - worth trying limited to 2020-2025. 
 
 ## all plants, rx_prev and max_acres_rx with new size class
 
@@ -373,6 +459,99 @@ report_c = classification_report(y_test_c, pred_c, labels=n_labs, target_names=l
 print(report_c)
 ```
 
+## 2020-2025 rx_prev and n_rx with new size class
+
+### Model
+
+```{python}
+data_cnrx = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'n_rx']]
+
+X_train_cnrx, X_test_cnrx, y_train_cnrx, y_test_cnrx = train_test_split(
+    data_cnrx, target_c, test_size=0.3, random_state=42, stratify=target_c
+)
+```
+
+```{python}
+# random forest classifier with defaults
+rf_cnrx = RandomForestClassifier(random_state=42)
+
+rf_cnrx.fit(X_train_cnrx, y_train_cnrx)
+
+pred_cnrx = rf_cnrx.predict(X_test_cnrx)
+
+print(f"Accuracy: {accuracy_score(y_test_cnrx, pred_cnrx):.4f}")
+```
+
+Accuracy: 0.4490
+
+### Feature Importance
+
+```{python}
+explainer_cnrx = shap.TreeExplainer(rf_cnrx)
+shap_values_cnrx = explainer_cnrx.shap_values(data_cnrx)
+
+# calculate mean absolute SHAP values
+shap_summary_cnrx = np.abs(shap_values_cnrx).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_cnrx = [np.mean(shap_summary_cnrx[i]) for i in range(shap_summary_cnrx.shape[0])]
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_cnrx = pd.DataFrame({'Feature': feature_names_nrx, 'SHAP values': shap_summary_list_cnrx})
+
+print(shap_summary_df_cnrx)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_cnrx = pd.DataFrame({'Feature': feature_names_nrx, 'Gini Importance': rf_cnrx.feature_importances_})
+
+print(feature_imp_df_cnrx)
+```
+
+Comparing featuring importance using n_rx vs max_acres_rx.
+
+```{python}
+print(f"n_rx feature importance:\n{feature_imp_df_cnrx}")
+print("="*35)
+print(f"max_acres_rx feature importance:\n{feature_imp_df_c}")
+```
+
+Interesting - max_acres_rx has higher importance than n_rx, and with acres, is_ndgn has higher importance as well. Neat!
+
+### Metrics
+
+```{python}
+c_matrix_cnrx = confusion_matrix(y_test_cnrx, pred_cnrx, labels=n_labs)
+print(c_matrix_cnrx)
+```
+
+```{python}
+sns.heatmap(c_matrix_cnrx, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+report_cnrx = classification_report(y_test_cnrx, pred_cnrx, labels=n_labs, target_names=labels)
+print(report_cnrx)
+```
+
+Comparing n_rx to max_acres_rx.
+
+```{python}
+print(f"n_rx report:\n{report_cnrx}")
+print("="*55)
+print(f"max_acres_rx report:\n{report_c}")
+```
+
+Pretty much identical. max_acres_rx has slightly, slightly higher macro avg precision.
+
 # Tuning
 
 ```{python}
@@ -496,6 +675,8 @@ print(f"Trained feature importance:\n{feature_imp_df_t}")
 
 ## 2020-2025 rx_prev and max_acres_rx with new size class
 
+### Tuning
+
 ```{python}
 # with optuna tuning
 # pulled from prof.cheng's code
@@ -537,6 +718,8 @@ Old precision: 0.4086
 
 When stratified for y, got worse precision at 0.4017. 
 
+### Metrics
+
 ```{python}
 c_matrix_c_t = confusion_matrix(y_test_c, pred_c_t, labels=n_labs)
 print(c_matrix_c_t)
@@ -559,6 +742,8 @@ print("="*55)
 print(f"Old report:\n{report_c}")
 ```
 
+### Feature Importance
+
 ```{python}
 # creating dataframe of gini importances
 feature_imp_df_c_t = pd.DataFrame({'Feature': feature_names, 'Gini Importance': rf_c_t.feature_importances_})
@@ -568,3 +753,97 @@ print("="*35)
 print(f"Trained feature importance:\n{feature_imp_df_c_t}")
 ```
 
+## 2020-2025 rx_prev and max_duration_rx with new size class
+
+### Tuning
+
+```{python}
+# with optuna tuning
+# pulled from prof.cheng's code
+X_tr_d, X_val_d, y_tr_d, y_val_d = train_test_split(
+    X_train_d, y_train_d, test_size=0.3, random_state=42
+)
+
+print("Tuning Random Forest with Optuna...")
+print("-" * 55)
+rf_study_d = tune_random_forest_optuna(
+    X_tr_d, y_tr_d, X_val_d, y_val_d, n_trials=100
+)
+print(f"\n Best Random Forest Parameters:")
+print("=" * 100)
+for key, value in rf_study_d.best_params.items():
+    if isinstance(value, float):
+        print(f"  {key}: {value:.6f}")
+    else:
+        print(f"  {key}: {value}")
+print(f"\n  Best Accuracy: {rf_study_d.best_value:.4f}")
+
+```
+
+```{python}
+rf_d_t = RandomForestClassifier(**rf_study_d.best_params)
+rf_d_t.fit(X_train_d, y_train_d)
+pred_d_t = rf_d_t.predict(X_test_d)
+
+print(f"Accuracy: {accuracy_score(pred_d_t, y_test_d):.4f}")
+print(f"Old accuracy: {accuracy_score(pred_d, y_test_d):.4f}")
+print(f"Precision: {precision_score(y_test_d, pred_d_t, average='weighted', zero_division=0.0):.4f}")
+print(f"Old precision: {precision_score(y_test_d, pred_d, average='weighted', zero_division=0.0):.4f}")
+```
+
+Accuracy: 0.4527
+Old accuracy: 0.4503
+Precision: 0.4830
+Old precision: 0.4178
+
+Trained rx acres vs rx duration comparison
+
+```{python}
+print(f"Accuracy: {accuracy_score(pred_d_t, y_test_d):.4f}")
+print(f"Acre Accuracy: {accuracy_score(pred_c_t, y_test_c):.4f}")
+print(f"Precision: {precision_score(y_test_d, pred_d_t, average='weighted', zero_division=0.0):.4f}")
+print(f"Acre Precision: {precision_score(y_test_c, pred_c_t, average='weighted', zero_division=0.0):.4f}")
+
+```
+
+### Metrics
+
+```{python}
+c_matrix_d_t = confusion_matrix(y_test_d, pred_d_t, labels=n_labs)
+print(c_matrix_d_t)
+```
+
+```{python}
+sns.heatmap(c_matrix_d_t, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+report_d_t = classification_report(y_test_d, pred_d_t, labels=n_labs, target_names=labels)
+
+print(f"Old report:\n{report_d}")
+print("="*55)
+print(f"New Report:\n{report_d_t}")
+print("="*55)
+print(f"Acre report:\n{report_c_t}")
+```
+
+### Feature Importance
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_d_t = pd.DataFrame({'Feature': feature_names_d, 'Gini Importance': rf_d_t.feature_importances_})
+
+print(f"Old feature importance:\n{feature_imp_df_d}")
+print("="*35)
+print(f"Trained feature importance:\n{feature_imp_df_d_t}")
+print("="*35)
+print(f"Trained acre feature importance:\n{feature_imp_df_c_t}")
+```
+
+Okay yeah. Explains it! RX max acres is useless. Good to know!
