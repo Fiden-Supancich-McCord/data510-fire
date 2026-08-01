@@ -700,6 +700,8 @@ time_grid <- time_grid %>%
     rx_rollsum = rollapply(n_rx, width=2, FUN=sum, partial=TRUE, align='right', na.rm=TRUE),
     rx_csum = cumsum(n_rx),
     fire_rollsum = rollapply(n_fires, width=2, FUN=sum, partial=TRUE, align='right', na.rm=TRUE),
+    fire_rollsum_5 = rollapply(n_fires, width=5, FUN=sum, partial=TRUE, align='right', na.rm=TRUE),
+    fire_rollacres_5 = rollapply(max_acres, width=5, FUN=sum, partial=TRUE, align='right', na.rm=TRUE),
     fire_csum = cumsum(n_fires)
   )
 ```
@@ -743,3 +745,5 @@ write_csv(time_grid_tibble, "data/processed_grid/time_grid.csv")
 ```
 
 Unfortunately the time grid shapefile is too large to upload to github! This is very sad. It will instead be a local download. 
+
+Note: some names were changed when rolling sum for wildfires was added, file will need to be rewritten at some point to standardize. 

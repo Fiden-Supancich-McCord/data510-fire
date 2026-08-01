@@ -79,8 +79,6 @@ tg_f_cur['target'] = pd.qcut(x=tg_f_cur['max_acres'], q=3, labels=labels)
 
 Class sizes: [(-0.000965, 0.1] < (0.1, 4.72] < (4.72, 413715.0]]
 
-
-
 ## rx_prev and max_acres_rx with new size class
 
 ### Model
