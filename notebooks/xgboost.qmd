@@ -731,8 +731,8 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.title("Confusion Matrix")
 plt.tight_layout()
-plt.show()
 plt.savefig('../images/confmatrix_plants_fire.png')
+plt.show()
 
 ```
 
