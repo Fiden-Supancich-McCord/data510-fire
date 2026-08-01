@@ -43,9 +43,13 @@ tg.head()
 tg['rx_prev'] = tg['rx_csum'] - tg['n_rx']
 ```
 
+OVERWRITING so only includes fires with more than 0 acres. 
+
 ```{python}
 # filtering to only cells with fire
-tg_fire = tg[tg['n_fires']>0]
+#tg_fire = tg[tg['n_fires']>0]
+tg_fire = tg[tg['max_acres']>0]
+
 ```
 
 ```{python}
@@ -70,6 +74,19 @@ sizes: [(-0.001, 0.1] < (0.1, 3.593] < (3.593, 413715.0]]
 
 ```{python}
 class_labs = np.unique(tg_fire["size_class"])
+```
+
+Overwriting !! Overwriting target variable. 
+
+```{python}
+bins = [-0.1, 1, 1000, 9000000]
+class_labs = ['<=1','B-E', 'F-G+']
+tg_fire['target2'] = pd.cut(x=tg_fire['max_acres'], bins=bins, labels=class_labs)
+
+tg_f_cur['target2'] = pd.cut(x=tg_f_cur['max_acres'], bins=bins, labels=class_labs)
+
+labs2 = np.unique(tg_fire["target2"])
+
 ```
 
 # Models
@@ -228,8 +245,9 @@ print(report_c)
 ## normal (all years)
 
 ```{python}
-target = label_encoder.fit_transform(tg_fire["target"])
-data = tg_fire[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']]
+target = label_encoder.fit_transform(tg_fire["target2"])
+#data = tg_fire[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']]
+data = tg_fire[['is_ndgn', 'rx_prev', 'max_acres_rx']]
 
 X_train_s, X_test_s, y_train_s, y_test_s = train_test_split(
     data, target, test_size=0.3, random_state=42, stratify=target
@@ -246,6 +264,10 @@ print(f"Accuracy: {accuracy_score(y_test_s, pred_s):.4f}")
 ```
 
 Accuracy: 0.4365
+
+Accuracy with new bins: 0.5997
+
+Accuracy with 0-acre fires removed: 0.5946
 
 ### Feature Importance
 
@@ -302,9 +324,10 @@ print(report_s)
 this one does overwrite the previous 2020-2025 one because i am sick of changing it lol
 
 ```{python}
-target_c = label_encoder.fit_transform(tg_f_cur["target"])
+target_c = label_encoder.fit_transform(tg_f_cur["target2"])
 
-data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']]
+#data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']]
+data_c = tg_f_cur[['is_ndgn', 'rx_prev', 'max_acres_rx']]
 
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
     data_c, target_c, test_size=0.3, random_state=42, stratify=target_c
@@ -320,7 +343,9 @@ pred_c = xgb_c.predict(X_test_c)
 print(f"Accuracy: {accuracy_score(y_test_c, pred_c):.4f}")
 ```
 
-Accuracy: 0.4476
+Accuracy: 0.6070
+
+Accuracy with 0-acre fires removed: 0.5989
 
 ### Feature Importance
 
@@ -485,6 +510,24 @@ Old accuracy: 0.4365
 Precision: 0.3666
 Old precision: 0.3682
 
+*with different size classes:*
+Accuracy: 0.5997
+Old accuracy: 0.5997
+Precision: 0.4752
+Old precision: 0.3838
+
+*With 0-acre fires removed:* 
+Accuracy: 0.5965
+Old accuracy: 0.5946
+Precision: 0.3558
+Old precision: 0.4420
+
+*without plant sum:*
+Accuracy: 0.5965
+Old accuracy: 0.5953
+Precision: 0.3558
+Old precision: 0.3556
+
 ```{python}
 c_matrix_t = confusion_matrix(y_test_s, pred_t, labels=n_labs)
 print(f"Confusion matrix:\n{c_matrix_t}")
@@ -560,6 +603,24 @@ Old accuracy: 0.4476
 Precision: 0.3359
 Old precision: 0.4036
 
+*With new size classes:*
+Accuracy: 0.6084
+Old accuracy: 0.6070
+Precision: 0.4446
+Old precision: 0.4526
+
+*With 0-acre fires removed:*
+Accuracy: 0.5999
+Old accuracy: 0.5989
+Precision: 0.4416
+Old precision: 0.3920
+
+*without plant sum:*
+Accuracy: 0.6004
+Old accuracy: 0.6004
+Precision: 0.3605
+Old precision: 0.3605
+
 ```{python}
 c_matrix_c_t = confusion_matrix(y_test_c, pred_c_t, labels=n_labs)
 print(f"Confusion matrix:\n{c_matrix_c_t}")
@@ -590,3 +651,53 @@ print(f"Old feature importance:\n{feature_imp_df_c}")
 print("="*35)
 print(f"Trained feature importance:\n{feature_imp_df_c_t}")
 ```
+
+# SUMMARY
+
+**Accuracies for all years:** 
+Accuracy: 0.4332
+Old accuracy: 0.4365
+Precision: 0.3666
+Old precision: 0.3682
+
+*with different size classes:*
+Accuracy: 0.5997
+Old accuracy: 0.5997
+Precision: 0.4752
+Old precision: 0.3838
+
+*With 0-acre fires removed:* 
+Accuracy: 0.5965
+Old accuracy: 0.5946
+Precision: 0.3558
+Old precision: 0.4420
+
+*without plant sum:*
+Accuracy: 0.5965
+Old accuracy: 0.5953
+Precision: 0.3558
+Old precision: 0.3556
+
+**Accuracies for 2020-2025:**
+Accuracy: 0.4490
+Old accuracy: 0.4476
+Precision: 0.3359
+Old precision: 0.4036
+
+*With new size classes:*
+Accuracy: 0.6084
+Old accuracy: 0.6070
+Precision: 0.4446
+Old precision: 0.4526
+
+*With 0-acre fires removed:*
+Accuracy: 0.5999
+Old accuracy: 0.5989
+Precision: 0.4416
+Old precision: 0.3920
+
+*without plant sum:*
+Accuracy: 0.6004
+Old accuracy: 0.6004
+Precision: 0.3605
+Old precision: 0.3605
