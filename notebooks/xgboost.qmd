@@ -395,6 +395,91 @@ report_c = classification_report(y_test_c, pred_c, labels=n_labs, target_names=l
 print(report_c)
 ```
 
+## 2020-2025 with all plants
+
+this one does overwrite the previous 2020-2025 one because i am sick of changing it lol
+
+```{python}
+target_c = label_encoder.fit_transform(tg_f_cur["target2"])
+
+#data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']]
+#data_c = tg_f_cur[['is_ndgn', 'rx_prev', 'max_acres_rx']]
+#data_c = tg_f_cur[['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'max_acres_rx']]
+
+data_c = tg_f_cur[['n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'max_acres_rx']]
+
+X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
+    data_c, target_c, test_size=0.3, random_state=42, stratify=target_c
+)
+```
+
+```{python}
+# time limited XGBoost
+xgb_c = XGBClassifier(random_state=42)
+xgb_c.fit(X_train_c, y_train_c)
+
+pred_c = xgb_c.predict(X_test_c)
+print(f"Accuracy: {accuracy_score(y_test_c, pred_c):.4f}")
+```
+
+Accuracy: 0.6070
+
+Accuracy with 0-acre fires removed: 0.5989
+
+Accuracy with all plants: 0.5908
+
+### Feature Importance
+
+```{python}
+explainer_c = shap.TreeExplainer(xgb_c)
+shap_values_c = explainer_c.shap_values(data_c)
+
+# calculate mean absolute SHAP values
+shap_summary_c = np.abs(shap_values_c).mean(axis=0)
+
+# list to store shap values for each feature
+shap_summary_list_c = [np.mean(shap_summary_c[i]) for i in range(shap_summary_c.shape[0])]
+
+#feature_names_p_ni = ['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'max_acres_rx']
+
+feature_names_p_ni = ['n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'max_acres_rx']
+
+# dataframe using 1d list of SHAP values
+shap_summary_df_c = pd.DataFrame({'Feature': feature_names_p_ni, 'SHAP values': shap_summary_list_c})
+
+print(shap_summary_df_c)
+```
+
+Feature importance using Gini importance.
+
+```{python}
+# creating dataframe of gini importances
+feature_imp_df_c = pd.DataFrame({'Feature': feature_names_p_ni, 'Gini Importance': xgb_c.feature_importances_})
+
+print(feature_imp_df_c)
+```
+
+### Metrics
+
+```{python}
+c_matrix_c = confusion_matrix(y_test_c, pred_c, labels=n_labs)
+print(c_matrix_c)
+```
+
+```{python}
+sns.heatmap(c_matrix_c, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+report_c = classification_report(y_test_c, pred_c, labels=n_labs, target_names=labels)
+print(report_c)
+```
+
 # Tuning
 
 ```{python}
@@ -621,6 +706,18 @@ Old accuracy: 0.6004
 Precision: 0.3605
 Old precision: 0.3605
 
+*with all plants:*
+Accuracy: 0.6033
+Old accuracy: 0.5908
+Precision: 0.5183
+Old precision: 0.5012
+
+*without is_ndgn:*
+Accuracy: 0.5899
+Old accuracy: 0.5908
+Precision: 0.4485
+Old precision: 0.4558
+
 ```{python}
 c_matrix_c_t = confusion_matrix(y_test_c, pred_c_t, labels=n_labs)
 print(f"Confusion matrix:\n{c_matrix_c_t}")
@@ -635,6 +732,7 @@ plt.ylabel("Actual")
 plt.title("Confusion Matrix")
 plt.tight_layout()
 plt.show()
+plt.savefig('../images/confmatrix_plants_fire.png')
 
 ```
 
@@ -645,7 +743,7 @@ print(report_c_t)
 
 ```{python}
 # creating dataframe of gini importances
-feature_imp_df_c_t = pd.DataFrame({'Feature': feature_names, 'Gini Importance': xgb_c_t.feature_importances_})
+feature_imp_df_c_t = pd.DataFrame({'Feature': feature_names_p_ni, 'Gini Importance': xgb_c_t.feature_importances_})
 
 print(f"Old feature importance:\n{feature_imp_df_c}")
 print("="*35)
@@ -701,3 +799,15 @@ Accuracy: 0.6004
 Old accuracy: 0.6004
 Precision: 0.3605
 Old precision: 0.3605
+
+*with all plants:*
+Accuracy: 0.6033
+Old accuracy: 0.5908
+Precision: 0.5183
+Old precision: 0.5012
+
+*all plants, no is_ndgn:*
+Accuracy: 0.5899
+Old accuracy: 0.5908
+Precision: 0.4485
+Old precision: 0.4558
