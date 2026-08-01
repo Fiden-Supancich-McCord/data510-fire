@@ -64,3 +64,73 @@ grid %>%
 
 names(grid)
 ```
+
+
+```{r}
+shp <- shp %>%
+    mutate(
+        mx_sz_c = ifelse(n_wldfr==0, "No fire", mx_sz_c),
+        rx_mx_s_ = ifelse(n_rx_fr==0, "No rx", rx_mx_s_)
+    ) %>%
+    mutate(
+        mx_sz_c = factor(mx_sz_c, levels=c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"))
+    )
+
+fire_size_class <- shp %>%
+    ggplot(aes(geometry=geometry, fill=mx_sz_c)) +
+    geom_sf(linewidth=0.01, color="black") +
+    scale_fill_viridis_d(option="inferno") +
+    theme_void() +
+    labs(
+        fill="Maximum fire\nsize class",
+        title="Maximum fire size per cell",
+        caption="Source: InFORM, IFPH"
+    )
+
+ggsave("maps/fire_size_class.jpeg", fire_size_class, height=4, width=6, units="in")
+
+```
+
+
+```{r}
+plant_pivot <- shp %>%
+    select(index, is_ndgn, n_pinus, n_salix, n_qurcs, n_popls, n_thuja, n_xrphy, n_rubus, plnt_sm) %>% 
+    pivot_longer(cols=c(starts_with("n_"), plnt_sm), names_to="plant_type", values_to="n_plants")
+
+plant_cols2 <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628')
+
+plant_cols <- c('#66c2a5','#fc8d62','#8da0cb','#e78ac3','#a6d854','#ffd92f','#e5c494')
+
+alpha_plant <- plant_pivot %>%
+    filter(plant_type != "plnt_sm") %>%
+    mutate(n_plants = ifelse(n_plants > 50, 50, n_plants)) %>%
+    ggplot(aes(geometry=geometry, fill=plant_type, alpha=n_plants)) +
+    geom_sf(linetype=0) +
+    scale_alpha_continuous(transform=scales::pseudo_log_trans(base = 10), breaks=c(0, 1, 5, 10, 50), range=c(0.01, 1)) +
+    scale_fill_discrete(palette=plant_cols) + 
+    labs(
+        title="Plant sums for each type (capped at 50)",
+        alpha="Plant count",
+        fill="Plant type",
+        caption="Source: GBIF, Historic Vegetation"
+    ) +
+    theme_void()
+
+alpha_plant
+
+ggsave("maps/alpha_plant.jpeg", alpha_plant, height=4, width=6, units="in")
+
+```
+
+```{r}
+shp %>%
+    ggplot(aes(geometry=geometry, fill=n_wldfr)) +
+    geom_sf(linewidth=0.05, color="black") +
+    scale_fill_viridis_c(option="inferno", transform=scales::pseudo_log_trans(base = 100), breaks=c(0, 1, 10, 100)) +
+    theme_void() +
+    labs(
+        fill="Number of \nwildfires",
+        title="Number of wildfires per grid cell",
+        caption="Source: InFORM, IFPH"
+    )
+```

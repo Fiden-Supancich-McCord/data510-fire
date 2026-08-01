@@ -25,7 +25,16 @@ grid <- st_read("data/processed_grid/processed_grid.shp")
 gdf <- read_csv("data/processed_grid/processed_grid.csv")
 ```
 
-```{python}
+```{r}
+tgdf <- tgdf %>%
+    mutate(prev_rx = rx_csum - n_rx)
+
+tgdf <- tgdf %>%
+    mutate(size_class = factor(size_class, levels=c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"))) %>%
+    mutate(size_class_pretty = recode(size_class, `Class A`="A", `Class B`="B", `Class C`="C", `Class D`="D", `Class E`="E", `Class F`="F", `Class G`="G"))
+```
+
+```{r}
 # fire size distribution by previous prescribed burn, not including "no fire"
 burn_cols <- c(
     "Previous prescribed burns" = "darkslategray", 
@@ -58,10 +67,49 @@ fire_size_class_pct_prev_rx_fire <- tgdf %>%
         title="Fire size distribution by presence of prescribed burn",
         fill="",
         #subtitle='"No fire" class not shown',
-        caption="Source: NIFC InFORM, IFPH"
+        caption='Source: InFORM, IFPH\n"No fire" class not shown. Cells without fires included in total for percentage.'
     ) +
     theme_minimal() +
     theme(legend.position="top")
 
 ggsave("images/fire_size_class_pct_prev_rx_fire.jpeg", fire_size_class_pct_prev_rx_fire, width=6, height=5)
+```
+
+```{r}
+# boxplot acres
+indigenous_cols <- c("Indigenous" = "salmon", "Non-Indigenous" = "slateblue3")
+
+ind_wf_acres_boxplot <- gdf %>%
+    filter(n_wildfires > 0) %>%
+    mutate(is_indigenous = ifelse(is_indigenous==1, "Indigenous", "Non-Indigenous")) %>%
+    ggplot(aes(is_indigenous, max_acres, fill=is_indigenous)) +
+    geom_boxplot(show.legend=FALSE) +
+    scale_y_log10(labels=scales::comma) + 
+    scale_fill_manual(values=indigenous_cols) +
+    theme_minimal() +
+    labs(
+        x="",
+        y="Maximum fire size by cell (acres)",
+        title="Maximum acres burned for Indigenous \nvs non-Indigenous land",
+        caption="Source: InFORM, IFPH, LandMark"
+    )
+
+ggsave("images/ind_wf_acres_boxplot.jpeg", ind_wf_acres_boxplot, width=4, height=5, units="in")
+```
+
+```{r}
+n_fires_plt <- grid %>%
+    ggplot(aes(geometry=geometry, fill=n_wldfr)) +
+    geom_sf(linewidth=0.05, color="black") +
+    scale_fill_viridis_c(option="inferno", transform=scales::pseudo_log_trans(base = 10), breaks=c(0, 1, 10, 100)) +
+    theme_void() +
+    labs(
+        fill="Number of \nwildfires",
+        title="Number of wildfires per grid cell",
+        caption="Source: InFORM, IFPH"
+    )
+
+n_fires_plt
+
+ggsave("maps/log_n_fires.jpeg", n_fires_plt, height=4, width=6, units="in")
 ```

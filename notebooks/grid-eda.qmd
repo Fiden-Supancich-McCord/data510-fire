@@ -120,8 +120,6 @@ ind_fire_dur_boxplot <- grid_df %>%
         title="Maximum fire duration for Indigenous vs \nnon-Indigenous land"
     )
 
-ggsave("images/ind_fire_dur_boxplot.jpeg", ind_fire_dur_boxplot, width=4, height=8, units="in")
-
 ```
 
 ```{r}
@@ -173,7 +171,6 @@ grid_df %>%
 
 
 ```{r}
-
 grid_cell_areas = st_area(grid)
 
 max(grid_cell_areas)
