@@ -72,7 +72,47 @@ fire_size_class_pct_prev_rx_fire <- tgdf %>%
     theme_minimal() +
     theme(legend.position="top")
 
+fire_size_class_pct_prev_rx_fire
+
 ggsave("images/fire_size_class_pct_prev_rx_fire.jpeg", fire_size_class_pct_prev_rx_fire, width=6, height=5)
+```
+
+```{r}
+fire_size_lim_pct_prev_rx_fire <- tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous"), 
+        size_class_lim = fct_collapse(size_class_pretty, `C-E` = c("C", "D", "E"))
+    ) %>%
+    group_by(had_rx, size_class_lim, year) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, year) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    filter(size_class_lim != "No fire") %>%
+    ggplot(aes(size_class_lim, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge") +
+    facet_grid(~year) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(values=burn_cols) +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of cells (with/without prescribed burns)",
+        title="Fire size distribution by presence of prescribed burn",
+        fill="",
+        #subtitle='"No fire" class not shown',
+        caption='Source: InFORM, IFPH\n"No fire" class not shown. Cells without fires included in total for percentage.'
+    ) +
+    theme_bw() +
+    theme(legend.position="top")
+    
+fire_size_lim_pct_prev_rx_fire
+
+ggsave("images/fire_size_lim_pct_prev_rx_fire.jpeg", fire_size_lim_pct_prev_rx_fire, width=6, height=5)
 ```
 
 ```{r}
