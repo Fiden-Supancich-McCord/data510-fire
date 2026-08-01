@@ -690,7 +690,7 @@ names(time_grid)
 dim(time_grid)
 ```
 
-Adding a rolling sum and cumulative sum for prescribed burns.
+Adding a rolling sum and cumulative sum for prescribed burns and wildfires.
 
 ```{r}
 library(zoo)
@@ -698,7 +698,9 @@ time_grid <- time_grid %>%
   group_by(index) %>%
   mutate(
     rx_rollsum = rollapply(n_rx, width=2, FUN=sum, partial=TRUE, align='right', na.rm=TRUE),
-    rx_csum = cumsum(n_rx)
+    rx_csum = cumsum(n_rx),
+    fire_rollsum = rollapply(n_fires, width=2, FUN=sum, partial=TRUE, align='right', na.rm=TRUE),
+    fire_csum = cumsum(n_fires)
   )
 ```
 

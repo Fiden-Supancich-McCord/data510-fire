@@ -1,4 +1,4 @@
-# Random Forest Classifier pt 2
+# Random Forest Classifier pt 3
 
 ```{python}
 # import libraries
