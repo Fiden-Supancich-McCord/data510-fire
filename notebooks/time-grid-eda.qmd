@@ -26,12 +26,27 @@ tgdf <- read_csv("data/processed_grid/time_grid.csv")
 names(tgdf)
 ```
 
+```{r}
+tgdf <- tgdf %>%
+    mutate(prev_rx = rx_csum - n_rx)
+
+tgdf <- tgdf %>%
+    mutate(size_class = factor(size_class, levels=c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"))) %>%
+    mutate(size_class_pretty = recode(size_class, `Class A`="A", `Class B`="B", `Class C`="C", `Class D`="D", `Class E`="E", `Class F`="F", `Class G`="G"))
+
+tgdf %>%
+    # filter((n_rx > 0) | (prev_rx > 0) | (rx_csum > 0)) %>%
+    select(index, year, n_rx, prev_rx, rx_csum, max_acres) %>%
+    arrange(index) %>%
+    filter(year==2023, prev_rx>0)
+
+```
+
 Primary question: differences between wildfires in grid cells that have had previous RX burns vs those that have not.
 
 ```{r}
 tgdf %>%
     group_by(index) %>% 
-    mutate(rx_csum = cumsum(n_rx)) %>%
     mutate(
         had_rx = rx_csum > 0,
         has_plant = plnt_sm > 0
@@ -47,10 +62,6 @@ tgdf %>%
 
 tgdf %>%
     group_by(index) %>% 
-    mutate(
-        rx_csum = cumsum(n_rx),
-        rx_rollsum = rollapply(n_rx, 2, sum, partial=TRUE, na.rm=TRUE)
-    ) %>%
     mutate(
         had_rx = rx_rollsum > 0,
         rx_lim = ifelse(rx_rollsum > 2, 3, rx_rollsum),
@@ -71,7 +82,6 @@ tgdf %>%
 ```{r}
 tgdf %>%
     group_by(index) %>% 
-    mutate(rx_csum = cumsum(n_rx)) %>%
     mutate(
         had_rx = rx_csum > 0,
         has_plant = plnt_sm > 0
@@ -83,15 +93,26 @@ tgdf %>%
 # i think there's something here but it's hard to evaluate
 tgdf %>%
     group_by(index) %>% 
-    mutate(rx_csum = cumsum(n_rx)) %>%
     mutate(
         had_rx = rx_csum > 0,
         has_plant = plnt_sm > 0
     ) %>%
     filter(year>2020) %>%
-    ggplot(aes(x=log(max_acres), fill=had_rx)) +
-    geom_density() +
-    facet_grid(year~had_rx)
+    ggplot(aes(x=max_acres, fill=had_rx)) +
+    geom_density(alpha=0.4) +
+    scale_x_log10() +
+    facet_wrap(~year)
+
+tgdf %>%
+    group_by(index) %>% 
+    mutate(had_rx = prev_rx > 0) %>%
+    filter(year>2020) %>%
+    ggplot(aes(x=max_acres, fill=had_rx)) +
+    geom_density(alpha=0.4) +
+    scale_x_log10() +
+    facet_wrap(~year)
+
+# note: fires don't appear for 2023 because they've mostly got 0 acres, which is removed by the log transformation
 
 ```
 
@@ -113,15 +134,149 @@ tgdf %>%
 
 ```
 
+```{r}
+size_by_rx_ind <- tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    group_by(had_rx, is_ndgn, size_class_pretty, year) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, is_ndgn, year) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) 
+    
+size_by_rx_ind %>%
+    ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge", show.legend=FALSE) +
+    facet_grid(is_ndgn~year) +
+    scale_y_continuous(labels=scales::percent) +
+    theme_minimal() +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires",
+        title="Fire size distribution by presence of prescribed burn and whether \nfederally recognized Indigenous land"
+    )
+```
 
 ```{r}
 tgdf %>%
-    filter(year >= 2020) %>%
-    group_by(n_fires) %>%
-    summarize(
-        max = max(max_acres),
-        avg = mean(max_acres),
-        n=n()
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
     ) %>%
-    arrange(desc(n_fires))
+    group_by(had_rx, size_class_pretty, year) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, year) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge", show.legend=FALSE) +
+    facet_grid(~year) +
+    scale_y_continuous(labels=scales::percent) +
+    theme_minimal() +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires",
+        title="Fire size distribution by presence of prescribed burn and whether \nfederally recognized Indigenous land"
+    )
+```
+
+
+```{r}
+tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    group_by(had_rx, size_class_pretty, year) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, year) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    filter(size_class_pretty != "No fire") %>%
+    ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge", show.legend=FALSE) +
+    facet_grid(~year) +
+    scale_y_continuous(labels=scales::percent) +
+    theme_minimal() +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires",
+        title="Fire size distribution by presence of prescribed burn and whether \nfederally recognized Indigenous land"
+    )
+```
+
+
+```{r}
+fire_size_class_pct_prev_rx <- tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    group_by(had_rx, size_class_pretty, year) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, year) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    #filter(size_class_pretty != "No fire") %>%
+    ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge", show.legend=FALSE) +
+    facet_grid(~year) +
+    scale_y_continuous(labels=scales::percent) +
+    theme_minimal() +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires",
+        title="Fire size distribution by presence of prescribed burn and whether federally recognized Indigenous land"
+    )
+
+ggsave("images/fire_size_class_pct_prev_rx.jpeg", fire_size_class_pct_prev_rx)
+```
+
+
+```{r}
+fire_size_class_pct_prev_rx_fire <- tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    group_by(had_rx, size_class_pretty, year) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, year) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    filter(size_class_pretty != "No fire") %>%
+    ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge", show.legend=FALSE) +
+    facet_grid(~year) +
+    scale_y_continuous(labels=scales::percent) +
+    theme_minimal() +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires",
+        title="Fire size distribution by presence of prescribed burn and whether federally recognized Indigenous land"
+    )
+
+ggsave("images/fire_size_class_pct_prev_rx_fire.jpeg", fire_size_class_pct_prev_rx_fire)
 ```
