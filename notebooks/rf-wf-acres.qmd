@@ -49,13 +49,14 @@ tg['wf_prev_r5'] = tg['fire_rollsum_5'] - tg['n_fires']
 
 ```{python}
 tg['max_acres_lim'] = tg['max_acres'].clip(upper=6177)
-tg['wf_prev_acres5_lim'] = tg.groupby('index')['max_acres_lim'].transform(lambda s: s.rolling(5, min_periods=1).sum())
+tg['wf_acres10_lim'] = tg.groupby('index')['max_acres_lim'].transform(lambda s: s.rolling(10, min_periods=1, center=False).sum())
+tg['wf_prev_acres10_lim'] = tg['wf_acres10_lim'] - tg['max_acres_lim']
 
 ```
 
 ```{python}
 tg['max_acres_rx_lim'] = tg['mx_crs_r'].clip(upper=6177)
-tg['rx_prev_acres5_lim'] = tg.groupby('index')['max_acres_rx_lim'].transform(lambda s: s.rolling(5, min_periods=1).sum())
+tg['rx_prev_acres5_lim'] = tg.groupby('index')['max_acres_rx_lim'].transform(lambda s: s.rolling(5, min_periods=1, center=False).sum())
 ```
 
 ```{python}
@@ -69,17 +70,6 @@ tg_fire = tg[tg['max_acres']>0]
 ```
 
 ```{python}
-labels = ['small', 'medium', 'large']
-print(pd.qcut(x=tg_fire['max_acres'], q=3, retbins=True))
-tg_fire['target'] = pd.qcut(x=tg_fire['max_acres'], q=3, labels=labels)
-```
-
-Size classes in target: [(-0.000965, 0.1] < (0.1, 4.583] < (4.583, 413715.0]]
-
-Limited size class based on original classes: [0, 10, 5000, 9000000]
-The small class is No fire and A-B, medium class is C-F, and large is class G. Depending on how it goes, it may be reasonable to split up F as well? 
-
-```{python}
 bins = [-0.1, 0.25, 1000, 9000000]
 class_labs = ['0-A', 'B-E', 'F-G+']
 tg_fire['size_2'] = pd.cut(x=tg_fire['max_acres'], bins=bins, labels=class_labs)
@@ -91,11 +81,12 @@ tg_f_cur = tg_fire[tg_fire['year']>=2020]
 ```
 
 ```{python}
+labels=['small', 'med', 'large']
 print(pd.qcut(x=tg_f_cur['max_acres'], q=3, retbins=True))
 tg_f_cur['target'] = pd.qcut(x=tg_f_cur['max_acres'], q=3, labels=labels)
 ```
 
-Class sizes: [(-0.000965, 0.1] < (0.1, 4.72] < (4.72, 413715.0]]
+Class sizes: [(-0.000965, 0.1] < (0.1, 0.25] < (0.25, 134.76] < (134.76, 413715.0]]
 
 ## rx_prev, max_acres_rx, previous wildfires 
 
@@ -105,11 +96,12 @@ Class sizes: [(-0.000965, 0.1] < (0.1, 4.72] < (4.72, 413715.0]]
 # label encoder for target variable
 label_encoder = LabelEncoder()
 target = label_encoder.fit_transform(tg_fire["sz_clss"])
+target2 = label_encoder.fit_transform(tg_fire["size_2"])
 
-data = tg_fire[['is_ndgn', 'plnt_sm', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres5_lim']]
+data = tg_fire[['is_ndgn', 'plnt_sm', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres10_lim']]
 
 X_train, X_test, y_train, y_test = train_test_split(
-    data, target, test_size=0.3, random_state=42, stratify=target
+    data, target2, test_size=0.3, random_state=42, stratify=target2
 )
 
 ```
@@ -163,8 +155,8 @@ print(feature_imp_df)
 ### Metrics
 
 ```{python}
-n_labs = np.unique(target)
-class_labs = np.unique(tg_fire['sz_clss'])
+n_labs = np.unique(target2)
+#class_labs = np.unique(tg_fire['sz_clss'])
 
 c_matrix = confusion_matrix(y_test, pred, labels=n_labs)
 print(c_matrix)
@@ -190,12 +182,13 @@ print(report)
 
 ```{python}
 # label encoder for target variable
-target_c = label_encoder.fit_transform(tg_f_cur["sz_clss"])
+target_c = label_encoder.fit_transform(tg_f_cur["size_2"])
+target = label_encoder.fit_transform(tg_f_cur["target"])
 
-data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres5_lim']]
+data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres10_lim']]
 
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
-    data_c, target_c, test_size=0.3, random_state=42, stratify=target_c
+    data_c, target, test_size=0.3, random_state=42, stratify=target
 )
 ```
 
@@ -258,7 +251,7 @@ plt.show()
 ```
 
 ```{python}
-report_c = classification_report(y_test_c, pred_c, labels=n_labs, target_names=class_labs)
+report_c = classification_report(y_test_c, pred_c, labels=n_labs, target_names=labels)
 print(report_c)
 ```
 
@@ -267,10 +260,10 @@ print(report_c)
 ### Model
 
 ```{python}
-data_p = tg_fire[['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres5_lim']]
+data_p = tg_f_cur[['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres10_lim']]
 
 X_train_p, X_test_p, y_train_p, y_test_p = train_test_split(
-    data_p, target, test_size=0.3, random_state=42, stratify=target
+    data_p, target_c, test_size=0.3, random_state=42, stratify=target_c
 )
 ```
 
@@ -300,7 +293,7 @@ shap_summary_p = np.abs(shap_values_p).mean(axis=0)
 shap_summary_list_p = [np.mean(shap_summary_p[i]) for i in range(shap_summary_p.shape[0])]
 
 # list of feature names
-feature_names_p = ['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres5_lim']
+feature_names_p = ['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres10_lim']
 
 # dataframe using 1d list of SHAP values
 shap_summary_df_p = pd.DataFrame({'Feature': feature_names_p, 'SHAP values': shap_summary_list_p})
@@ -325,7 +318,7 @@ print(c_matrix_p)
 ```
 
 ```{python}
-sns.heatmap(c_matrix_p, annot=True, fmt="d", cmap="Purples", xticklabels=labels, yticklabels=labels)
+sns.heatmap(c_matrix_p, annot=True, fmt="d", cmap="Purples", xticklabels=class_labs, yticklabels=class_labs)
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.title("Confusion Matrix")
@@ -334,7 +327,7 @@ plt.show()
 ```
 
 ```{python}
-report = classification_report(y_test, pred, labels=n_labs, target_names=labels)
+report = classification_report(y_test, pred, labels=n_labs, target_names=class_labs)
 print(report)
 ```
 
@@ -343,10 +336,10 @@ print(report)
 ### Model
 
 ```{python}
-data_ni = tg_fire[['plnt_sm', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres5_lim']]
+data_ni = tg_f_cur[['plnt_sm', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres10_lim']]
 
 X_train_ni, X_test_ni, y_train_ni, y_test_ni = train_test_split(
-    data_ni, target, test_size=0.3, random_state=42, stratify=target
+    data_ni, target_c, test_size=0.3, random_state=42, stratify=target_c
 )
 
 ```
@@ -424,7 +417,7 @@ optuna.logging.set_verbosity(optuna.logging.INFO)
 ```
 
 ```{python}
-def tune_random_forest_optuna(X_train, y_train, X_test, y_test, labels=labels, n_trials=100):
+def tune_random_forest_optuna(X_train, y_train, X_test, y_test, labels=class_labs, n_trials=100):
     """
     Random Forest tuning with Optuna (Multi-class support)
     """
@@ -553,7 +546,7 @@ print(f"Trained feature importance:\n{feature_imp_df_t}")
 # with optuna tuning
 # pulled from prof.cheng's code
 X_tr_c, X_val_c, y_tr_c, y_val_c = train_test_split(
-    X_train_c, y_train_c, test_size=0.3, random_state=42
+    X_train_c, y_train_c, test_size=0.3, random_state=42, stratify=y_train_c
 )
 
 print("Tuning Random Forest with Optuna...")
