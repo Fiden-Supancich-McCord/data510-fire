@@ -116,9 +116,10 @@ ind_fire_dur_boxplot <- grid_df %>%
     theme_minimal() +
     labs(
         x="Whether Indigenous land",
-        y="Maximum acres burned during fire in cell (log scale)",
+        y="Maximum duration burned during fire in cell (log scale)",
         title="Maximum fire duration for Indigenous vs \nnon-Indigenous land"
     )
+
 
 ```
 

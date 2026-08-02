@@ -1,0 +1,370 @@
+---
+title: "statistical tests!"
+author: "Spencer Fiden"
+date: "2026-08-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# importing libraries
+library(tidyverse)
+library(ggplot2)
+library(sf)
+library(viridis)
+library(stats)
+library(effectsize)
+```
+
+```{r}
+gdf <- read_csv("./data/processed_grid/processed_grid.csv")
+indigenous_cols <- c("Indigenous" = "salmon", "Non-Indigenous" = "slateblue3")
+
+gdf <- gdf %>%
+    mutate(is_ndgn = ifelse(is_indigenous==1, "Indigenous", "Non-Indigenous"))
+```
+
+# Indigenous land status 
+
+```{r}
+gdf %>%
+    ggplot(aes(is_ndgn, max_acres, fill=is_ndgn)) +
+    geom_boxplot() +
+    scale_fill_manual(values=indigenous_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ is_ndgn, data=gdf))
+print(cohens_d(max_acres ~ is_ndgn, data=gdf))
+```
+
+```{r}
+gdf %>% 
+    filter(n_wildfires > 0) %>%
+    ggplot(aes(is_ndgn, max_acres, fill=is_ndgn)) +
+    geom_boxplot() +
+    scale_fill_manual(values=indigenous_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0)))
+```
+
+Not significant at all.
+
+```{r}
+gdf %>% 
+    ggplot(aes(is_ndgn, n_wildfires, fill=is_ndgn)) +
+    geom_boxplot() +
+    scale_fill_manual(values=indigenous_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(n_wildfires ~ is_ndgn, data=gdf))
+#print(t.test(n_wildfires ~ is_ndgn, data=gdf, alternative='less'))
+print(cohens_d(n_wildfires ~ is_ndgn, data=gdf))
+
+```
+
+Some significance showing Indigenous land has higher counts of fires. 
+
+```{r}
+gdf %>% 
+    filter(n_wildfires > 0) %>%
+    ggplot(aes(is_ndgn, n_wildfires, fill=is_ndgn)) +
+    geom_boxplot() +
+    scale_fill_manual(values=indigenous_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(n_wildfires ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0)))
+print(t.test(n_wildfires ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0), alternative='less'))
+
+print(cohens_d(n_wildfires ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0)))
+
+```
+
+Some significance showing Indigenous land has higher counts of fires when limited to cells that have had fires.
+
+```{r}
+gdf %>% 
+    ggplot(aes(is_ndgn, max_duration, fill=is_ndgn)) +
+    geom_boxplot() +
+    scale_fill_manual(values=indigenous_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_duration ~ is_ndgn, data=gdf))
+```
+
+```{r}
+gdf %>% 
+    filter(n_wildfires > 0) %>%
+    ggplot(aes(is_ndgn, max_duration, fill=is_ndgn)) +
+    geom_boxplot() +
+    scale_fill_manual(values=indigenous_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_duration ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0)))
+```
+
+Very little significance here. 
+
+```{r}
+gdf %>% 
+    ggplot(aes(is_ndgn, n_rx_fires, fill=is_ndgn)) +
+    geom_boxplot() +
+    scale_fill_manual(values=indigenous_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(n_rx_fires ~ is_ndgn, data=gdf))
+```
+
+No significance here either! Wow. 
+
+```{r}
+gdf %>% 
+    filter(n_rx_fires > 0) %>%
+    ggplot(aes(is_ndgn, n_rx_fires, fill=is_ndgn)) +
+    geom_boxplot() +
+    scale_fill_manual(values=indigenous_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(rx_max_acres ~ is_ndgn, data=gdf %>% filter(n_rx_fires > 0)))
+print(cohens_d(rx_max_acres ~ is_ndgn, data=gdf %>% filter(n_rx_fires > 0)))
+
+```
+
+Technically some significance here but come on. Let's be real. 
+
+# Previous wildfire/prescribed burn
+
+```{r}
+tgdf <- read_csv("./data/processed_grid/time_grid.csv")
+
+tgdf <- tgdf %>%
+    mutate(is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Non-Indigenous"))
+```
+
+```{r}
+# tgdf2 <- tgdf %>%
+#     rowwise() %>%
+#     mutate(
+#         capped_acres = min(6178, max_acres)
+#     ) 
+
+tgdf <- tgdf %>%
+    mutate(
+        prev_rx_csum = rx_csum - n_rx,
+        prev_rx_rollsum = rx_rollsum - n_rx,
+        prev_fire_csum = fire_csum - n_fires,
+        prev_fire_rollsum = fire_rollsum - n_fires,
+        prev_fire_rollsum_5 = fire_rollsum_5 - n_fires
+    )
+```
+
+## Rx csum
+
+```{r}
+tgdf %>% 
+    ggplot(aes(as.factor(rx_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf))
+```
+
+No significance. 
+
+```{r}
+tgdf %>% 
+    filter(n_fires > 0) %>%
+    ggplot(aes(as.factor(rx_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0)))
+print(cohens_d(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0)))
+
+```
+
+Some significance for cumulative sum of prescribed burn when limited to fires existing! p value of 0.04.
+
+Limiting to 2020-2025, as there aren't any prescribed burns before that. 
+
+```{r}
+tgdf %>% 
+    filter(year >= 2020) %>%
+    ggplot(aes(as.factor(rx_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(year >= 2020)))
+
+```
+
+No significance at all! Wow. 
+
+```{r}
+tgdf %>% 
+    filter(year >= 2020) %>%
+    filter(n_fires > 0) %>%
+    ggplot(aes(as.factor(rx_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+print(cohens_d(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+
+```
+
+Quite significant - p-value of 0.002. 
+
+## Previous rx csum
+
+```{r}
+tgdf %>% 
+    ggplot(aes(as.factor(prev_rx_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf))
+```
+
+Not significant.
+
+```{r}
+tgdf %>% 
+    filter(n_fires > 0) %>%
+    ggplot(aes(as.factor(prev_rx_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(n_fires > 0)))
+```
+
+Almost significant - p-value of 0.057.
+
+Limiting to 2020-2025, as there aren't any prescribed burns before that. 
+
+```{r}
+tgdf %>% 
+    filter(year >= 2020) %>%
+    ggplot(aes(as.factor(prev_rx_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(year >= 2020)))
+```
+
+Not significant at all. 
+
+```{r}
+tgdf %>% 
+    filter(year >= 2020) %>%
+    filter(n_fires > 0) %>%
+    ggplot(aes(as.factor(prev_rx_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+print(cohens_d(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+
+```
+
+Quite significant! p-value of 0.006. Cohen's d of 0.21, 95% CI [0.0, 0.4]
+
+## Previous fire csum
+
+```{r}
+tgdf %>% 
+    ggplot(aes(as.factor(prev_fire_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_fire_csum > 0), data=tgdf))
+print(cohens_d(max_acres ~ as.factor(prev_fire_csum > 0), data=tgdf))
+
+```
+
+Almost significant - p-value of 0.054. This one is in the opposite direction - cells that have had fires are more likely to have slightly larger fires in the future. Cohen's d is -0.01. 
+
+```{r}
+tgdf %>% 
+    filter(n_fires > 0) %>%
+    ggplot(aes(as.factor(prev_fire_csum > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_fire_csum > 0), data=tgdf %>% filter(n_fires > 0)))
+print(cohens_d(max_acres ~ as.factor(prev_fire_csum > 0), data=tgdf %>% filter(n_fires > 0)))
+
+```
+
+Very significant - p-value < 2.2e-16. Cohen's d of 0.26, CI [0.21, 0.30].
+
+## Previous fire rollsum_5
+
+```{r}
+tgdf %>% 
+    ggplot(aes(as.factor(prev_fire_rollsum_5 > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf))
+print(cohens_d(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf))
+
+```
+
+Not significant.
+
+```{r}
+tgdf %>% 
+    filter(n_fires > 0) %>%
+    ggplot(aes(as.factor(prev_fire_rollsum_5 > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf %>% filter(n_fires > 0)))
+print(cohens_d(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf %>% filter(n_fires > 0)))
+
+```
+
+Very significant - p-value < 2.2e-16 again. 
+
+Limiting to 2020 and on so the full 5 years are visible. 
+
+```{r}
+tgdf %>% 
+    filter(n_fires > 0) %>%
+    filter(year >= 2020) %>%
+    ggplot(aes(as.factor(prev_fire_rollsum_5 > 0), max_acres)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+print(cohens_d(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+
+```
+
+Similarly very significant. 
+
