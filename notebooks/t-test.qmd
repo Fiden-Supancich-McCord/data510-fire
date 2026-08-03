@@ -197,6 +197,13 @@ tgdf <- tgdf %>%
     )
 ```
 
+```{r}
+burn_cols <- c(
+    "TRUE" = "purple4", 
+    "FALSE" = "sienna1"
+)
+```
+
 ## Rx csum
 
 ```{r}
@@ -214,12 +221,17 @@ No significance.
 ```{r}
 tgdf %>% 
     filter(n_fires > 0) %>%
-    ggplot(aes(as.factor(rx_csum > 0), max_acres)) +
-    geom_boxplot() +
-    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
-    theme_bw()
+    ggplot(aes(as.factor(rx_csum > 0), max_acres, fill=as.factor(rx_csum > 0))) +
+    geom_boxplot(show.legend=FALSE) +
+    scale_fill_manual(values=burn_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
+    theme_bw() +
+    labs(
+        x="Had previous prescribed burns",
+        y="Maximum acres burned"
+    )
 
-print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0)))
+print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0), alternative='greater'))
 print(cohens_d(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0)))
 
 ```
@@ -236,24 +248,34 @@ tgdf %>%
     scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
     theme_bw()
 
-print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(year >= 2020)))
+print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(year >= 2020), alternative='greater'))
 
 ```
 
 No significance at all! Wow. 
 
 ```{r}
-tgdf %>% 
+ttest_boxplot_rx_cur <- tgdf %>% 
     filter(year >= 2020) %>%
     filter(n_fires > 0) %>%
-    ggplot(aes(as.factor(rx_csum > 0), max_acres)) +
-    geom_boxplot() +
-    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
-    theme_bw()
+    ggplot(aes(as.factor(rx_csum > 0), max_acres, fill=as.factor(rx_csum > 0))) +
+    geom_boxplot(show.legend=FALSE) +
+    scale_fill_manual(values=burn_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
+    theme_bw() +
+    labs(
+        title="Presence of prescribed burns \nfor fires 2020-2025",
+        x="Had prescribed burns",
+        y="Maximum acres burned",
+        caption="Source: IFPH, InFORM"
+    )
 
-print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+ttest_boxplot_rx_cur
+
+print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020), alternative='greater'))
 print(cohens_d(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
 
+ggsave("./images/ttest_boxplot_rx_cur.jpeg", ttest_boxplot_rx_cur, width=4, height=6, units="in")
 ```
 
 Quite significant - p-value of 0.002. 
@@ -340,6 +362,13 @@ print(cohens_d(max_duration ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(
 ## Previous fire csum
 
 ```{r}
+wf_cols <- c(
+    "TRUE" = "darkred", 
+    "FALSE" = "sienna1"
+)
+```
+
+```{r}
 tgdf %>% 
     ggplot(aes(as.factor(prev_fire_csum > 0), max_acres)) +
     geom_boxplot() +
@@ -405,10 +434,17 @@ Limiting to 2020 and on so the full 5 years are visible.
 tgdf %>% 
     filter(n_fires > 0) %>%
     filter(year >= 2020) %>%
-    ggplot(aes(as.factor(prev_fire_rollsum_5 > 0), max_acres)) +
-    geom_boxplot() +
-    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
-    theme_bw()
+    ggplot(aes(as.factor(prev_fire_rollsum_5 > 0), max_acres, fill=as.factor(prev_fire_rollsum_5 > 0))) +
+    geom_boxplot(show.legend=FALSE) +
+    scale_fill_manual(values=wf_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
+    theme_bw() +
+    labs(
+        title="Presence of previous wildfires \nfor fires 2020-2025",
+        x="Had previous wildfires",
+        y="Maximum acres burned",
+        caption="Source: IFPH, InFORM"
+    )
 
 print(t.test(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
 print(cohens_d(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
