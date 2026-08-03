@@ -14,7 +14,7 @@ library(viridis)
 
 ```{r}
 grid <- st_read("data/processed_grid/processed_grid.shp")
-grid_df <- tibble(grid) # tibble will run summarize faster!
+grid_df <- read_csv("./data/processed_grid/processed_grid.csv") # tibble will run summarize faster!
 ```
 
 ```{r}
@@ -124,20 +124,29 @@ ind_fire_dur_boxplot <- grid_df %>%
 ```
 
 ```{r}
-ind_rx_grid_hist <- grid_df %>%
-    filter(n_wldfr > 0) %>%
+labels_df <- grid_df %>%
+    filter(n_wildfires > 0) %>%
     mutate(
-        has_rx = ifelse(n_rx_fr > 0, "prescribed burns", "no prescribed burns"),
-        is_ndgn = ifelse(is_ndgn==1, "indigenous", "not indigenous")
+        has_rx = ifelse(n_rx_fires > 0, "prescribed burns", "no prescribed burns"),
+        is_ndgn = ifelse(is_indigenous==1, "indigenous", "not indigenous")
     ) %>%
-    group_by(has_rx, is_ndgn, mx_sz_c) %>%
+    group_by(has_rx, is_ndgn) %>%
+    summarize(label=n())
+
+ind_rx_grid_hist <- grid_df %>%
+    filter(n_wildfires > 0) %>%
+    mutate(
+        has_rx = ifelse(n_rx_fires > 0, "prescribed burns", "no prescribed burns"),
+        is_ndgn = ifelse(is_indigenous==1, "indigenous", "not indigenous")
+    ) %>%
+    group_by(has_rx, is_ndgn, max_size_class) %>%
     summarize(n=n()) %>%
     group_by(has_rx, is_ndgn) %>%
     mutate(
         total = sum(n),
         pct_sz = n/total
     ) %>%
-    ggplot(aes(mx_sz_c, pct_sz, fill=has_rx)) +
+    ggplot(aes(max_size_class, pct_sz, fill=has_rx)) +
     geom_col(color="white", show.legend=FALSE) +
     facet_grid(is_ndgn~has_rx) +
     scale_y_continuous(labels=scales::percent) +
@@ -146,6 +155,9 @@ ind_rx_grid_hist <- grid_df %>%
         x="Maximum fire size class",
         y="Percent of fires",
         title="Fire size distribution by presence of prescribed burn and whether \nfederally recognized Indigenous land"
+    ) +
+    geom_text(data = labels_df, size = 3,
+        mapping = aes(x = Inf, y = Inf, label = paste("n =", label), hjust = 1.2, vjust = 2)
     )
 
 ggsave("images/ind_rx_grid_hist.jpeg", ind_rx_grid_hist, width=7, height=4, units="in")

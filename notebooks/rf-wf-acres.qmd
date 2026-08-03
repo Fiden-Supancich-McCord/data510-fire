@@ -49,8 +49,8 @@ tg['wf_prev_r5'] = tg['fire_rollsum_5'] - tg['n_fires']
 
 ```{python}
 tg['max_acres_lim'] = tg['max_acres'].clip(upper=6177)
-tg['wf_acres10_lim'] = tg.groupby('index')['max_acres_lim'].transform(lambda s: s.rolling(10, min_periods=1, center=False).sum())
-tg['wf_prev_acres10_lim'] = tg['wf_acres10_lim'] - tg['max_acres_lim']
+tg['wf_acres5_lim'] = tg.groupby('index')['max_acres_lim'].transform(lambda s: s.rolling(5, min_periods=1, center=False).sum())
+tg['wf_prev_acres5_lim'] = tg['wf_acres5_lim'] - tg['max_acres_lim']
 
 ```
 
@@ -86,7 +86,7 @@ print(pd.qcut(x=tg_f_cur['max_acres'], q=3, retbins=True))
 tg_f_cur['target'] = pd.qcut(x=tg_f_cur['max_acres'], q=3, labels=labels)
 ```
 
-Class sizes: [(-0.000965, 0.1] < (0.1, 0.25] < (0.25, 134.76] < (134.76, 413715.0]]
+Class sizes: [(-0.000965, 0.1] < (0.1, 4.72] < (4.72, 413715.0]]
 
 ## rx_prev, max_acres_rx, previous wildfires 
 
@@ -182,10 +182,11 @@ print(report)
 
 ```{python}
 # label encoder for target variable
+label_encoder = LabelEncoder()
 target_c = label_encoder.fit_transform(tg_f_cur["size_2"])
 target = label_encoder.fit_transform(tg_f_cur["target"])
 
-data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres10_lim']]
+data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres5_lim']]
 
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
     data_c, target, test_size=0.3, random_state=42, stratify=target
@@ -203,7 +204,7 @@ pred_c = rf_c.predict(X_test_c)
 print(f"Accuracy: {accuracy_score(y_test_c, pred_c):.4f}")
 ```
 
-Accuracy with wf_prev_r5 and wf_prev_acres5_lim: 0.8824
+Accuracy with wf_prev_r5 and wf_prev_acres5_lim: 0.4402
 
 ### Feature Importance
 
@@ -225,6 +226,19 @@ shap_summary_df_c = pd.DataFrame({'Feature': feature_names, 'SHAP values': shap_
 print(shap_summary_df_c)
 ```
 
+```{python}
+explainer_c = shap.TreeExplainer(rf_c, X_train_c)
+shap_values_c = explainer_c(X_train_c, check_additivity=False)
+```
+
+```{python}
+fig = shap.summary_plot(shap_values_c, class_names=labels, show=False)
+
+plt.tight_layout()
+#plt.savefig("../images/shap_summary_plot")
+plt.show()
+```
+
 Feature importance using Gini importance.
 
 ```{python}
@@ -237,16 +251,20 @@ print(feature_imp_df_c)
 ### Metrics
 
 ```{python}
+n_labs = np.unique(target_c)
 c_matrix_c = confusion_matrix(y_test_c, pred_c, labels=n_labs)
 print(c_matrix_c)
 ```
 
 ```{python}
+class_labs = np.unique(tg_f_cur['target'])
+
 sns.heatmap(c_matrix_c, annot=True, fmt="d", cmap="Purples", xticklabels=class_labs, yticklabels=class_labs)
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.title("Confusion Matrix")
 plt.tight_layout()
+plt.savefig("../images/conf_matrix_rf_wf_acres")
 plt.show()
 ```
 
@@ -260,7 +278,7 @@ print(report_c)
 ### Model
 
 ```{python}
-data_p = tg_f_cur[['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres10_lim']]
+data_p = tg_f_cur[['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thuja', 'n_xrphy', 'n_rubus', 'rx_prev', 'mx_crs_r', 'wf_prev_r5', 'wf_prev_acres5_lim']]
 
 X_train_p, X_test_p, y_train_p, y_test_p = train_test_split(
     data_p, target_c, test_size=0.3, random_state=42, stratify=target_c
@@ -278,7 +296,7 @@ pred_p = rf_p.predict(X_test_p)
 print(f"Accuracy: {accuracy_score(y_test_p, pred_p):.4f}")
 ```
 
-Accuracy: 0.8662
+Accuracy: 0.4943
 
 ### Feature Importance
 
@@ -299,6 +317,19 @@ feature_names_p = ['is_ndgn', 'n_pinus', 'n_salix', 'n_qurcs', 'n_popls', 'n_thu
 shap_summary_df_p = pd.DataFrame({'Feature': feature_names_p, 'SHAP values': shap_summary_list_p})
 
 print(shap_summary_df_p)
+```
+
+```{python}
+explainer_p = shap.TreeExplainer(rf_p, X_train_p)
+shap_values_p = explainer_p(X_train_p, check_additivity=False)
+```
+
+```{python}
+fig = shap.summary_plot(shap_values_p, class_names=labels, show=False)
+
+plt.tight_layout()
+plt.savefig("../images/shap_summary_plot_plant")
+plt.show()
 ```
 
 Feature importance using Gini importance.
@@ -323,11 +354,12 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.title("Confusion Matrix")
 plt.tight_layout()
+plt.savefig("../images/conf_matrix_rf_wf_acres_plant")
 plt.show()
 ```
 
 ```{python}
-report = classification_report(y_test, pred, labels=n_labs, target_names=class_labs)
+report = classification_report(y_test_p, pred_p, labels=n_labs, target_names=class_labs)
 print(report)
 ```
 

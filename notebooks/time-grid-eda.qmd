@@ -31,7 +31,7 @@ tgdf <- tgdf %>%
     mutate(prev_rx = rx_csum - n_rx)
 
 tgdf <- tgdf %>%
-    mutate(size_class = factor(size_class, levels=c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"))) %>%
+    mutate(size_class = factor(sz_clss, levels=c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"))) %>%
     mutate(size_class_pretty = recode(size_class, `Class A`="A", `Class B`="B", `Class C`="C", `Class D`="D", `Class E`="E", `Class F`="F", `Class G`="G"))
 
 tgdf %>%
@@ -424,4 +424,92 @@ only_fires_size_prev_rx <- tgdf %>%
 only_fires_size_prev_rx
 ggsave("images/only_fires_size_prev_rx.jpeg", only_fires_size_prev_rx, width=6, height=5)
 
+```
+
+```{r}
+only_fires_ind_size_prev_rx <- tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    filter(size_class_pretty != "No fire") %>%
+    group_by(had_rx, size_class_pretty, is_ndgn) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, is_ndgn) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge") +
+    facet_grid(is_ndgn~had_rx) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(values=burn_cols) +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires in cells with/without prescribed burns",
+        title="Fire size distribution by presence of prescribed burn",
+        fill="",
+        #subtitle='"No fire" class not shown',
+        caption='Source: InFORM, IFPH\nCells without wildfires in a given year not included in totals.'
+    ) +
+    theme_bw() +
+    theme(legend.position="top")
+
+```
+
+
+```{r}
+tgdf_rx_ndgn <- tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    filter(size_class_pretty != "No fire") %>%
+    group_by(had_rx, size_class_pretty, is_ndgn) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, is_ndgn) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    )
+
+labels_df = tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    filter(size_class_pretty != "No fire") %>%
+    group_by(had_rx, is_ndgn) %>%
+    summarize(label=n())
+
+only_fires_ind_size_prev_rx <- tgdf_rx_ndgn %>%
+    ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge") +
+    facet_grid(is_ndgn~had_rx) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(values=burn_cols) +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires in cells with/without prescribed burns",
+        title="Fire size distribution by presence of prescribed burn",
+        fill="",
+        #subtitle='"No fire" class not shown',
+        caption='Source: InFORM, IFPH\nCells without wildfires in a given year not included in totals.'
+    ) +
+    theme_bw() +
+    theme(legend.position="top") + 
+    geom_text(data = labels_df, size = 3,
+        mapping = aes(x = Inf, y = Inf, label = paste("n =", label), hjust = 1.2, vjust = 2)
+    )
+
+only_fires_ind_size_prev_rx
+
+ggsave("images/only_fires_ind_size_prev_rx.jpeg", only_fires_ind_size_prev_rx, width=6, height=5)
 ```

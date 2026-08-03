@@ -32,25 +32,41 @@ gdf <- gdf %>%
 ```{r}
 gdf %>%
     ggplot(aes(is_ndgn, max_acres, fill=is_ndgn)) +
-    geom_boxplot() +
+    geom_boxplot(show.legend=FALSE) +
     scale_fill_manual(values=indigenous_cols) +
-    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
-    theme_bw()
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
+    theme_bw() +
+    labs(
+        y="Maximum acres",
+        x=""
+    )
 
 print(t.test(max_acres ~ is_ndgn, data=gdf))
 print(cohens_d(max_acres ~ is_ndgn, data=gdf))
 ```
 
 ```{r}
-gdf %>% 
+ind_acres <- gdf %>% 
     filter(n_wildfires > 0) %>%
     ggplot(aes(is_ndgn, max_acres, fill=is_ndgn)) +
-    geom_boxplot() +
+    geom_boxplot(show.legend=FALSE) +
     scale_fill_manual(values=indigenous_cols) +
-    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
-    theme_bw()
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
+    theme_bw() +
+    labs(
+        title="Maximum acres burned in cells with \nfires by Indigenous land status",
+        y="Maximum acres",
+        x="",
+        caption="Source: IFPH, InFORM, LandMark"
+    )
+
+ind_acres
+
+ggsave("./images/only_fire_ind_acres.jpeg", ind_acres, width=4, height=5, units="in")
 
 print(t.test(max_acres ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0)))
+print(cohens_d(max_acres ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0)))
+
 ```
 
 Not significant at all.
@@ -92,24 +108,36 @@ Some significance showing Indigenous land has higher counts of fires when limite
 ```{r}
 gdf %>% 
     ggplot(aes(is_ndgn, max_duration, fill=is_ndgn)) +
-    geom_boxplot() +
+    geom_boxplot(show.legend=FALSE) +
     scale_fill_manual(values=indigenous_cols) +
     scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
-    theme_bw()
+    theme_bw() +
+    labs(
+        y="Maximum acres",
+        x=""
+    )
 
 print(t.test(max_duration ~ is_ndgn, data=gdf))
+print(cohens_d(max_duration ~ is_ndgn, data=gdf))
+
 ```
 
 ```{r}
 gdf %>% 
     filter(n_wildfires > 0) %>%
     ggplot(aes(is_ndgn, max_duration, fill=is_ndgn)) +
-    geom_boxplot() +
+    geom_boxplot(show.legend=FALSE) +
     scale_fill_manual(values=indigenous_cols) +
     scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
-    theme_bw()
+    theme_bw() +
+    labs(
+        y="Maximum acres",
+        x=""
+    )
 
 print(t.test(max_duration ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0)))
+print(cohens_d(max_duration ~ is_ndgn, data=gdf %>% filter(n_wildfires > 0)))
+
 ```
 
 Very little significance here. 
@@ -240,6 +268,8 @@ tgdf %>%
     theme_bw()
 
 print(t.test(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf))
+print(cohens_d(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf))
+
 ```
 
 Not significant.
@@ -253,6 +283,8 @@ tgdf %>%
     theme_bw()
 
 print(t.test(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(n_fires > 0)))
+print(cohens_d(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(n_fires > 0)))
+
 ```
 
 Almost significant - p-value of 0.057.
@@ -268,6 +300,8 @@ tgdf %>%
     theme_bw()
 
 print(t.test(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(year >= 2020)))
+print(cohens_d(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(year >= 2020)))
+
 ```
 
 Not significant at all. 
@@ -287,6 +321,21 @@ print(cohens_d(max_acres ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(n_f
 ```
 
 Quite significant! p-value of 0.006. Cohen's d of 0.21, 95% CI [0.0, 0.4]
+
+
+```{r}
+tgdf %>% 
+    filter(year >= 2020) %>%
+    filter(n_fires > 0) %>%
+    ggplot(aes(as.factor(prev_rx_csum > 0), max_duration)) +
+    geom_boxplot() +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+    theme_bw()
+
+print(t.test(max_duration ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+print(cohens_d(max_duration ~ as.factor(prev_rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+
+```
 
 ## Previous fire csum
 
