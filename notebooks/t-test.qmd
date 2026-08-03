@@ -431,7 +431,7 @@ Very significant - p-value < 2.2e-16 again.
 Limiting to 2020 and on so the full 5 years are visible. 
 
 ```{r}
-tgdf %>% 
+ttest_boxplot_prev_wf_cur <- tgdf %>% 
     filter(n_fires > 0) %>%
     filter(year >= 2020) %>%
     ggplot(aes(as.factor(prev_fire_rollsum_5 > 0), max_acres, fill=as.factor(prev_fire_rollsum_5 > 0))) +
@@ -448,6 +448,8 @@ tgdf %>%
 
 print(t.test(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
 print(cohens_d(max_acres ~ as.factor(prev_fire_rollsum_5 > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+
+ggsave("./images/ttest_boxplot_prev_wf_cur.jpeg", ttest_boxplot_prev_wf_cur, width=4, height=6, units="in")
 
 ```
 
