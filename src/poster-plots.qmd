@@ -37,8 +37,8 @@ tgdf <- tgdf %>%
 ```{r}
 # fire size distribution by previous prescribed burn, not including "no fire"
 burn_cols <- c(
-    "Previous prescribed burns" = "purple4", 
-    "No previous prescribed burns" = "sienna1"
+    "Previous prescribed burns" = "#5a1068", 
+    "No previous prescribed burns" = "#f38a26"
 )
 
 fire_size_class_pct_prev_rx_fire <- tgdf %>%
@@ -117,13 +117,17 @@ ggsave("images/fire_size_lim_pct_prev_rx_fire2.jpeg", fire_size_lim_pct_prev_rx_
 
 ```{r}
 # boxplot acres
-indigenous_cols <- c("Indigenous" = "salmon", "Non-Indigenous" = "slateblue3")
+indigenous_cols <- c("Indigenous" = "#990000ff", "Non-Indigenous" = "#e6b8afff")
+
+indigenous_cols <- c("Indigenous" = "#7a268A", "Non-Indigenous" = "salmon")
+
+indigenous_cols <- c("Indigenous" = "#7a268A", "Non-Indigenous" = "#e6b8afff")
 
 ind_wf_acres_boxplot <- gdf %>%
-    filter(n_wildfires > 0) %>%
+    filter(max_acres > 0) %>%
     mutate(is_indigenous = ifelse(is_indigenous==1, "Indigenous", "Non-Indigenous")) %>%
     ggplot(aes(is_indigenous, max_acres, fill=is_indigenous)) +
-    geom_boxplot(show.legend=FALSE) +
+    geom_boxplot(color="black", show.legend=FALSE) +
     scale_y_log10(labels=scales::comma) + 
     scale_fill_manual(values=indigenous_cols) +
     theme_minimal() +
@@ -136,7 +140,7 @@ ind_wf_acres_boxplot <- gdf %>%
 
 ind_wf_acres_boxplot
 
-ggsave("images/ind_wf_acres_boxplot.jpeg", ind_wf_acres_boxplot, width=4, height=5, units="in")
+ggsave("images/ind_wf_acres_boxplot5.jpeg", ind_wf_acres_boxplot, width=4, height=5, units="in")
 ```
 
 ```{r}
@@ -158,6 +162,11 @@ ggsave("maps/log_n_fires.jpeg", n_fires_plt, height=4, width=6, units="in")
 
 
 ```{r}
+burn_cols <- c(
+    "Previous prescribed burns" = "red4", 
+    "No previous prescribed burns" = "darkorange1"
+)
+
 only_fires_size_prev_rx <- tgdf %>%
     filter(year > 2021) %>%
     mutate(
@@ -189,5 +198,6 @@ only_fires_size_prev_rx <- tgdf %>%
     theme(legend.position="top")
 
 only_fires_size_prev_rx
-ggsave("images/only_fires_size_prev_rx2.jpeg", only_fires_size_prev_rx, width=6, height=5)
+
+ggsave("images/only_fires_size_prev_rx4.jpeg", only_fires_size_prev_rx, width=6, height=5)
 ```
