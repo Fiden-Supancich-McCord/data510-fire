@@ -183,7 +183,6 @@ only_fires_size_prev_rx <- tgdf %>%
         y="Percent of fires in cells with/without prescribed burns",
         title="Fire size distribution by presence of prescribed burn",
         fill="",
-        #subtitle='"No fire" class not shown',
         caption='Source: InFORM, IFPH\nCells without wildfires in a given year not included in totals.'
     ) +
     theme_bw() +

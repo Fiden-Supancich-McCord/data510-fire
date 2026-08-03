@@ -513,3 +513,124 @@ only_fires_ind_size_prev_rx
 
 ggsave("images/only_fires_ind_size_prev_rx.jpeg", only_fires_ind_size_prev_rx, width=6, height=5)
 ```
+
+Attempts at a better version of the faceted plot (unsuccessful).
+
+```{r}
+tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    filter(size_class_pretty != "No fire") %>%
+    group_by(had_rx, size_class_pretty, year) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, year) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    ggplot(aes(year, pct_sz, color=size_class_pretty)) +
+    #geom_col(color="white", position="dodge") +
+    geom_line(linewidth=2) +
+    facet_grid(~had_rx) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_color_viridis_d(option='inferno') +
+    # scale_fill_manual(values=burn_cols) +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of fires in cells with/without prescribed burns",
+        title="Fire size distribution by presence of prescribed burn",
+        fill="",
+        caption='Source: InFORM, IFPH\nCells without wildfires in a given year not included in totals.'
+    ) +
+    theme_bw() +
+    theme(legend.position="top")
+```
+
+```{r}
+tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    # filter(size_class_pretty != "No fire") %>%
+    filter(max_acres > 0) %>%
+    group_by(had_rx, year) %>%
+    summarize(
+        n=n(),
+        q1_acres = quantile(max_acres, 0.25),
+        med_max_acres = median(max_acres),
+        q3_acres = quantile(max_acres, 0.75),
+
+    ) %>%
+    ggplot(aes(year, med_max_acres, color=had_rx, fill=had_rx)) +
+    geom_line(linewidth=2) +
+    geom_line(aes(y=q1_acres)) +
+    geom_line(aes(y=q3_acres)) +
+    geom_ribbon(aes(ymin=q1_acres, ymax=q3_acres), alpha=0.3, show.legend=FALSE) +
+    scale_y_log10() +
+    scale_color_manual(values=burn_cols) +
+    scale_fill_manual(values=burn_cols) +
+    labs(
+        y="Median maximum fire size (acres)",
+        title="Fire size distribution by presence of prescribed burn",
+        fill="",
+        caption='Source: InFORM, IFPH\nCells without wildfires in a given year not included in totals.',
+        color=""
+    ) +
+    theme_bw() +
+    theme(legend.position="top")
+
+tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    filter(max_acres > 0) %>%
+    ggplot(aes(max_acres, fill=had_rx)) +
+    geom_boxplot() +
+    coord_flip() +
+    facet_grid(~year) +
+    scale_x_log10(labels=scales::comma) +
+    scale_fill_manual(values=burn_cols) +
+    labs(
+        x="Fire size (acres)",
+        title="Fire size distribution by presence of prescribed burn",
+        fill="",
+        caption='Source: InFORM, IFPH\nCells without wildfires in a given year not included in totals.'
+    ) +
+    theme_bw() +
+    theme(
+        legend.position="top"
+    )
+
+tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+    ) %>%
+    filter(max_acres > 0.25) %>%
+    ggplot(aes(max_acres, fill=had_rx)) +
+    geom_boxplot() +
+    coord_flip() +
+    facet_grid(~year) +
+    scale_x_continuous(transform=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
+    scale_fill_manual(values=burn_cols) +
+    labs(
+        x="Fire size (acres)",
+        title="Fire size distribution by presence of prescribed burn",
+        fill="",
+        caption='Source: InFORM, IFPH\nCells without wildfires in a given year not included in totals.'
+    ) +
+    theme_bw() +
+    theme(
+        legend.position="top"
+    )
+
+```
