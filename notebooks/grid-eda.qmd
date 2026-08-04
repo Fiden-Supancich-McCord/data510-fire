@@ -192,3 +192,20 @@ mean(grid_cell_areas)
 median(grid_cell_areas)
 
 ```
+
+
+```{r}
+grid_df %>%
+    group_by(is_indigenous) %>%
+    summarize(n=n())
+
+grid_df %>%
+    group_by(max_acres > 0) %>%
+    summarize(n=n())
+
+grid_df %>%
+    group_by(n_rx_fires > 0) %>%
+    summarize(n=n())
+
+dim(grid_df)
+```

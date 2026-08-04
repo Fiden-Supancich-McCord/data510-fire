@@ -67,14 +67,14 @@ fire_size_class_pct_prev_rx_fire <- tgdf %>%
         title="Fire size distribution by presence of prescribed burn",
         fill="",
         #subtitle='"No fire" class not shown',
-        caption='Source: InFORM, IFPH\n"No fire" class not shown. Cells without fires included in total for percentage.'
+        caption='n = 4763\nSource: InFORM, IFPH\n"No fire" class not shown. Cells without fires included in total for percentage.'
     ) +
     theme_bw() +
     theme(legend.position="top")
 
 fire_size_class_pct_prev_rx_fire
 
-ggsave("images/fire_size_class_pct_prev_rx_fire.jpeg", fire_size_class_pct_prev_rx_fire, width=6, height=5)
+ggsave("images/fire_size_class_pct_prev_rx_fire.png", fire_size_class_pct_prev_rx_fire, width=6, height=5)
 ```
 
 ```{r}
@@ -121,8 +121,6 @@ indigenous_cols <- c("Indigenous" = "#990000ff", "Non-Indigenous" = "#e6b8afff")
 
 indigenous_cols <- c("Indigenous" = "#7a268A", "Non-Indigenous" = "salmon")
 
-indigenous_cols <- c("Indigenous" = "#7a268A", "Non-Indigenous" = "#e6b8afff")
-
 ind_wf_acres_boxplot <- gdf %>%
     filter(max_acres > 0) %>%
     mutate(is_indigenous = ifelse(is_indigenous==1, "Indigenous", "Non-Indigenous")) %>%
@@ -135,12 +133,13 @@ ind_wf_acres_boxplot <- gdf %>%
         x="",
         y="Maximum fire size by cell (acres)",
         title="Maximum acres burned for Indigenous \nvs non-Indigenous land",
-        caption="Source: InFORM, IFPH, LandMark"
-    )
+        caption="n = 5139\nSource: InFORM, IFPH, LandMark"
+    ) +
+    theme(axis.text=element_text(size=10))
 
 ind_wf_acres_boxplot
 
-ggsave("images/ind_wf_acres_boxplot5.jpeg", ind_wf_acres_boxplot, width=4, height=5, units="in")
+ggsave("images/ind_wf_acres_boxplot5.png", ind_wf_acres_boxplot, width=4, height=5, units="in")
 ```
 
 ```{r}
@@ -152,12 +151,12 @@ n_fires_plt <- grid %>%
     labs(
         fill="Number of \nwildfires",
         title="Number of wildfires per grid cell",
-        caption="Source: InFORM, IFPH"
+        caption="n = 10312\nSource: InFORM, IFPH"
     )
 
 n_fires_plt
 
-ggsave("maps/log_n_fires.jpeg", n_fires_plt, height=4, width=6, units="in")
+ggsave("maps/log_n_fires.png", n_fires_plt, height=4, width=6, units="in")
 ```
 
 
@@ -192,12 +191,12 @@ only_fires_size_prev_rx <- tgdf %>%
         y="Percent of fires in cells with/without prescribed burns",
         title="Fire size distribution by presence of prescribed burn",
         fill="",
-        caption='Source: InFORM, IFPH\nCells without wildfires in a given year not included in totals.'
+        caption='n = 4763\nSource: IFPH, InFORM'
     ) +
     theme_bw() +
     theme(legend.position="top")
 
 only_fires_size_prev_rx
 
-ggsave("images/only_fires_size_prev_rx4.jpeg", only_fires_size_prev_rx, width=6, height=5)
+ggsave("images/only_fires_size_prev_rx4.png", only_fires_size_prev_rx, width=6, height=5)
 ```

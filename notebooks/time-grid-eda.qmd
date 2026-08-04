@@ -634,3 +634,30 @@ tgdf %>%
     )
 
 ```
+
+
+```{r}
+tgdf %>%
+    group_by(is_ndgn) %>%
+    summarize(n=n())
+
+tgdf %>%
+    group_by(n_fires > 0) %>%
+    summarize(n=n())
+
+tgdf %>%
+    group_by(n_rx > 0) %>%
+    summarize(n=n())
+
+tgdf %>%
+    filter(year > 2021) %>%
+    group_by(max_acres > 0) %>%
+    summarize(n=n())
+
+tgdf %>%
+    group_by(max_acres > 0) %>%
+    summarize(n=n())
+
+dim(tgdf)
+```
+
