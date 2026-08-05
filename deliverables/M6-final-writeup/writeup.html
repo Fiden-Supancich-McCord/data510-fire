@@ -8,7 +8,7 @@
 
 <meta name="author" content="Spencer Fiden">
 <meta name="author" content="Amaya Supancich-McCord">
-<meta name="dcterms.date" content="2026-08-04">
+<meta name="dcterms.date" content="2026-08-05">
 
 <title>Oregon on Fire:</title>
 <style>
@@ -143,8 +143,15 @@ div.csl-indent {
   <ul class="collapse">
   <li><a href="#research-question-1-1" id="toc-research-question-1-1" class="nav-link" data-scroll-target="#research-question-1-1"><span class="header-section-number">9.1</span> Research Question 1</a></li>
   <li><a href="#research-question-1-2" id="toc-research-question-1-2" class="nav-link" data-scroll-target="#research-question-1-2"><span class="header-section-number">9.2</span> Research Question 1</a></li>
+  <li><a href="#research-question-2-1" id="toc-research-question-2-1" class="nav-link" data-scroll-target="#research-question-2-1"><span class="header-section-number">9.3</span> Research Question 2</a></li>
+  <li><a href="#research-question-3-1" id="toc-research-question-3-1" class="nav-link" data-scroll-target="#research-question-3-1"><span class="header-section-number">9.4</span> Research Question 3</a></li>
   </ul></li>
-  <li><a href="#discussion-limitations-and-future-work" id="toc-discussion-limitations-and-future-work" class="nav-link" data-scroll-target="#discussion-limitations-and-future-work"><span class="header-section-number">10</span> Discussion, Limitations, and Future Work</a></li>
+  <li><a href="#discussion-limitations-and-future-work" id="toc-discussion-limitations-and-future-work" class="nav-link" data-scroll-target="#discussion-limitations-and-future-work"><span class="header-section-number">10</span> Discussion, Limitations, and Future Work</a>
+  <ul class="collapse">
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">10.1</span> Discussion</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations"><span class="header-section-number">10.2</span> Limitations</a></li>
+  <li><a href="#future-work" id="toc-future-work" class="nav-link" data-scroll-target="#future-work"><span class="header-section-number">10.3</span> Future Work</a></li>
+  </ul></li>
   <li><a href="#conclusions-and-recommendations" id="toc-conclusions-and-recommendations" class="nav-link" data-scroll-target="#conclusions-and-recommendations"><span class="header-section-number">11</span> Conclusions and Recommendations</a></li>
   <li><a href="#reproducibility-and-references" id="toc-reproducibility-and-references" class="nav-link" data-scroll-target="#reproducibility-and-references"><span class="header-section-number">12</span> Reproducibility and References</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">13</span> References</a></li>
@@ -174,7 +181,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 4, 2026</p>
+      <p class="date">August 5, 2026</p>
     </div>
   </div>
   
@@ -269,18 +276,64 @@ div.csl-indent {
 <h2 data-number="6.1" class="anchored" data-anchor-id="data-invetory"><span class="header-section-number">6.1</span> Data Invetory</h2>
 <!-- PASTE FINAL TEXT -->
 <table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 14%">
+<col style="width: 21%">
+<col style="width: 16%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Source</th>
 <th>Role</th>
-<th>Access</th>
+<th>License</th>
+<th>Scope</th>
+<th>Type</th>
+<th>Size</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td></td>
-<td></td>
-<td></td>
+<td>LandMark</td>
+<td>Indigenous &amp; community land boundaries</td>
+<td>Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0)</td>
+<td>Global, current record</td>
+<td>Simple features multipolygons</td>
+<td>20104 USA records, ~2.1 GB total (global)</td>
+</tr>
+<tr class="even">
+<td>Global Biodiversity Information Facility (GBIF)</td>
+<td>Species occurence records for biodiversity/vegetation metrics</td>
+<td>Open-data framework using CC0, CC BY, and CC BY-NC licenses</td>
+<td>Oregon, 2015-2025</td>
+<td>Tabular with coordinates</td>
+<td>23571 records; ~14.6 MB</td>
+</tr>
+<tr class="odd">
+<td>State of Oregon Historic Vegetation</td>
+<td>Complementary vegetation record to distinguish between environment types</td>
+<td>Creative Commons CC0 1.0 (public domain dedication)</td>
+<td>Oregon, compiled historic record (1851-1910 and 1930)</td>
+<td>Simple features multipolygons</td>
+<td>43,628 records; ~160 MB</td>
+</tr>
+<tr class="even">
+<td>NIFC InFORM Fire Occurrence Data Records (InFORM)</td>
+<td>Fire occurrence records, including wildfires and prescribed burns</td>
+<td>No formal open-data license identified; use and redistribution require careful consideration and source attribution</td>
+<td>USA, 1922-2026</td>
+<td>Tabular with coordinates</td>
+<td>1221418 records; ~580 MB</td>
+</tr>
+<tr class="odd">
+<td>NIFC Interagency Wildland Fire Perimeter History (IFPH)</td>
+<td>Fire occurence records, including wildfires and one prescribed burn</td>
+<td>No formal open-data license identified; use and redistribution require careful consideration and source attribution</td>
+<td>USA, 1668-2025 (includes historic record)</td>
+<td>Simple features multipolygons</td>
+<td>4263 OR records, ~760 MB total (national)</td>
 </tr>
 </tbody>
 </table>
@@ -291,7 +344,8 @@ div.csl-indent {
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">data.frame</span>(</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">check =</span> <span class="fu">c</span>(<span class="st">"Rows"</span>, <span class="st">"Counties"</span>, <span class="st">"Date range"</span>),</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">status =</span> <span class="fu">c</span>(<span class="st">"stub"</span>, <span class="st">"stub"</span>, <span class="st">"stub"</span>)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># note: seems cool but brother i have no idea how to do it</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div id="tbl-data-qc" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-data-qc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -330,14 +384,20 @@ Table&nbsp;1: Example QC summary (replace with your panel)
 <section id="data-engineering" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="data-engineering"><span class="header-section-number">6.2</span> Data Engineering</h2>
 <!-- PASTE FINAL TEXT -->
-<div id="fig-id" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Diagram showing the data engineering pipeline.">
+<div id="fig-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Diagram showing the data engineering pipeline.">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-id-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="../../images/short-pipeline-capstone.png" class="img-fluid figure-img" alt="Diagram showing the data engineering pipeline.">
+<div aria-describedby="fig-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="./images/short-pipeline-capstone.png" class="img-fluid figure-img" alt="Diagram showing the data engineering pipeline.">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-id-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: Data Engineering Pipeline
 </figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="%60../../pipeline.png%60" class="img-fluid figure-img"></p>
+<figcaption>test image</figcaption>
 </figure>
 </div>
 <section id="data-cleaning-and-quality-assurance" class="level3" data-number="6.2.1">
@@ -446,47 +506,61 @@ Figure&nbsp;2: Replace with a methods diagram or exploratory plot
 <h3 data-number="9.2.1" class="anchored" data-anchor-id="species-level-comparisons"><span class="header-section-number">9.2.1</span> Species-Level Comparisons</h3>
 <!-- PASTE FINAL TEXT -->
 </section>
+<section id="shannon-diversity" class="level3" data-number="9.2.2">
+<h3 data-number="9.2.2" class="anchored" data-anchor-id="shannon-diversity"><span class="header-section-number">9.2.2</span> Shannon Diversity</h3>
+<!-- PASTE FINAL TEXT -->
+</section>
+<section id="model-validation" class="level3" data-number="9.2.3">
+<h3 data-number="9.2.3" class="anchored" data-anchor-id="model-validation"><span class="header-section-number">9.2.3</span> Model Validation</h3>
+<!-- PASTE FINAL TEXT -->
+</section>
+</section>
+<section id="research-question-2-1" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="research-question-2-1"><span class="header-section-number">9.3</span> Research Question 2</h2>
+<section id="maximum-acres-burned-across-indigenous-land-categories" class="level3" data-number="9.3.1">
+<h3 data-number="9.3.1" class="anchored" data-anchor-id="maximum-acres-burned-across-indigenous-land-categories"><span class="header-section-number">9.3.1</span> Maximum Acres Burned Across Indigenous Land Categories</h3>
+<!-- PASTE FINAL TEXT -->
+</section>
+<section id="maximum-fire-duration-across-indigenous-land-categories" class="level3" data-number="9.3.2">
+<h3 data-number="9.3.2" class="anchored" data-anchor-id="maximum-fire-duration-across-indigenous-land-categories"><span class="header-section-number">9.3.2</span> Maximum Fire Duration Across Indigenous Land Categories</h3>
+<!-- PASTE FINAL TEXT -->
+</section>
+</section>
+<section id="research-question-3-1" class="level2" data-number="9.4">
+<h2 data-number="9.4" class="anchored" data-anchor-id="research-question-3-1"><span class="header-section-number">9.4</span> Research Question 3</h2>
+<!-- PASTE FINAL TEXT -->
 </section>
 </section>
 <section id="discussion-limitations-and-future-work" class="level1" data-number="10">
 <h1 data-number="10"><span class="header-section-number">10</span> Discussion, Limitations, and Future Work</h1>
-<p><strong>Interpretation:</strong></p>
-<p><strong>Limitations:</strong> <em>(tie to actual data and design)</em></p>
-<p><strong>Future work:</strong></p>
+<section id="discussion" class="level2" data-number="10.1">
+<h2 data-number="10.1" class="anchored" data-anchor-id="discussion"><span class="header-section-number">10.1</span> Discussion</h2>
+<!-- PASTE FINAL TEXT -->
+</section>
+<section id="limitations" class="level2" data-number="10.2">
+<h2 data-number="10.2" class="anchored" data-anchor-id="limitations"><span class="header-section-number">10.2</span> Limitations</h2>
+<!-- PASTE FINAL TEXT -->
+</section>
+<section id="future-work" class="level2" data-number="10.3">
+<h2 data-number="10.3" class="anchored" data-anchor-id="future-work"><span class="header-section-number">10.3</span> Future Work</h2>
+<!-- PASTE FINAL TEXT -->
+</section>
 </section>
 <section id="conclusions-and-recommendations" class="level1" data-number="11">
 <h1 data-number="11"><span class="header-section-number">11</span> Conclusions and Recommendations</h1>
-<p><em>(Short, stakeholder-facing takeaways.)</em></p>
+<!-- PASTE FINAL TEXT -->
 </section>
 <section id="reproducibility-and-references" class="level1" data-number="12">
 <h1 data-number="12"><span class="header-section-number">12</span> Reproducibility and References</h1>
 <p><strong>Reproduce main results:</strong></p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> your-repo</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> render deliverables/M4-writeup-draft/writeup.qmd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>Dependencies:</strong> <code>requirements.txt</code> or <code>renv.lock</code> in repo root.</p>
-<p><strong>Data:</strong> URLs and approval status documented in <code>docs/data-dictionary.md</code>.</p>
 </section>
 <section id="references" class="level1" data-number="13">
 <h1 data-number="13"><span class="header-section-number">13</span> References</h1>
 <div id="refs" role="list">
 
 </div>
-<!-- Create refs.bib alongside this file. Example entries: -->
-<!--
-@article{liu2016,
-  title={Wildfire-specific fine particulate matter and risk of hospital admissions in urban and rural counties},
-  author={Liu, J. C. and others},
-  journal={Epidemiology},
-  year={2016}
-}
-
-@article{reid2016,
-  title={Critical review of health impacts of wildfire smoke exposure},
-  author={Reid, C. E. and others},
-  journal={Environmental Health Perspectives},
-  year={2016}
-}
--->
 </section>
 
 </main>

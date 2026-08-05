@@ -84,9 +84,13 @@ execute:
 
 <!-- PASTE FINAL TEXT -->
 
-| Source | Role | Access |
-|--------|------|--------|
-| | | |
+| Source | Role | License | Scope | Type | Size |
+|--------|------|---------|-------|------|------|
+| LandMark | Indigenous & community land boundaries | Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0) | Global, current record | Simple features multipolygons | 20104 USA records, ~2.1 GB total (global) |
+| Global Biodiversity Information Facility (GBIF) | Species occurence records for biodiversity/vegetation metrics | Open-data framework using CC0, CC BY, and CC BY-NC licenses | Oregon, 2015-2025 | Tabular with coordinates | 23571 records; ~14.6 MB | 
+| State of Oregon Historic Vegetation | Complementary vegetation record to distinguish between environment types | Creative Commons CC0 1.0 (public domain dedication) | Oregon, compiled historic record (1851-1910 and 1930) | Simple features multipolygons | 43,628 records; ~160 MB |
+| NIFC InFORM Fire Occurrence Data Records (InFORM) | Fire occurrence records, including wildfires and prescribed burns | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1922-2026 | Tabular with coordinates | 1221418 records; ~580 MB |
+| NIFC Interagency Wildland Fire Perimeter History (IFPH) | Fire occurence records, including wildfires and one prescribed burn | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1668-2025 (includes historic record) | Simple features multipolygons | 4263 OR records, ~760 MB total (national) | 
 
 ```{r}
 #| label: tbl-data-qc
@@ -100,13 +104,15 @@ knitr::kable(data.frame(
   check = c("Rows", "Counties", "Date range"),
   status = c("stub", "stub", "stub")
 ))
+
+# note: seems cool but brother i have no idea how to do it
 ```
 
 ## Data Engineering 
 
 <!-- PASTE FINAL TEXT -->
 
-![Data Engineering Pipeline](../../images/short-pipeline-capstone.png){#fig-id fig-alt="Diagram showing the data engineering pipeline."}
+![Data Engineering Pipeline](/images/short-pipeline-capstone.png){#fig-pipeline fig-alt="Diagram showing the data engineering pipeline."}
 
 ### Data Cleaning and Quality Assurance
 
