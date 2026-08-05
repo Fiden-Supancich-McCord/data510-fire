@@ -208,6 +208,10 @@ diversity(
   grid[,species],
   index="shannon"
 )
+
+grid %>%
+  group_by((Shannon >= 1.5) & (Shannon <= 3.5)) %>%
+  summarize(n=n())
 ```
 
 ```{r}

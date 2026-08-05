@@ -26,7 +26,7 @@ data/
 
 ## Data pipeline
 
-![data pipeline](./short-pipeline-capstone.png)
+![data pipeline](../images/short-pipeline-capstone.png)
 
 ## Dataset registry
 
