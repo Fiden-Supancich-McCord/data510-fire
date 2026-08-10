@@ -60,6 +60,7 @@ ifph_or %>%
     theme_minimal()
 
 lengths(ifph_or)
+# start with 9203 fires
 ```
 
 ## Creating dataframe

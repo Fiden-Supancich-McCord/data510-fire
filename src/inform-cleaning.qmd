@@ -254,7 +254,6 @@ inform <- inform %>%
 ```
 
 ```{r}
-# limiting Calendar.Year to just 2015-2026
 # missing values for Calendar.Year are all present for Fire.Discovery.Date.Time - can impute
 
 inform <- inform %>%
@@ -272,16 +271,18 @@ inform <- inform %>%
                         Calendar.Year)
     ) 
     
-# skipping this step because of upcoming join with ifph - 
-# don't want to exclude anything that's valid under ifph's fire year col
-inform %>%
-    # removing all where Fire.Discovery.Date.Time and Calendar.Year are misaligned by more than one year
-    filter(abs(year(Fire.Discovery.Date.Time) - Calendar.Year) <= 1) %>%
-    filter(Calendar.Year >= 2015, Calendar.Year <= 2026)
+```
+
+```{r}
+inform <- inform %>%
+    filter(Calendar.Year <= 2025, Calendar.Year >= 2015)
+
 
 inform %>%
     group_by(Calendar.Year) %>%
     summarize(n = n())
+
+dim(inform) # 304580
 ```
 
 ```{r}
@@ -368,7 +369,7 @@ inform_coords <- inform %>%
     filter(!is.na(Initial.Longitude), !is.na(Initial.Latitude))
 
 inform_shp <- st_as_sf(inform_coords, coords=c("Initial.Longitude", "Initial.Latitude"), crs="WGS84")
-# note: coord system isn't listed on the website. but! confirmed by checking two mapped points (one in OR, one in NY) manually and both were correct with WGS84. so I feel confident that's what we're working with
+# note: coord system isn't listed on the website. but! confirmed by checking two mapped points (one in OR, one in NY) manually and both were correct with WGS84, so I feel confident that's what we're working with
 ```
 
 ```{r}
@@ -393,13 +394,9 @@ names(inform_or)
 
 ```{r}
 object.size(inform)
-inform_curr <- inform %>%
-    filter(Calendar.Year <= 2025, Calendar.Year >= 2015)
-
-object.size(inform_curr)
 # this includes all data for the US, including with missing lat/lon
 # writing to my personal system because it is too too large by far
-write_csv(inform_curr, "../DATA-510/inform_clean.csv")
+write_csv(inform, "../DATA-510/inform_clean.csv")
 
 inform_or_df <- tibble(inform_or)
 object.size(inform_or_df)

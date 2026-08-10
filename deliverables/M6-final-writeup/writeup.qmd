@@ -62,18 +62,6 @@ execute:
 
 <!-- PASTE FINAL TEXT -->
 
-## Tribal Governments and Indigenous Communities 
-
-<!-- PASTE FINAL TEXT -->
-
-## Land Management Agencies
-
-<!-- PASTE FINAL TEXT -->
-
-## Conservation Agencies
-
-<!-- PASTE FINAL TEXT --> 
-
 # Related Work and Background
 
 <!-- PASTE FINAL TEXT -->

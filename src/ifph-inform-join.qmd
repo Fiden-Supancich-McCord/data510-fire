@@ -25,16 +25,17 @@ library(sf)
 ```
 
 ```{r}
+# reading in cleaned files
 ifph <- st_read("data/fire_df_shp/fire_shp.shp")
 
+# inform stored locally due to github size constraints
 inform <- read_csv("../DATA-510/fire_df.csv")
 
 ```
 
 ```{r}
-dim(inform)
-dim(inform_or)
-dim(ifph)
+dim(inform) # 304579 rows
+dim(ifph) # 1683 rows
 ```
 
 # Joining them
@@ -53,28 +54,70 @@ tibble(ifph) %>%
     group_by(unqe_match, forid_match, globalid_match)%>%
     summarize(n=n())
 
+# FORID and GlobalID have no matches, will be using just unique fire identifier
+
+# seem to have compatible formats anyway - unclear why they don't match
 head(inform %>% select(UniqueFireIdentifier, FORID, GlobalID))
 head(ifph %>% select(UNQE_FIRE_, FORID, GlobalID))
 
 sum(tibble(ifph)$UNQE_FIRE_ %in% inform$UniqueFireIdentifier)
-
+# 817 IFPH records have matches in InFORM
 ```
 
 ```{r}
 tibble(ifph) %>%
-    group_by(UNQE_FIRE_, GlobalID) %>%
+    group_by(UNQE_FIRE_) %>%
     summarize(n=n()) %>%
     filter(n > 1) %>%
     arrange(desc(n))
 
 inform %>%
-    group_by(UniqueFireIdentifier, GlobalID) %>%
+    group_by(UniqueFireIdentifier) %>%
     summarize(n=n()) %>%
     filter(n > 1, !is.na(UniqueFireIdentifier)) %>%
     arrange(desc(n))
 
-# everything with duplicated unique fire identifiers has a distinct global id for each entry. so i guess that makes sense. however the global IDs don't overlap across datasets
+# everything with duplicated unique fire identifiers has a distinct global id for each entry
 ```
+
+```{r}
+ifph_dup <- tibble(ifph) %>%
+    group_by(UNQE_FIRE_) %>%
+    summarize(n=n()) %>%
+    filter(n > 1) %>%
+    arrange(desc(n))
+
+ifph %>%
+    filter(UNQE_FIRE_ %in% ifph_dup$UNQE_FIRE_[2]) %>%
+    #select(-c(IRWINID, FORID, INCIDENT)) %>%
+    #arrange(UNQE_FIRE_) %>%
+    ggplot(aes(geometry=geometry)) +
+    geom_sf() +
+    coord_sf() +
+    theme_minimal()
+
+ifph %>%
+    filter(UNQE_FIRE_ %in% ifph_dup$UNQE_FIRE_[3]) %>%
+    select(-c(IRWINID, FORID, INCIDENT)) %>%
+    arrange(UNQE_FIRE_)
+
+```
+
+The duplicates in IFPH seem to be due to having multiple unconnected polygons mapping them. This would actually explain the differences between IFPH and InFORM acreage numbers! Probably, in which case we did make the right choice opting for IFPH numbers, as it'll only be the acreage in a single cell.
+
+```{r}
+inform_dup <- inform %>%
+    group_by(UniqueFireIdentifier) %>%
+    summarize(n=n()) %>%
+    filter(n > 1) %>%
+    arrange(desc(n))
+
+inform %>%
+    filter(UniqueFireIdentifier %in% inform_dup$UniqueFireIdentifier[1]) %>%
+    print(width=Inf)
+```
+
+At least some of the duplicate fires in InFORM have different incident names and acres sizes assigned to the same fire identifier. Not completely sure what's up with that. But if we were to choose one, I don't know what we would choose - may just maintain all of them. 
 
 ## checking lat lon presence
 
@@ -102,22 +145,16 @@ tibble(ifph) %>%
         pct_present = 1 - (lat_missing/n)
     )
 
-inform_or %>%
-    ggplot(aes(geometry=geometry)) +
-    geom_sf(data=or, aes(geometry=geom)) +
-    geom_sf(aes(color=Incident.Type.Category, size=Calculated.Acres), alpha=0.5) +
-    scale_color_discrete(palette=c("RX" = "green3", "WF" = "firebrick")) +
-    theme_minimal()
-
 ```
 
 # Joining on UNQE_FIRE_
 
 ```{r}
 inform %>%
-    filter(UniqueFireIdentifier %in% ifph_df$UNQE_FIRE_) %>%
+    filter(UniqueFireIdentifier %in% ifph$UNQE_FIRE_) %>%
     group_by(is.na(Fire.Mgmt.Complexity)) %>% 
     summarize(n=n())
+# fire management complexity missing for 649 matched fires, present for 142
 
 tibble(ifph) %>% 
     mutate(is_ifph = TRUE) %>%
@@ -125,7 +162,7 @@ tibble(ifph) %>%
     group_by(is_ifph, is_inform, Calendar.Year) %>%
     summarize(n=n()) %>%
     arrange(desc(Calendar.Year))
-
+# there are a significant number of many to many joins, but this is a full join.
 ```
 
 ```{r}
@@ -143,6 +180,10 @@ tibble(ifph_inform) %>%
     arrange(desc(n)) %>%
     print(n=20)
 
+ifph_inform %>%
+    filter(FIRE_YEAR_ != Calendar.Year)
+# the year always matches for included fires!
+
 tibble(ifph_inform) %>% 
     group_by(is_inform) %>%
     summarize(
@@ -155,16 +196,7 @@ tibble(ifph_inform) %>%
     filter(is.na(Fire.Mgmt.Complexity)) %>%
     summarize(n=n())
 
-tibble(ifph) %>%
-    summarize(
-        n=n(),
-        quant_year = as_tibble_row(quantile(FIRE_YEAR_))
-    )
-# this is a potential issue - the year spread is pretty distinct.
-# can no longer see bc i made it an inner join. lol
-
 tibble(ifph_inform) %>%
-    filter(is_inform == TRUE) %>%
     mutate(acre_diff = abs(Calculated.Acres - GIS_ACRES)) %>%
     summarize(
         mean_diff = mean(acre_diff),
