@@ -215,6 +215,29 @@ ifph_inform %>%
 
 # Adding coordinate data from inform records that don't match ifph
 
+Creating as shapefile with coordinates.
+
+```{r}
+inform_shp <- st_as_sf(inform %>% filter(!is.na(Initial.Longitude)), coords=c("Initial.Longitude", "Initial.Latitude"), crs="WGS84")
+```
+
+Limiting inform_shp to OR.
+
+```{r}
+# read in oregon shapefile
+states <- usmap::us_map()
+or <- states %>% filter(abbr=="OR")
+# transforming OR so the coordinate system matches
+or <- st_transform(or, crs="WGS84")
+
+inform_int = st_contains(or, inform_shp)
+dim(inform_int)
+
+# only landmark rows that were in the intersection list
+inform_or = inform_shp[unlist(inform_int),]
+dim(inform_or) # 10686 rows
+```
+
 ```{r}
 tibble(ifph_inform) %>%
     group_by(is_inform) %>%
@@ -223,13 +246,15 @@ tibble(ifph_inform) %>%
 inform %>%
     mutate(unqe_match = UniqueFireIdentifier %in% ifph_inform$UNQE_FIRE_) %>%
     group_by(unqe_match) %>%
-    summarize(n=n()) # so i'm not sure why this is 791 and not 819? seems strange.
+    summarize(n=n()) # 791 instead 819 probably due to duplicates which we are just including indiscriminately
 
 # filtering to fire IDs not present in UNQE_FIRE_
 # selecting only columns we will use in our analysis
 inform_lim <- inform_or %>% 
     filter(!(UniqueFireIdentifier %in% ifph_inform$UNQE_FIRE_)) %>% 
     select(UniqueFireIdentifier, Calculated.Acres, size_class, latest_out, duration_hrs, Fire.Mgmt.Complexity, fire_mgmt_n, Incident.Type.Category, AcresTribal, Calendar.Year, geometry)
+
+dim(inform_lim) # 9934 rows not matched with IFPH
 
 # selecting only matching cols
 ifph_inform_lim <- ifph_inform %>%
