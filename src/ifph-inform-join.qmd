@@ -166,18 +166,19 @@ tibble(ifph) %>%
 ```
 
 ```{r}
-# inner join on IFPH
-# non-IFPH data will be point geometries from inform, IFPH fires without matched inform data will not have our other fire severity features
+# left join on IFPH
+# non-IFPH data will be point geometries from inform, 
+# IFPH fires without matched inform data will not have our other fire severity features but some of the inform data also doesn't have our other fire severity features so. it's ok
 ifph_inform <- ifph %>% 
     mutate(is_ifph = TRUE) %>%
-    inner_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
+    left_join(inform %>% mutate(is_inform = TRUE) %>% filter(!is.na(UniqueFireIdentifier)), by=c("UNQE_FIRE_" = "UniqueFireIdentifier"))
 
 # assorted checks
 tibble(ifph_inform) %>% 
     filter(FIRE_YEAR_ >= 2015, FIRE_YEAR_ <= 2025) %>%
     group_by(is_inform, FIRE_YEAR_) %>%
     summarize(n=n()) %>%
-    arrange(desc(n)) %>%
+    arrange(FIRE_YEAR_) %>%
     print(n=20)
 
 ifph_inform %>%
@@ -211,6 +212,7 @@ ifph_inform %>%
     select(GIS_ACRES, Calculated.Acres, acre_diff, area, FIRE_YEAR_)
 # some significant differences here. not ideal. 
 # GIS_ACRES align with calculation based on multipolygon
+# should check this again - see if duplicate records? 
 ```
 
 # Adding coordinate data from inform records that don't match ifph
@@ -219,6 +221,10 @@ Creating as shapefile with coordinates.
 
 ```{r}
 inform_shp <- st_as_sf(inform %>% filter(!is.na(Initial.Longitude)), coords=c("Initial.Longitude", "Initial.Latitude"), crs="WGS84")
+```
+
+```{r}
+inform %>% group_by(is.na(Initial.Latitude)) %>% summarize(n=n())
 ```
 
 Limiting inform_shp to OR.
@@ -236,6 +242,14 @@ dim(inform_int)
 # only landmark rows that were in the intersection list
 inform_or = inform_shp[unlist(inform_int),]
 dim(inform_or) # 10686 rows
+```
+
+
+```{r}
+inform_or %>% group_by(is.na(duration_hrs)) %>% summarize(n=n()) # 3443 missing duration from inform (7243 present)
+
+tibble(ifph_inform) %>% group_by(is.na(duration_hrs), is_inform) %>% summarize(n=n()) # 1058 missing from joined ifph/inform (627 present) (866 missing because it's just IFPH, 627 missing from inform)
+
 ```
 
 ```{r}

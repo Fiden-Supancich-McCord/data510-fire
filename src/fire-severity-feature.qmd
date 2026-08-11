@@ -145,12 +145,22 @@ inform <- inform %>%
     # duration between fire discovery and latest_out
     mutate(duration_hrs = ifelse(is.na(latest_out), NA, interval(Fire.Discovery.Date.Time, latest_out)/dhours(x=1))) 
 
+inform <- inform %>% ungroup()
+
 inform %>%
     group_by(size_class) %>%
     summarize(
         mean_duration = mean(duration_hrs, na.rm=TRUE),
         n=n(),
         pct_na = sum(is.na(duration_hrs))*100 / n
+    )
+
+inform %>%
+    summarize(
+        #mean_duration = mean(duration_hrs, na.rm=TRUE),
+        n=n(),
+        pct_na = sum(is.na(duration_hrs))*100 / n,
+        n_na = sum(is.na(duration_hrs))
     )
 
 ```
@@ -163,4 +173,9 @@ st_write(fire_shp, "data/fire_df_shp/fire_shp.shp")
 fire_df <- inform
 object.size(fire_df)
 write_csv(fire_df, "../DATA-510/fire_df.csv")
+```
+
+
+```{r}
+inform <- read_csv("../DATA-510/fire_df.csv")
 ```
