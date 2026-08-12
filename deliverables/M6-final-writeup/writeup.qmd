@@ -1,5 +1,5 @@
 ---
-title: "Oregon on Fire:"
+title: "Oregon on Fire"
 subtitle: "Wildfire Severity, Prescribed Burns, and Species Distribution Across Indigenous and Non-Indigenous Oregon Lands"
 author:
   - "Spencer Fiden"
@@ -251,6 +251,11 @@ quarto render deliverables/M4-writeup-draft/writeup.qmd
 ```
 
 # References
+
+---
+nocite: |
+  @*
+---
 
 ::: {#refs}
 :::
