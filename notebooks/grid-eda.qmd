@@ -209,3 +209,9 @@ grid_df %>%
 
 dim(grid_df)
 ```
+
+```{r}
+grid_df %>%
+    group_by(plant_sum == 0) %>%
+    summarize(n=n())
+```
