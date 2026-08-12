@@ -31,12 +31,64 @@ execute:
   Week 12 (M4): methods and findings should be stable; render PDF + HTML for submission.
 -->
 
+```{r}
+#| label: libraries
+#| echo: false
+#| include: false
+
+library(tidyverse)
+library(sf)
+library(ggplot2)
+#library(dplyr)
+#library(zoo)
+library(here)
+```
+
+```{r}
+#| label: read-ds
+#| echo: false
+#| include: false
+
+#tg <- st_read(here("../DATA-510/time_grid/time_grid.shp"))
+tgdf <- read_csv(here("data/processed_grid/time_grid.csv"))
+
+grid <- st_read(here("data/processed_grid/processed_grid.shp"))
+gdf <- read_csv(here("data/processed_grid/processed_grid.csv"))
+```
+
+```{r}
+#| label: mutate-tgdf
+#| echo: false
+#| include: false
+tgdf <- tgdf %>%
+    mutate(prev_rx = rx_csum - n_rx)
+
+tgdf <- tgdf %>%
+    mutate(size_class = factor(sz_clss, levels=c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"))) %>%
+    mutate(size_class_pretty = recode(size_class, `Class A`="A", `Class B`="B", `Class C`="C", `Class D`="D", `Class E`="E", `Class F`="F", `Class G`="G"))
+```
+
+```{r}
+#| label: color-palettes
+#| echo: false
+#| include: false
+
+burn_cols <- c(
+    "Previous prescribed burns" = "#5a1068", 
+    "No previous prescribed burns" = "#f38a26"
+)
+indigenous_cols <- c(
+  "Indigenous" = "#7a268A", 
+  "Non-Indigenous" = "salmon"
+)
+```
+
 # Title, Team, and Affiliations
 
 **Project title:** Oregon on Fire: Wildfire Severity, Prescribed Burns, and Species Distribution Across Indigenous and Non-Indigenous Oregon Lands
 
 | Name | Role | Willamette email |
-|------|------|------------------|
+|:-----|:-----|:-----------------|
 | Spencer Fiden | Owner Product Lead | nefiden@willamette.edu |
 | Amaya Supancich-McCord | Owner Product Lead | asupancichmccord@willamette.edu |
 
@@ -73,28 +125,26 @@ execute:
 <!-- PASTE FINAL TEXT -->
 
 | Source | Role | License | Scope | Type | Size |
-|--------|------|---------|-------|------|------|
-| LandMark | Indigenous & community land boundaries | Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0) | Global, current record | Simple features multipolygons | 20104 USA records, ~2.1 GB total (global) |
-| Global Biodiversity Information Facility (GBIF) | Species occurence records for biodiversity/vegetation metrics | Open-data framework using CC0, CC BY, and CC BY-NC licenses | Oregon, 2015-2025 | Tabular with coordinates | 23571 records; ~14.6 MB | 
+|:--|:--|:--|:--|:--|:--|
+| LandMark | Indigenous & community land boundaries | Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0) | Global, current record | Simple features multipolygons | 11 OR records; ~2.1 GB total (global) |
+| Global Biodiversity Information Facility (GBIF) | Species occurence records for biodiversity/vegetation metrics | Open-data framework using CC0, CC BY, and CC BY-NC licenses | Oregon, 2015-2025 | Tabular with coordinates | 23571 records; ~14.6 MB |
 | State of Oregon Historic Vegetation | Complementary vegetation record to distinguish between environment types | Creative Commons CC0 1.0 (public domain dedication) | Oregon, compiled historic record (1851-1910 and 1930) | Simple features multipolygons | 43,628 records; ~160 MB |
 | NIFC InFORM Fire Occurrence Data Records (InFORM) | Fire occurrence records, including wildfires and prescribed burns | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1922-2026 | Tabular with coordinates | 1221418 records; ~580 MB |
-| NIFC Interagency Wildland Fire Perimeter History (IFPH) | Fire occurence records, including wildfires and one prescribed burn | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1668-2025 (includes historic record) | Simple features multipolygons | 4263 OR records, ~760 MB total (national) | 
+| NIFC Interagency Wildland Fire Perimeter History (IFPH) | Fire occurrence records, including wildfires and one prescribed burn | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1668-2025 (includes historic record) | Simple features multipolygons | 4263 OR records, ~760 MB total (national) |
 
-```{r}
-#| label: tbl-data-qc
-#| tbl-cap: "Example QC summary (replace with your panel)"
-#| echo: true
+: Data inventory table. {#tbl-data-inventory .striped .hover}
 
-# Replace with your project data when ready:
-# panel <- readRDS(here::here("data/processed/analysis_panel.rds"))
-# nrow(panel)
-knitr::kable(data.frame(
-  check = c("Rows", "Counties", "Date range"),
-  status = c("stub", "stub", "stub")
-))
+| Common Name | Scientific Name | Number of GBIF Records |
+|:--|:--|:--|
+| Ponderosa Pine | Pinus ponderosa var. Benthamiana | 9601 |
+| Scouler’s Willow | Salix scouleriana | 195 |
+| Oregon White Oak | Quercus garryana | 4717 |
+| Black Cottonwood | Populus balsamifera subsp. Trichocarpa | 1652 |
+| Western Redcedar | Thuja plicata | 3683 |
+| Beargrass | Xerophyllum tenax | 1879 |
+| California Blackberry | Rubus ursinus | 3715 |
 
-# note: seems cool but brother i have no idea how to do it
-```
+: GBIF Species Inventory Table. {#tbl-gbif-inventory .striped .hover}
 
 ## Data Engineering 
 
@@ -107,6 +157,19 @@ knitr::kable(data.frame(
 <!-- PASTE FINAL TEXT -->
 
 ### Spatial Integration and Feature Engineering
+
+| GBIF Species Common Name | Oregon Historic Vegetation Region(s) | Number of Cells with Designation |
+|:--|:--|:--|
+| Ponderosa Pine | Ponderosa pine, Ponderosa Pine-Lodgepole Pine, Douglas Fir-Ponderosa Pine | 3431 |
+| Scouler’s Willow | Willows | 516 |
+| Oregon White Oak | White Oak Woodland, White Oak-Black Oak | 804 |
+| Black Cottonwood | Black Cottonwood Riparian Woodland | 565 |
+| Western Redcedar | Western Redcedar | 654 |
+| Beargrass | N/A | 432 |
+| California Blackberry | N/A | 932 |
+| No plants recorded | N/A | 5180 |
+
+: GBIF Species & Oregon Historic Vegetation Region Inventory Table. {#tbl-gbif-histveg-cell-inventory .striped .hover}
 
 # Ethics and Responsible Use
 
@@ -170,36 +233,39 @@ knitr::kable(data.frame(
 
 <!-- PASTE FINAL TEXT -->
 
-```{r}
-#| label: fig-methods-placeholder
-#| fig-cap: "Replace with a methods diagram or exploratory plot"
-#| echo: false
-#| fig-width: 5
-#| fig-height: 3
-
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "Replace after M2/M3")
-```
-
 # Results and Visualizations
 
 ## Research Question 1
 
 <!-- PASTE FINAL TEXT -->
 
-### Methods
-
-<!-- PASTE FINAL TEXT -->
-
-### Evaluation
-
-<!-- PASTE FINAL TEXT -->
-
-## Research Question 1
-
 ### Species-Level Comparisons
 
 <!-- PASTE FINAL TEXT -->
+
+| Plant Species | Mean Species Abundance (Non-Indigenous) | Mean Species Abundance (Indigenous) | Welch's t-test p-values | Mann-Whiteney U p-values |
+|:--|:--|:--|:--|:--|
+| Ponderosa Pine | 1.20487854 | 1.2257143 | 9.450517e-01 | 0.0001186367 |
+| Scouler’s Willow | 0.05751857 | 0.0400000 | 1.785742e-01 | 0.1699796488 |
+| Oregon White Oak | 0.43896808 | 0.4000000 | 7.547603e-01 | 0.8492149566 |
+| Black Cottonwood | 0.16181490 | 0.1171429 | 4.764685e-01 | 0.9087538262 |
+| Western Redcedar | 0.34661715 | 0.0400000 | 7.552007e-07 | 0.0109302547 |
+| Beargrass | 0.17165228 | 0.1171429 | 1.510516e-01 | 0.3628868174 |
+| California Blackberry | 0.35555109 | 0.1657143 | 2.297990e-05 | 0.8777980018 |
+
+: Species Distribution by Indigenous land designation status. {#tbl-species-dist-indigenous .striped .hover}
+
+```{r}
+#| label: fig-species-abundance-indigenous
+#| fig-cap: "Species abundance by Indigenous land designated status"
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "PLACEHOLDER")
+
+```
 
 ### Shannon Diversity
 
@@ -209,19 +275,271 @@ text(1, 1, "Replace after M2/M3")
 
 <!-- PASTE FINAL TEXT -->
 
+```{r}
+#| label: fig-comp-diversity-resids
+#| fig-cap: "Forest compositional diversity residuals vs fitted"
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "PLACEHOLDER")
+
+```
+
+```{r}
+#| label: fig-comp-diversity-qq
+#| fig-cap: "Forest compositional diversity q-q residuals"
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "PLACEHOLDER")
+
+```
+
+```{r}
+#| label: fig-comp-diversity-scale-loc
+#| fig-cap: "Forest compositional diversity scale location"
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "PLACEHOLDER")
+
+```
+
+```{r}
+#| label: fig-comp-diversity-cooks
+#| fig-cap: "Forest compositional diversity Cook’s distance"
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "PLACEHOLDER")
+
+```
+
 ## Research Question 2
 
 ### Maximum Acres Burned Across Indigenous Land Categories
 
 <!-- PASTE FINAL TEXT -->
 
+```{r}
+#| label: fig-max-acres-indigenous
+#| fig-cap: "Maximum acres burned across land designation"
+#| echo: false
+#| fig-width: 5
+#| fig-height: 5
+
+gdf %>%
+    filter(max_acres > 0) %>%
+    mutate(is_indigenous = ifelse(is_indigenous==1, "Indigenous", "Non-Indigenous")) %>%
+    ggplot(aes(is_indigenous, max_acres, fill=is_indigenous)) +
+    geom_boxplot(color="black", show.legend=FALSE) +
+    scale_y_log10(labels=scales::comma) + 
+    scale_fill_manual(values=indigenous_cols) +
+    theme_minimal() +
+    labs(
+        x="",
+        y="Maximum fire size by cell (acres)",
+        title="Maximum acres burned for Indigenous \nvs non-Indigenous land",
+        caption="n = 5139\nSource: InFORM, IFPH, LandMark"
+    ) +
+    theme(axis.text=element_text(size=10))
+
+```
+
+```{r}
+#| label: tbl-indigenous-n-acres
+#| tbl-cap: "Sample sizes for maximum fire size in Indigenous and non-Indigenous designated cells."
+#| echo: false
+
+ind_n_acres <- gdf %>% 
+  filter(max_acres > 0) %>% 
+  group_by(is_indigenous) %>%  
+  summarize(`Number of Cells`=n()) %>% 
+  mutate(`Indigenous Status`=ifelse(is_indigenous==0, "Non-Indigenous", "Indigenous"), .before=`Number of Cells`) %>% 
+  select(-is_indigenous)
+# NOTE:
+# 226 Indigenous, 4913 non-indigenous
+# may be better to display in the actual plot? can also be separate table as seen here
+
+knitr::kable(ind_n_acres)
+```
+
 ### Maximum Fire Duration Across Indigenous Land Categories
 
 <!-- PASTE FINAL TEXT -->
 
+```{r}
+#| label: fig-max-duration-indigenous
+#| fig-cap: "Maximum fire duration across land designation."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 5
+
+gdf %>%
+    filter(max_duration > 0) %>%
+    mutate(is_indigenous = ifelse(is_indigenous==1, "Indigenous", "Non-Indigenous")) %>%
+    ggplot(aes(is_indigenous, max_duration, fill=is_indigenous)) +
+    geom_boxplot(color="black", show.legend=FALSE) +
+    scale_y_log10(labels=scales::comma) + 
+    scale_fill_manual(values=indigenous_cols) +
+    theme_minimal() +
+    labs(
+        x="",
+        y="Maximum fire duration by cell (hours)",
+        title="Maximum fire duration for Indigenous \nvs non-Indigenous land",
+        caption="n = 4261\nSource: InFORM, IFPH, LandMark"
+    ) +
+    theme(axis.text=element_text(size=10))
+
+```
+
+```{r}
+#| label: tbl-indigenous-n-duration
+#| tbl-cap: "Sample sizes for maximum fire duration in Indigenous and non-Indigenous designated cells."
+#| echo: false
+
+ind_n_dur <- gdf %>% 
+  filter(max_duration > 0) %>% 
+  group_by(is_indigenous) %>%  
+  summarize(`Number of Cells`=n()) %>% 
+  mutate(`Indigenous Status`=ifelse(is_indigenous==0, "Non-Indigenous", "Indigenous"), .before=`Number of Cells`) %>% 
+  select(-is_indigenous)
+
+# NOTE:
+# sample sizes: 161 indigenous, 4100 non-indigenous
+# may be better to display in the actual plot? can also be separate table as seen here
+
+knitr::kable(ind_n_dur)
+```
+
 ## Research Question 3
 
 <!-- PASTE FINAL TEXT -->
+
+### Maximum Acreage Comparisons
+
+<!-- PASTE FINAL TEXT -->
+
+```{r}
+#| label: fig-rx-indigenous-acres
+#| fig-cap: "Fire size distribution by the presence of prescribed burn and Indigenous land designation status."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "PLACEHOLDER")
+
+# this should be changed to a plot that actually makes sense, ideally for 2022-2025
+
+```
+
+```{r}
+#| label: fig-rx-acres
+#| fig-cap: "Distribution of fire size between cells that have or have not previously had prescribed burns."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "PLACEHOLDER")
+
+# this should maybe be limited to 2022-2025
+# i'm not sure. where the source code went. but it's the boxplot with max acres burned for cells w/without RX (also because it is time series. maybe should be. different than this. it's a little misleading I fear)
+
+```
+
+```{r}
+#| label: fig-rx-annual-size-class
+#| fig-cap: "Fire class distribution by presence of prescribed burn with Indigenous land designation status included as a support variable."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+tgdf %>%
+    filter(year > 2021) %>%
+    mutate(
+        had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous"), 
+        size_class_lim = fct_collapse(size_class_pretty, `C-E` = c("C", "D", "E"))
+    ) %>%
+    group_by(had_rx, size_class_lim, year) %>%
+    summarize(n=n()) %>%
+    group_by(had_rx, year) %>%
+    mutate(
+        total = sum(n),
+        pct_sz = n/total
+    ) %>%
+    filter(size_class_lim != "No fire") %>%
+    ggplot(aes(size_class_lim, pct_sz, fill=had_rx)) +
+    geom_col(color="white", position="dodge") +
+    facet_grid(~year) +
+    scale_y_continuous(labels=scales::percent) +
+    scale_fill_manual(values=burn_cols) +
+    labs(
+        x="Maximum fire size class",
+        y="Percent of cells (with/without prescribed burns)",
+        title="Fire size distribution by presence of prescribed burn",
+        fill="",
+        #subtitle='"No fire" class not shown',
+        caption='Source: InFORM, IFPH\n"No fire" class not shown. Cells without fires included in total for percentage.'
+    ) +
+    theme_bw() +
+    theme(legend.position="top")
+
+# should indicate sample size for this as well somewhere
+```
+
+| Fire Class Category | Acres Burned |
+|:---|---:|
+| Class A | ≤ 0.25 acres |
+| Class B | 0.25 < X ≤ 10 acres |
+| Class C | 10 ≤ X < 100 acres |
+| Class D | 100 ≤ X < 300 acres |
+| Class E | 300 ≤ X < 1000 acres |
+| Class F | 1000 ≤ X < 5000 acres |
+| Class G | ≥ 5000 acres |
+
+: Size Class of Fire by Acres Burned {#tbl-size-class .striped .hover}
+
+```{r}
+#| label: fig-prev-wf-acres
+#| fig-cap: "Distribution of fire size between cells that have or have not previously experienced wildfires. "
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
+text(1, 1, "PLACEHOLDER")
+
+# this should also maybe be limited to 2022-2025
+# also not sure where the source code went - boxplot with max acres burned for cells w/without previous WF (same issues as previous boxplot)
+# sample sizes should be noted here as well
+
+```
+
+### Modeling
+
+<!-- PASTE FINAL TEXT -->
+
+<!--- note: including these as straight up images because we should not be running models in here! --->
+
+![SHAP values for the Random Forest classifier.](/images/shap_summary_plot.png){#fig-shap-summary}
+
+![Confusion matrix for the Random Forest classifier.](/images/conf_matrix_rf_wf_acres.png){#fig-conf-matrix}
+
+![SHAP values for the Random Forest classifier with all plant species counts included separately.](/images/shap_summary_plot_plant.png){#fig-shap-summary-plant}
+
+![Confusion matrix for the Random Forest classifier with all plant species counts included separately.](/images/conf_matrix_rf_wf_acres_plant.png){#fig-conf-matrix-plant}
 
 # Discussion, Limitations, and Future Work
 
@@ -232,6 +550,10 @@ text(1, 1, "Replace after M2/M3")
 ## Limitations
 
 <!-- PASTE FINAL TEXT -->
+
+![Historical Non-Vegetation Boundaries Map](/images/noplant_plt.jpeg){#fig-no-plant-map}
+
+<!-- could make this map actually render here? but we'd have to read in the hist-veg data as well which is a little annoying -->
 
 ## Future Work
 
