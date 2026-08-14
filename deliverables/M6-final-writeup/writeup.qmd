@@ -39,8 +39,6 @@ execute:
 library(tidyverse)
 library(sf)
 library(ggplot2)
-#library(dplyr)
-#library(zoo)
 library(here)
 ```
 
@@ -136,13 +134,13 @@ indigenous_cols <- c(
 
 | Common Name | Scientific Name | Number of GBIF Records |
 |:--|:--|:--|
-| Ponderosa Pine | Pinus ponderosa var. Benthamiana | 9601 |
+| Ponderosa Pine | Pinus ponderosa var. Benthamiana | 9,601 |
 | Scouler’s Willow | Salix scouleriana | 195 |
-| Oregon White Oak | Quercus garryana | 4717 |
-| Black Cottonwood | Populus balsamifera subsp. Trichocarpa | 1652 |
-| Western Redcedar | Thuja plicata | 3683 |
-| Beargrass | Xerophyllum tenax | 1879 |
-| California Blackberry | Rubus ursinus | 3715 |
+| Oregon White Oak | Quercus garryana | 4,717 |
+| Black Cottonwood | Populus balsamifera subsp. Trichocarpa | 1,652 |
+| Western Redcedar | Thuja plicata | 3,683 |
+| Beargrass | Xerophyllum tenax | 1,879 |
+| California Blackberry | Rubus ursinus | 3,715 |
 
 : GBIF Species Inventory Table. {#tbl-gbif-inventory .striped .hover}
 
@@ -160,14 +158,14 @@ indigenous_cols <- c(
 
 | GBIF Species Common Name | Oregon Historic Vegetation Region(s) | Number of Cells with Designation |
 |:--|:--|:--|
-| Ponderosa Pine | Ponderosa pine, Ponderosa Pine-Lodgepole Pine, Douglas Fir-Ponderosa Pine | 3431 |
+| Ponderosa Pine | Ponderosa pine, Ponderosa Pine-Lodgepole Pine, Douglas Fir-Ponderosa Pine | 3,431 |
 | Scouler’s Willow | Willows | 516 |
 | Oregon White Oak | White Oak Woodland, White Oak-Black Oak | 804 |
 | Black Cottonwood | Black Cottonwood Riparian Woodland | 565 |
 | Western Redcedar | Western Redcedar | 654 |
 | Beargrass | N/A | 432 |
 | California Blackberry | N/A | 932 |
-| No plants recorded | N/A | 5180 |
+| No plants recorded | N/A | 5,180 |
 
 : GBIF Species & Oregon Historic Vegetation Region Inventory Table. {#tbl-gbif-histveg-cell-inventory .striped .hover}
 
@@ -229,6 +227,14 @@ indigenous_cols <- c(
 
 <!-- PASTE FINAL TEXT -->
 
+| Fire Size Category | Acres Burned |
+|:--|--:|
+| Small | X ≤ 0.1 | 
+| Medium | 0.1 < X ≤ 4.72 |
+| Large | > 4.72 |
+
+: Binned fire size categories. {#tbl-fire-size-bins .striped .hover}
+
 ### Evaluation
 
 <!-- PASTE FINAL TEXT -->
@@ -238,6 +244,23 @@ indigenous_cols <- c(
 ## Research Question 1
 
 <!-- PASTE FINAL TEXT -->
+
+```{r}
+#| label: fig-all-plants-map
+#| fig-cap: "Plant occurrence sums."
+#| echo: false
+#| fig-width: 5
+
+grid %>%
+  ggplot(aes(fill=plnt_sm, geometry=geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10)) +
+  theme_void() +
+  labs(
+    title="Plant sums (all species) across Oregon",
+    fill="Plant sum"
+  )
+```
 
 ### Species-Level Comparisons
 
@@ -505,9 +528,9 @@ tgdf %>%
 | Class B | 0.25 < X ≤ 10 acres |
 | Class C | 10 ≤ X < 100 acres |
 | Class D | 100 ≤ X < 300 acres |
-| Class E | 300 ≤ X < 1000 acres |
-| Class F | 1000 ≤ X < 5000 acres |
-| Class G | ≥ 5000 acres |
+| Class E | 300 ≤ X < 1,000 acres |
+| Class F | 1,000 ≤ X < 5,000 acres |
+| Class G | ≥ 5,000 acres |
 
 : Size Class of Fire by Acres Burned {#tbl-size-class .striped .hover}
 
