@@ -74,7 +74,7 @@ Not significant at all.
 ```{r}
 gdf %>% 
     ggplot(aes(is_ndgn, n_wildfires, fill=is_ndgn)) +
-    geom_boxplot() +
+    geom_boxplot(show.legend=FALSE) +
     scale_fill_manual(values=indigenous_cols) +
     scale_y_continuous(trans=scales::pseudo_log_trans(base = 10)) +
     theme_bw()
@@ -170,6 +170,20 @@ print(cohens_d(rx_max_acres ~ is_ndgn, data=gdf %>% filter(n_rx_fires > 0)))
 ```
 
 Technically some significance here but come on. Let's be real. 
+
+```{r}
+gdf %>% 
+    filter(n_wildfires > 0) %>%
+    group_by(is_ndgn) %>%
+    summarize(median_acres=median(max_acres))
+```
+
+```{r}
+gdf %>% 
+    filter(n_wildfires > 0) %>%
+    group_by(is_ndgn) %>%
+    summarize(median_duration=median(max_duration, na.rm=TRUE))
+```
 
 # Previous wildfire/prescribed burn
 

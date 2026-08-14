@@ -47,7 +47,7 @@ tg_fire = tg[tg['n_fires']>0]
 
 ```{python}
 # filtering to only cells that have fires of at least 0.25 acre
-tg_fire = tg[tg['max_acres']>=0.25]
+tg_fire = tg[tg['max_acres']>0]
 ```
 
 ```{python}
@@ -77,7 +77,7 @@ print(pd.qcut(x=tg_f_cur['max_acres'], q=3, retbins=True))
 tg_f_cur['target'] = pd.qcut(x=tg_f_cur['max_acres'], q=3, labels=labels)
 ```
 
-Class sizes: [(0.249, 2.0] < (2.0, 5290.66] < (5290.66, 413715.0]]
+Class sizes: [(-0.000965, 0.1] < (0.1, 4.72] < (4.72, 413715.0]]
 
 ## rx_prev and max_acres_rx with new size class
 
@@ -251,13 +251,14 @@ print(report)
 
 ```{python}
 # label encoder for target variable
+label_encoder = LabelEncoder()
 target_c = label_encoder.fit_transform(tg_f_cur["target"])
-target_c2 = label_encoder.fit_transform(tg_f_cur["size_2"])
+#target_c2 = label_encoder.fit_transform(tg_f_cur["size_2"])
 
-data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev', 'max_acres_rx']]
+data_c = tg_f_cur[['is_ndgn', 'plnt_sm', 'rx_prev']]
 
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
-    data_c, target_c2, test_size=0.3, random_state=42, stratify=target_c2
+    data_c, target_c, test_size=0.3, random_state=42, stratify=target_c
 )
 ```
 
@@ -272,9 +273,7 @@ pred_c = rf_c.predict(X_test_c)
 print(f"Accuracy: {accuracy_score(y_test_c, pred_c):.4f}")
 ```
 
-Accuracy: 0.4488
-
-With smallest bin <=1: 0.4129
+Accuracy: 0.4321
 
 ### Feature Importance
 
@@ -289,6 +288,7 @@ shap_summary_c = np.abs(shap_values_c).mean(axis=0)
 shap_summary_list_c = [np.mean(shap_summary_c[i]) for i in range(shap_summary_c.shape[0])]
 
 # dataframe using 1d list of SHAP values
+feature_names = ['is_ndgn', 'plnt_sm', 'rx_prev', 'mx_crs_r']
 shap_summary_df_c = pd.DataFrame({'Feature': feature_names, 'SHAP values': shap_summary_list_c})
 
 print(shap_summary_df_c)
@@ -304,6 +304,11 @@ print(feature_imp_df_c)
 ```
 
 ### Metrics
+
+```{python}
+n_labs = np.unique(target_c)
+class_labs = np.unique(tg_f_cur['target'])
+```
 
 ```{python}
 c_matrix_c = confusion_matrix(y_test_c, pred_c, labels=n_labs)

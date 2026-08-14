@@ -97,6 +97,8 @@ indigenous_cols <- c(
 | Spencer Fiden | Owner Product Lead | nefiden@willamette.edu |
 | Amaya Supancich-McCord | Owner Product Lead | asupancichmccord@willamette.edu |
 
+: {.hover}
+
 **Peer Stakeholder POs:** Siera Edwards, Brooke Proctor, Serenna Walter (*Shared Theme: Pacific Northwest forest and environmental health.*)
 
 **Repository:** `https://github.com/Fiden-Supancich-McCord/data510-fire/tree/main`
@@ -129,15 +131,21 @@ indigenous_cols <- c(
 
 <!-- PASTE FINAL TEXT -->
 
+::: {style="font-size: 80%;"}
+
 | Source | Role | License | Scope | Type | Size |
 |:--|:--|:--|:--|:--|:--|
 | LandMark | Indigenous & community land boundaries | Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0) | Global, current record | Simple features multipolygons | 11 OR records; ~2.1 GB total (global) |
-| Global Biodiversity Information Facility (GBIF) | Species occurence records for biodiversity/vegetation metrics | Open-data framework using CC0, CC BY, and CC BY-NC licenses | Oregon, 2015-2025 | Tabular with coordinates | 23571 records; ~14.6 MB |
+| Global Biodiversity Information Facility (GBIF) | Species occurence records for biodiversity/vegetation metrics | Open-data framework using CC0, CC BY, and CC BY-NC licenses | Oregon, 2015-2025 | Tabular with coordinates | 23,571 records; ~14.6 MB |
 | State of Oregon Historic Vegetation | Complementary vegetation record to distinguish between environment types | Creative Commons CC0 1.0 (public domain dedication) | Oregon, compiled historic record (1851-1910 and 1930) | Simple features multipolygons | 43,628 records; ~160 MB |
-| NIFC InFORM Fire Occurrence Data Records (InFORM) | Fire occurrence records, including wildfires and prescribed burns | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1922-2026 | Tabular with coordinates | 1221418 records; ~580 MB |
-| NIFC Interagency Wildland Fire Perimeter History (IFPH) | Fire occurrence records, including wildfires and one prescribed burn | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1668-2025 (includes historic record) | Simple features multipolygons | 4263 OR records, ~760 MB total (national) |
+| NIFC InFORM Fire Occurrence Data Records (InFORM) | Fire occurrence records, including wildfires and prescribed burns | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1922-2026 | Tabular with coordinates | 1,221,418 records; ~580 MB |
+| NIFC Interagency Wildland Fire Perimeter History (IFPH) | Fire occurrence records, including wildfires and one prescribed burn | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1668-2025 (includes historic record) | Simple features multipolygons | 4,263 OR records, ~760 MB total (national) |
 
 : Data inventory table. {#tbl-data-inventory .striped .hover}
+
+::: 
+
+::: {style="font-size: 80%;"}
 
 | Common Name | Scientific Name | Number of GBIF Records |
 |:--|:--|:--|
@@ -151,6 +159,8 @@ indigenous_cols <- c(
 
 : GBIF Species Inventory Table. {#tbl-gbif-inventory .striped .hover}
 
+:::
+
 ## Data Engineering 
 
 <!-- PASTE FINAL TEXT -->
@@ -162,6 +172,8 @@ indigenous_cols <- c(
 <!-- PASTE FINAL TEXT -->
 
 ### Spatial Integration and Feature Engineering
+
+::: {style="font-size: 80%;"}
 
 | GBIF Species Common Name | Oregon Historic Vegetation Region(s) | Number of Cells with Designation |
 |:--|:--|:--|
@@ -175,6 +187,8 @@ indigenous_cols <- c(
 | No plants recorded | N/A | 5,180 |
 
 : GBIF Species & Oregon Historic Vegetation Region Inventory Table. {#tbl-gbif-histveg-cell-inventory .striped .hover}
+
+:::
 
 # Ethics and Responsible Use
 
@@ -234,6 +248,8 @@ indigenous_cols <- c(
 
 <!-- PASTE FINAL TEXT -->
 
+::: {style="font-size: 80%;"}
+
 | Fire Size Category | Acres Burned |
 |:--|--:|
 | Small | X ≤ 0.1 | 
@@ -241,6 +257,8 @@ indigenous_cols <- c(
 | Large | > 4.72 |
 
 : Binned fire size categories. {#tbl-fire-size-bins .striped .hover}
+
+:::
 
 ### Evaluation
 
@@ -256,7 +274,7 @@ indigenous_cols <- c(
 #| label: fig-all-plants-map
 #| fig-cap: "Plant occurrence sums."
 #| echo: false
-#| fig-width: 5
+#| fig-width: 7
 
 grid %>%
   ggplot(aes(fill=plnt_sm, geometry=geometry)) +
@@ -273,17 +291,21 @@ grid %>%
 
 <!-- PASTE FINAL TEXT -->
 
+::: {style="font-size: 80%;"}
+
 | Plant Species | Mean Species Abundance (Non-Indigenous) | Mean Species Abundance (Indigenous) | Welch's t-test p-values | Mann-Whiteney U p-values |
 |:--|:--|:--|:--|:--|
-| Ponderosa Pine | 1.20487854 | 1.2257143 | 9.450517e-01 | 0.0001186367 |
-| Scouler’s Willow | 0.05751857 | 0.0400000 | 1.785742e-01 | 0.1699796488 |
-| Oregon White Oak | 0.43896808 | 0.4000000 | 7.547603e-01 | 0.8492149566 |
-| Black Cottonwood | 0.16181490 | 0.1171429 | 4.764685e-01 | 0.9087538262 |
+| Ponderosa Pine | 1.20487854 | 1.2257143 | 0.9450517 | 0.0001186367 |
+| Scouler’s Willow | 0.05751857 | 0.0400000 | 0.1785742 | 0.1699796488 |
+| Oregon White Oak | 0.43896808 | 0.4000000 | 0.7547603 | 0.8492149566 |
+| Black Cottonwood | 0.16181490 | 0.1171429 | 0.4764685 | 0.9087538262 |
 | Western Redcedar | 0.34661715 | 0.0400000 | 7.552007e-07 | 0.0109302547 |
-| Beargrass | 0.17165228 | 0.1171429 | 1.510516e-01 | 0.3628868174 |
+| Beargrass        | 0.17165228 | 0.1171429 | 0.1510516 | 0.3628868174 |
 | California Blackberry | 0.35555109 | 0.1657143 | 2.297990e-05 | 0.8777980018 |
 
 : Species Distribution by Indigenous land designation status. {#tbl-species-dist-indigenous .striped .hover}
+
+:::
 
 ![Species abundance by Indigenous land designation status.](/images/species_abundance_scatterplot.png){#fig-species-abundance}
 
@@ -313,8 +335,8 @@ grid %>%
 #| label: fig-max-acres-indigenous
 #| fig-cap: "Maximum acres burned across land designation"
 #| echo: false
-#| fig-width: 5
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 7
 
 gdf %>%
     filter(max_acres > 0) %>%
@@ -360,8 +382,8 @@ knitr::kable(ind_n_acres)
 #| label: fig-max-duration-indigenous
 #| fig-cap: "Maximum fire duration across land designation."
 #| echo: false
-#| fig-width: 5
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 7
 
 gdf %>%
     filter(max_duration > 0) %>%
@@ -412,23 +434,24 @@ knitr::kable(ind_n_dur)
 #| label: fig-rx-acres
 #| fig-cap: "Distribution of fire size between cells that have or have not previously had prescribed burns."
 #| echo: false
-#| fig-width: 5
-#| fig-height: 3
+#| fig-width: 6
+#| fig-height: 7
 
 tgdf %>% 
     filter(year >= 2020) %>%
     filter(n_fires > 0) %>%
-    ggplot(aes(as.factor(rx_csum > 0), max_acres, fill=as.factor(rx_csum > 0))) +
+    mutate(had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns")) %>%
+    ggplot(aes(had_rx, max_acres, fill=had_rx)) +
     geom_boxplot(show.legend=FALSE) +
     scale_fill_manual(values=burn_cols) +
     scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
-    theme_bw() +
     labs(
         title="Presence of prescribed burns \nfor fires 2020-2025",
         x="Had prescribed burns",
         y="Maximum acres burned",
         caption="Source: IFPH, InFORM"
-    )
+    ) +
+    theme_bw()
 
 ```
 
@@ -436,10 +459,10 @@ tgdf %>%
 #| label: fig-rx-indigenous-size-2025
 #| fig-cap: "Fire size distribution by the presence of prescribed burn and Indigenous land designation status in 2025."
 #| echo: false
-#| fig-width: 5
-#| fig-height: 3
+#| fig-width: 7
+#| fig-height: 7
 
-rx_indigenous_size_2025 <- tgdf %>%
+tgdf %>%
   filter(year == 2025) %>%
   filter(size_class_pretty != "No fire") %>%
   mutate(
@@ -468,7 +491,6 @@ rx_indigenous_size_2025 <- tgdf %>%
   theme_bw() +
   theme(legend.position="top")
 
-ggsave("images/rx_indigenous_size_2025.png", rx_indigenous_size_2025, width=6, height=6)
 ```
 
 ```{r}
@@ -491,10 +513,10 @@ knitr::kable(rx_ind_size_2025)
 
 ```{r}
 #| label: fig-rx-annual-size-class
-#| fig-cap: "Fire class distribution by presence of prescribed burn with Indigenous land designation status included as a support variable."
+#| fig-cap: "Fire class distribution by presence of previous prescribed burn over time."
 #| echo: false
-#| fig-width: 5
-#| fig-height: 3
+#| fig-width: 7
+#| fig-height: 6
 
 tgdf %>%
     filter(year > 2021) %>%
@@ -529,6 +551,27 @@ tgdf %>%
 # should indicate sample size for this as well somewhere
 ```
 
+```{r}
+#| label: tbl-rx-size-class-annual
+#| tbl-cap: "Sample sizes for maximum fire size class in cells with and without previous prescribed burns 2022-2025."
+#| echo: false
+
+rx_size_class_annual <- tgdf %>% 
+  filter(year >= 2022) %>%
+  filter(size_class_pretty != "No fire") %>%
+  mutate(
+    `Prescribed Burn` = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+    `Indigenous Status` = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous"),
+    Year = year
+  ) %>%
+  group_by(Year, `Prescribed Burn`) %>% 
+  summarize(`Number of Cells`=n())
+
+knitr::kable(rx_size_class_annual)
+```
+
+::: {style="font-size: 80%;"}
+
 | Fire Class Category | Acres Burned |
 |:---|---:|
 | Class A | ≤ 0.25 acres |
@@ -541,21 +584,7 @@ tgdf %>%
 
 : Size Class of Fire by Acres Burned {#tbl-size-class .striped .hover}
 
-```{r}
-#| label: fig-prev-wf-acres
-#| fig-cap: "Distribution of fire size between cells that have or have not previously experienced wildfires. "
-#| echo: false
-#| fig-width: 5
-#| fig-height: 3
-
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "PLACEHOLDER")
-
-# this should also maybe be limited to 2022-2025
-# also not sure where the source code went - boxplot with max acres burned for cells w/without previous WF (same issues as previous boxplot)
-# sample sizes should be noted here as well
-
-```
+:::
 
 ### Modeling
 
@@ -565,9 +594,9 @@ text(1, 1, "PLACEHOLDER")
 
 ![SHAP values for the Random Forest classifier.](/images/shap_summary_plot.png){#fig-shap-summary}
 
-![Confusion matrix for the Random Forest classifier.](/images/conf_matrix_rf_wf_acres.png){#fig-conf-matrix}
-
 ![SHAP values for the Random Forest classifier with all plant species counts included separately.](/images/shap_summary_plot_plant.png){#fig-shap-summary-plant}
+
+![Confusion matrix for the Random Forest classifier.](/images/conf_matrix_rf_wf_acres.png){#fig-conf-matrix}
 
 ![Confusion matrix for the Random Forest classifier with all plant species counts included separately.](/images/conf_matrix_rf_wf_acres_plant.png){#fig-conf-matrix-plant}
 
