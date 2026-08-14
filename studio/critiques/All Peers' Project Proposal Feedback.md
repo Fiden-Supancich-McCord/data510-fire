@@ -1,12 +1,16 @@
 # Studio Critique 
 
 **From:** Serenna Walter
+
 **To:** Spencer and Amaya
+
 **Filed:** June 13, 2026 (o.g. Comment on Google Docs - Today's date is Aug 14 2026)
+
 **Reviewing iteration ending:** 6/13/2026
+
 **Milestone tag the iteration was aimed at:** M1-proposal 
 
-**This is a copy and pasted version of the feedback from the Project Proposal in the Google Doc. Upon reading repository requirements, I thought it would be helpful to paste the feedback from the Google Docs into a Critique just for reference for grading.**
+### This is a copy and pasted version of the feedback from the Project Proposal in the Google Doc. Upon reading repository requirements, I thought it would be helpful to paste the feedback from the Google Docs into a Critique just for reference for grading.
 
 
 ## Serenna's Project Proposal Feedback
