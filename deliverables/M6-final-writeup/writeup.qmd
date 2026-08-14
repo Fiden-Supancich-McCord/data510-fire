@@ -120,7 +120,7 @@ indigenous_cols <- c(
 
 # Data and Data Engineering
 
-## Data Invetory
+## Data Inventory
 
 <!-- PASTE FINAL TEXT -->
 
@@ -255,17 +255,8 @@ indigenous_cols <- c(
 
 : Species Distribution by Indigenous land designation status. {#tbl-species-dist-indigenous .striped .hover}
 
-```{r}
-#| label: fig-species-abundance-indigenous
-#| fig-cap: "Species abundance by Indigenous land designated status"
-#| echo: false
-#| fig-width: 5
-#| fig-height: 3
+![Species abundance by Indigenous land designation status.](/images/species_abundance_scatterplot.png){#fig-species-abundance}
 
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "PLACEHOLDER")
-
-```
 
 ### Shannon Diversity
 
@@ -275,53 +266,13 @@ text(1, 1, "PLACEHOLDER")
 
 <!-- PASTE FINAL TEXT -->
 
-```{r}
-#| label: fig-comp-diversity-resids
-#| fig-cap: "Forest compositional diversity residuals vs fitted"
-#| echo: false
-#| fig-width: 5
-#| fig-height: 3
+![Forest compositional diversity residuals vs fitted.](/images/species_residvfitted_plot.png){#fig-species-resid-fitted}
 
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "PLACEHOLDER")
+![Forest compositional diversity q-q residuals.](/images/species_qq_plot.png){#fig-species-qq}
 
-```
+![Forest compositional diversity scale location.](/images/species_scalelocation_plot.png){#fig-species-scalelocation}
 
-```{r}
-#| label: fig-comp-diversity-qq
-#| fig-cap: "Forest compositional diversity q-q residuals"
-#| echo: false
-#| fig-width: 5
-#| fig-height: 3
-
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "PLACEHOLDER")
-
-```
-
-```{r}
-#| label: fig-comp-diversity-scale-loc
-#| fig-cap: "Forest compositional diversity scale location"
-#| echo: false
-#| fig-width: 5
-#| fig-height: 3
-
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "PLACEHOLDER")
-
-```
-
-```{r}
-#| label: fig-comp-diversity-cooks
-#| fig-cap: "Forest compositional diversity Cook’s distance"
-#| echo: false
-#| fig-width: 5
-#| fig-height: 3
-
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "PLACEHOLDER")
-
-```
+![Forest compositional diversity Cook’s distance.](/images/species_cooks_plot.png){#fig-species-cooks}
 
 ## Research Question 2
 
