@@ -20,17 +20,6 @@ execute:
   message: false
 ---
 
-<!--
-  DATA 510 write-up skeleton (Week 5 Quarto lecture).
-
-  Copy this file to your DS3 repo:
-    deliverables/M4-writeup-draft/writeup.qmd
-
-  Week 5: paste prose from your M1 proposal into Introduction, Data, Ethics, Methods.
-  Week 7+: replace stubs with real results from notebooks/ and src/.
-  Week 12 (M4): methods and findings should be stable; render PDF + HTML for submission.
--->
-
 ```{r}
 #| label: libraries
 #| echo: false
@@ -105,31 +94,45 @@ indigenous_cols <- c(
 
 # Abstract
 
-<!-- PASTE FINAL TEXT -->
+Increasing wildfire activity [@lundeberg2026] throughout the western United States has renewed interest in understanding the ecological factors associated with wildfire severity, including the potential influence of Indigenous stewardship and prescribed fire. This project used publicly available ecological and wildfire datasets to evaluate forest compositional diversity and wildfire characteristics across federally recognized Indigenous and non-Indigenous lands in Oregon between 2015 and 2025.
+​
+Results indicated relatively few consistent differences in plant abundance or forest compositional diversity, and no measurable improvement in the Shannon Diversity Index by land status. Similarly, wildfire severity metrics exhibited negligible practical differences between land categories despite distributional differences. Machine learning models achieved modest predictive performance, with previous wildfire history and vegetation characteristics consistently emerging as stronger predictors of wildfire severity than designated Indigenous land or prescribed burn history. Previous prescribed burns were significantly associated with a greater proportion of smaller wildfire events, although their observed effects remained small.
+​
+These findings demonstrate both the utility and limitations of publicly available ecological datasets for landscape-style wildfire research and highlight the strong association between previous fire history and vegetation characteristics on wildfire severity. Collectively, this project demonstrates how reproducible geospatial data science workflows can integrate heterogeneous datasets to investigate landscape-scale questions regarding biodiversity, wildfire resilience, and land stewardship. While the available datasets do not fully capture the complexity of Oregon's ecosystems or Indigenous stewardship practices, the resulting analytical framework provides a foundation for future research incorporating more comprehensive biodiversity inventories, additional environmental covariates, and expanded measures of wildfire resilience and severity.
 
 # Introduction: Problem and Research Questions
 
 ## Problem
 
-<!-- PASTE FINAL TEXT -->
+Wildfire activity has become an increasingly significant ecological, economic, and public safety concern throughout the western United States. In Oregon and across the broader Pacific Northwest, longer fire seasons, changing climatic conditions, expanding development within the wildland-urban interface, and more than a century of widespread fire suppression have contributed to larger and more severe wildfires that threaten ecosystems, infrastructure, and human communities [@abatzoglou2016; @hessburg2021]. Beyond their immediate impacts on human populations, wildfires influence forest compositional diversity, biodiversity, nutrient cycling, carbon storage, and long-term ecosystem resilience (Johnstone et al., 2016). As wildfire frequency and severity continue to increase, identifying management strategies that promote healthier and more resilient forest ecosystems has become a priority for land managers, policymakers, Tribal governments, and conservation organizations [@hessburg2021].
+​
+For thousands of years, Indigenous communities throughout North America have actively shaped forest ecosystems through stewardship practices that include cultural burning, selective harvesting, habitat management, and long-term ecological observation [@coughlan2024]. Rather than seeking to eliminate fire from the landscape, many Indigenous stewardship systems incorporated intentional burning to reduce hazardous fuel accumulation, promote desired plant communities, maintain wildlife habitat, and sustain culturally important resources [@coughlan2024]. Historical fire exclusion policies implemented during the twentieth century substantially reduced the use of cultural burning throughout much of the western United States, contributing to changes in forest structure, fuel accumulation, and wildfire behavior [@hessburg2021]. Increasing recognition of Indigenous ecological knowledge has renewed interest in understanding how Indigenous stewardship practices, namely prescribed burns, may contribute to contemporary wildfire resilience and ecological restoration (i.e., reduced fire severity and increased biodiversity) [@coughlan2024].
 
 ## Research Questions
 
-<!-- PASTE FINAL TEXT -->
+Three primary research questions guide this project. Because the project relies exclusively on observational data, all analyses are intended to identify statistical associations rather than establish causal relationships.
+​
+Research Question 1: Can publicly available ecological data be used to evaluate forest compositional diversity across federally recognized Indigenous and non-Indigenous lands across Oregon? This question evaluates whether there is an observable difference in the abundance of representative plant taxa and overall forest compositional diversity, as quantified by the Shannon Diversity Index.
+​
+Research Question 2: Are federally recognized Indigenous lands associated with different wildfire characteristics than non-Indigenous lands? This question examines observed wildfire duration and size.
+​
+Research Question 3: Are Indigenous land recognition status, the presence of fire-resistant and keystone species, and prescribed burns associated with lower wildfire severity? This question investigates the relative importance of vegetation composition, prescribed burning, and Indigenous land designation in explaining variation in wildfire severity metrics.
+​
+While Indigenous Peoples’ relationships to the land exist regardless of federal boundaries, for this project, federal boundaries, as reported by LandMark, are used to distinguish between land types. For brevity, these land types are discussed as Indigenous and non-Indigenous, not to erase the Indigenous stewardship that occurs outside these boundaries.
 
 # Impact and Stakeholders
 
-<!-- PASTE FINAL TEXT -->
+The findings of this project may be relevant to Tribal governments and Indigenous communities, land management agencies, conservation organizations, and environmental researchers involved in wildfire management, ecological conservation, and ecosystem stewardship. The reproducible geospatial workflows developed in this project demonstrate how publicly available biodiversity observations, wildfire occurrence records, prescribed fire inventories, and vegetation datasets can be integrated into standardized spatial units for statewide ecological analysis. This approach may support evidence-informed decision-making, identify landscape-scale patterns for further investigation, and help guide future monitoring and field-based research. For Tribal governments and Indigenous land managers, the project provides quantitative comparisons of biodiversity and wildfire characteristics across federally recognized Indigenous and non-Indigenous lands while recognizing that publicly available datasets cannot fully capture the cultural, historical, or ecological complexity of Indigenous stewardship practices. For land management and conservation agencies, the analytical framework illustrates how multiple environmental datasets can be synthesized to inform future restoration, wildfire mitigation, prescribed fire, biodiversity monitoring, and ecosystem resilience efforts.
 
 # Related Work and Background
 
-<!-- PASTE FINAL TEXT -->
+While existing work has advanced understanding of Indigenous stewardship [@coughlan2024; @coughlannd], wildfire ecology [@coughlan2024; @coughlannd; @lundeburg2026], and forest resilience [@lundeburg2026], our project addresses a quantitative gap by integrating geospatial wildfire, forest compositional diversity, biodiversity, and Indigenous land designation datasets to evaluate landscape-scale relationships across Oregon. Rather than focusing primarily on historical documentation [@lundeburg2026], policy recommendations [@coughlannd], or ecological theory [@tallamy2024], we apply a reproducible data science framework to compare federally recognized Indigenous lands and non-Indigenous lands. This approach allows us to assess whether differences in forest diversity and ecological characteristics are associated with differences in wildfire severity outcomes while recognizing the observational nature of these relationships and the importance of Indigenous expertise in interpreting results.
 
 # Data and Data Engineering
 
 ## Data Invetory
 
-<!-- PASTE FINAL TEXT -->
+This project integrates multiple publicly available ecological and geospatial datasets describing biodiversity, species abundance, wildfire occurrence, prescribed fire activity, historical vegetation, and federally recognized Indigenous lands throughout Oregon. Each dataset was selected to contribute complementary information necessary to evaluate forest compositional diversity and wildfire characteristics at a statewide scale. The following species were selected from the GBIF dataset due to their recorded influence on the Oregon ecosystem: Ponderosa Pine (Pinus ponderosa var. benthamiana) and Oregon White Oak (Quercus garryana) were selected due to their nature as fire-adapted tree species [@fryer2018; @gucker2007]; Beargrass (Xerophyllum tenax), California Blackberry (Rubus ursinus), and Scouler’s Willow (Salix scouleriana) were identified as culturally important Indigenous plant species [@owlridge2008]; Western Redcedar (Thuja plicata) and Black Cottonwood (Populus balsamifera subsp. Trichocarpa) were identified as keystone wildlife habitat species [@wsu; @osu2019]. Because no single dataset contained all required ecological variables, substantial data engineering was required to standardize data types, reconcile coordinate reference systems, and integrate observations into a unified analytical framework.
 
 ::: {style="font-size: 80%;"}
 
@@ -163,15 +166,25 @@ indigenous_cols <- c(
 
 ## Data Engineering 
 
-<!-- PASTE FINAL TEXT -->
+Because the datasets originated from independent organizations using different formats, coordinate systems, temporal ranges, and reporting standards, extensive preprocessing was required before statistical analyses could be performed. Figure 3 summarizes the overall analytical workflow.
 
 ![Data Engineering Pipeline](/images/short-pipeline-capstone.png){#fig-pipeline fig-alt="Diagram showing the data engineering pipeline."}
 
 ### Data Cleaning and Quality Assurance
 
-<!-- PASTE FINAL TEXT -->
+Each dataset underwent systematic quality assessment prior to integration. Initial inspection identified differences in variable naming conventions, data types, coordinate reference systems, temporal coverage, and missing values. Date fields were standardized into consistent datetime formats, and categorical variables were recoded and leveled where appropriate.
+​
+The IFPH and InFORM data share a common unique fire identifier, which was used to join common fires. 817 records had matching identifiers in IFPH and InFORM; for these fires, IFPH values were preferred when both datasets were available, including the multipolygon geometry provided by IFPH. We excluded 866 records in the IFPH dataset that did not have counterparts in InFORM data from subsequent processing because they lacked the information necessary for our analysis. Fire records present only in InFORM were spatially placed using the provided coordinates and converted to point geometries; this included 10,686 records in Oregon from 2015-2025. Additionally, 27,538 records in InFORM within that time span lacked coordinates and were not included. However, these points were not necessarily within the spatial scope, as InFORM includes records from across the United States.
+​
+Additional work was undertaken to construct serviceable fire-start and fire-end dates. Three fire-end variables were available in the InFORM data (control date-time, contain date-time, and fire out date), each with varying levels of missingness. If multiple existed, the latest recorded date was used to represent the fire-end date. 3443 point-based InFORM and 192 combined IFPH-InFORM polygon records were missing all three end-date variables and were therefore excluded from fire duration analyses; however, they were still included in fire size analyses.
+​
+Several quality control procedures were implemented throughout preprocessing. We standardized coordinate reference systems to WGS 84 across all spatial datasets to ensure accurate spatial joins. We inspected variable ranges for implausible values, removing one wildfire record with a negative burned area, standardizing 1970-01-01 dates to NA, and correcting two years that were off by one century (e.g., 2121 was changed to 2021). When missing, the calendar year was imputed from the fire discovery date-time, which had no missingness. Other missing values were evaluated on a variable-by-variable basis, with variables exhibiting extensive or complete missingness (e.g., discovery acres, estimated cost to date, final acres, final fire report approved by unit, general fire behavior, incident short description, reimbursability indicator, POO jurisdictional parent unit, and percent contained) excluded from downstream analyses. Rather than imputing observations, missing values were excluded from modeling. This approach avoided introducing artificial observations while preserving the integrity of the original datasets.
 
 ### Spatial Integration and Feature Engineering
+
+One of the primary contributions of this project is a reproducible spatial integration framework that combines heterogeneous datasets and geometries into standardized analytical units. All datasets were spatially joined using a common 5 km × 5 km analysis grid covering the state of Oregon, created using the US National Atlas Equal Area coordinate reference system. This grid provided a consistent spatial resolution for summarizing wildfire records, prescribed fire occurrence, vegetation characteristics, and Indigenous land designation. After its creation, the grid and all other spatial datasets were converted to the WGS 84 coordinate reference system, except InFORM and GBIF, which were already in WGS 84.​
+
+For each grid cell, we calculated a more representative species count by combining GBIF occurrence records with Historic Vegetation, increasing the plant occurrence count by one for any cell that intersected a relevant vegetation region. This operation was performed for Ponderosa Pine, Scouler’s Willow, Oregon White Oak, Black Cottonwood, and Western Rederar. California Blackberry and Beargrass were not included in the Historic Vegetation dataset, which focuses on broader patterns of dominant species, so their counts are based solely on GBIF records. Dual-tree categories were used for Ponderosa Pine and Oregon White Oak to include as many applicable regions as possible. Shannon Diversity Index values were subsequently calculated using the aggregated abundances to provide a quantitative measure of overall forest compositional diversity.
 
 ::: {style="font-size: 80%;"}
 
@@ -190,29 +203,37 @@ indigenous_cols <- c(
 
 :::
 
+​We created a binary indicator identifying whether each grid cell intersected federally recognized Indigenous lands using LandMark. We similarly summarized wildfire variables at the grid-cell level. These included wildfire counts, maximum wildfire duration in hours, maximum wildfire size in acres, wildfire size class (a factor based on the National Wildfire Coordinating Group’s size classifications), and a count of prescribed burns with all of the above size and duration metrics associated with them. All cells also included a list of unique fire identifiers associated with the fires present in that cell for manual cross-referencing with the original dataset if needed. The resulting feature engineering process transformed over seventy thousand individual observations into a standardized analytical dataset suitable for comparative statistical modeling while preserving spatial relationships among the original datasets.
+
+In addition to the grid dataset, which included fire counts and metrics from 2015 to 2025, we created a second dataset that aggregates fire metrics annually. The federally recognized Indigenous land binary variable was held constant across our time span, as land borders have not changed during that period. Although the GBIF records had associated dates, the vegetation columns were treated as constant because the Historic Vegetation was not time-bound, and the resulting combined columns were treated as proxies for general forest compositional diversity rather than a yearly species census, given the uneven distribution of observations. The base grid was duplicated so each grid cell index was present for every year in the time span, and a unique row identifier was created by combining the year and grid cell index. For each year, the same set of fire metrics and counts were created using only fire records from that year. Further metrics were calculated from the time-series data, including rolling and cumulative sums of fire counts for wildfires and prescribed burns.
+
 # Ethics and Responsible Use
 
-<!-- PASTE FINAL TEXT -->
+This project uses only publicly available ecological and geospatial datasets and does not involve personally identifiable information or human subjects data. Nevertheless, because several datasets concern designated Indigenous lands, biodiversity observations, and environmental resources, ethical data stewardship remains a central consideration.
+​
+Analyses follow the CARE Principles for Indigenous Data Governance (Collective Benefit, Authority to Control, Responsibility, and Ethics) [@perreault2025], recognizing that publicly available datasets cannot fully capture Indigenous knowledge systems, stewardship practices, or cultural relationships with the land. Results are therefore interpreted as observational rather than causal, avoiding broad generalizations across Indigenous nations or deficit-based comparisons of land management practices. Findings are reported at the landscape level to characterize ecological patterns rather than draw cultural conclusions.
+​
+Across all datasets, applicable licensing, attribution, and data-sharing requirements are followed, sensitive metadata (such as observer names, recorder names, rights-holder information, and other unnecessary identifying metadata) are excluded from analysis and redistribution where appropriate, and project findings are presented to support collaborative wildfire stewardship while respecting Indigenous rights, data sovereignty, and responsible data use.
 
 ## LandMark
 
-<!-- PASTE FINAL TEXT -->
+The LandMark dataset provides global spatial and governance information concerning Indigenous Peoples' and community lands, incorporating contributed and third-party datasets describing territorial boundaries and community-level information. Although the dataset does not contain direct personal identifiers, it includes information about Indigenous communities and therefore requires heightened ethical consideration. The LandMark Terms of Service require users to protect and respect the legal and customary rights of Indigenous Peoples and local communities and prohibit uses that may negatively affect these communities. While commercial-use provisions do not apply to this project, we intend to uphold the underlying principle of equitable benefit sharing by ensuring that findings are communicated in ways that may support the communities represented by the data. LandMark data are generally licensed under the Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0) license, permitting redistribution and derivative works provided appropriate attribution is maintained, and derivatives are shared under the same license.
 
 ## Global Biodiversity Information Facility (GBIF)
 
-<!-- PASTE FINAL TEXT -->
+GBIF aggregates biodiversity occurrence records from publishers worldwide, including species observations, museum specimens, geospatial coordinates, observation metadata, and contributor information. Some occurrence records include metadata identifying observers, collectors, identifiers, rights holders, or data publisher representatives. Although these fields are available within the raw dataset, they are not used in this project and will be excluded from any redistributed analytical datasets as part of a data minimization strategy. GBIF datasets are published under standardized Creative Commons licenses (CC0, CC BY, or CC BY-NC), with individual publishers selecting the applicable license for their records. Accordingly, all publisher-specific licensing terms, attribution requirements, and restrictions on commercial use will be respected. Dataset DOIs, citations, and publisher acknowledgments will be retained in accordance with GBIF's recommended citation practices.
 
-## NIFC InFORM Fire Occurrence Data Records
+## NIFC InFORM Fire Occurrence Data Records (InFORM)
 
-<!-- PASTE FINAL TEXT -->
+The NIFC InFORM Fire Occurrence Data Records (InFORM) dataset contains operational wildfire occurrence information and does not include a documented framework for collecting or processing personal data. No formal license accompanies the dataset; consequently, permission should be requested before redistribution or other uses beyond standard research applications. In the absence of an explicit open-data license, this project will not assume unrestricted redistribution rights, will avoid commercial redistribution without authorization, and will preserve source attribution and source throughout the analytical workflow.
 
-## NIFC Interagency Wildland Fire Perimeter History
+## NIFC Interagency Wildland Fire Perimeter History (IFPH)
 
-<!-- PASTE FINAL TEXT -->
+The NIFC Interagency Wildland Fire Perimeter History (IFPH) dataset consists of historical wildfire perimeter polygons and associated environmental metadata. The dataset is described as being free for strategic use, permitting its use for planning, research, and analytical purposes. Because downstream redistribution terms are not explicitly defined, appropriate attribution will be maintained, and any additional federal geospatial data-use requirements will be reviewed before publicly redistributing derivative datasets.
 
 ## Oregon Historic Vegetation
 
-<!-- PASTE FINAL TEXT -->
+The Oregon Historic Vegetation dataset contains polygon-based geospatial features describing reconstructed historical vegetation communities and associated ecological characteristics. The dataset is released under the Creative Commons CC0 1.0 Public Domain Dedication, allowing unrestricted reuse, redistribution, and creation of derivative works without a legal requirement for attribution. Although attribution is not required under the license, this project will continue to cite the dataset and document its source for scientific transparency and reproducibility.
 
 # Methods and Evaluation
 
