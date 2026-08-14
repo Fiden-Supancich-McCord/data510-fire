@@ -274,6 +274,8 @@ ttest_boxplot_rx_cur <- tgdf %>%
 ttest_boxplot_rx_cur
 
 print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020), alternative='greater'))
+print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
+
 print(cohens_d(max_acres ~ as.factor(rx_csum > 0), data=tgdf %>% filter(n_fires > 0, year >= 2020)))
 
 ggsave("./images/ttest_boxplot_rx_cur.jpeg", ttest_boxplot_rx_cur, width=4, height=6, units="in")

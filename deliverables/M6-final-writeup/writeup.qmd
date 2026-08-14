@@ -59,11 +59,18 @@ gdf <- read_csv(here("data/processed_grid/processed_grid.csv"))
 #| echo: false
 #| include: false
 tgdf <- tgdf %>%
-    mutate(prev_rx = rx_csum - n_rx)
+  mutate(
+    prev_rx = rx_csum - n_rx,
+    prev_rx_rollsum = rx_rollsum - n_rx,
+    prev_fire_csum = fire_csum - n_fires,
+    prev_fire_rollsum = fire_rollsum - n_fires,
+    prev_fire_rollsum_5 = fire_rollsum_5 - n_fires
+  )
 
 tgdf <- tgdf %>%
-    mutate(size_class = factor(sz_clss, levels=c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"))) %>%
-    mutate(size_class_pretty = recode(size_class, `Class A`="A", `Class B`="B", `Class C`="C", `Class D`="D", `Class E`="E", `Class F`="F", `Class G`="G"))
+  mutate(size_class = factor(sz_clss, levels=c("No fire", "Class A", "Class B", "Class C", "Class D", "Class E", "Class F", "Class G"))) %>%
+  mutate(size_class_pretty = recode(size_class, `Class A`="A", `Class B`="B", `Class C`="C", `Class D`="D", `Class E`="E", `Class F`="F", `Class G`="G"))
+
 ```
 
 ```{r}
@@ -397,23 +404,9 @@ knitr::kable(ind_n_dur)
 
 <!-- PASTE FINAL TEXT -->
 
-### Maximum Acreage Comparisons
+### Comparison of Means and Distribution
 
 <!-- PASTE FINAL TEXT -->
-
-```{r}
-#| label: fig-rx-indigenous-acres
-#| fig-cap: "Fire size distribution by the presence of prescribed burn and Indigenous land designation status."
-#| echo: false
-#| fig-width: 5
-#| fig-height: 3
-
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "PLACEHOLDER")
-
-# this should be changed to a plot that actually makes sense, ideally for 2022-2025
-
-```
 
 ```{r}
 #| label: fig-rx-acres
@@ -422,12 +415,78 @@ text(1, 1, "PLACEHOLDER")
 #| fig-width: 5
 #| fig-height: 3
 
-plot(1, 1, type = "n", xlab = "", ylab = "", main = "Methods figure placeholder")
-text(1, 1, "PLACEHOLDER")
+tgdf %>% 
+    filter(year >= 2020) %>%
+    filter(n_fires > 0) %>%
+    ggplot(aes(as.factor(rx_csum > 0), max_acres, fill=as.factor(rx_csum > 0))) +
+    geom_boxplot(show.legend=FALSE) +
+    scale_fill_manual(values=burn_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
+    theme_bw() +
+    labs(
+        title="Presence of prescribed burns \nfor fires 2020-2025",
+        x="Had prescribed burns",
+        y="Maximum acres burned",
+        caption="Source: IFPH, InFORM"
+    )
 
-# this should maybe be limited to 2022-2025
-# i'm not sure. where the source code went. but it's the boxplot with max acres burned for cells w/without RX (also because it is time series. maybe should be. different than this. it's a little misleading I fear)
+```
 
+```{r}
+#| label: fig-rx-indigenous-size-2025
+#| fig-cap: "Fire size distribution by the presence of prescribed burn and Indigenous land designation status in 2025."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+
+rx_indigenous_size_2025 <- tgdf %>%
+  filter(year == 2025) %>%
+  filter(size_class_pretty != "No fire") %>%
+  mutate(
+    had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+    is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+  ) %>%
+  group_by(had_rx, size_class_pretty, is_ndgn) %>%
+  summarize(n=n()) %>%
+  group_by(had_rx, is_ndgn) %>%
+  mutate(
+    total = sum(n),
+    pct_sz = n/total
+  ) %>%
+  ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
+  geom_col(color="white", position="dodge") +
+  facet_grid(is_ndgn~had_rx) +
+  scale_y_continuous(labels=scales::percent) +
+  scale_fill_manual(values=burn_cols) +
+  labs(
+    x="Maximum fire size class",
+    y="Percent of fires in cells with/without prescribed burns",
+    title="Fire size distribution by presence of prescribed burn and \nIndigenous land designation in 2025",
+    fill="",
+    caption='n = 1558\nSource: IFPH, InFORM'
+  ) +
+  theme_bw() +
+  theme(legend.position="top")
+
+ggsave("images/rx_indigenous_size_2025.png", rx_indigenous_size_2025, width=6, height=6)
+```
+
+```{r}
+#| label: tbl-rx-indigenous-size-2025
+#| tbl-cap: "Sample sizes for maximum fire size class in Indigenous and non-Indigenous designated cells with and without previous prescribed burns in 2025."
+#| echo: false
+
+rx_ind_size_2025 <- tgdf %>% 
+  filter(year == 2025) %>%
+  filter(size_class_pretty != "No fire") %>%
+  mutate(
+    `Prescribed Burn` = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+    `Indigenous Status` = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
+  ) %>%
+  group_by(`Indigenous Status`, `Prescribed Burn`) %>% 
+  summarize(`Number of Cells`=n())
+
+knitr::kable(rx_ind_size_2025)
 ```
 
 ```{r}
@@ -442,29 +501,27 @@ tgdf %>%
     mutate(
         had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
         has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
-        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous"), 
-        size_class_lim = fct_collapse(size_class_pretty, `C-E` = c("C", "D", "E"))
+        is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
     ) %>%
-    group_by(had_rx, size_class_lim, year) %>%
+    filter(size_class_pretty != "No fire") %>%
+    group_by(had_rx, size_class_pretty, year) %>%
     summarize(n=n()) %>%
     group_by(had_rx, year) %>%
     mutate(
         total = sum(n),
         pct_sz = n/total
     ) %>%
-    filter(size_class_lim != "No fire") %>%
-    ggplot(aes(size_class_lim, pct_sz, fill=had_rx)) +
+    ggplot(aes(size_class_pretty, pct_sz, fill=had_rx)) +
     geom_col(color="white", position="dodge") +
     facet_grid(~year) +
     scale_y_continuous(labels=scales::percent) +
     scale_fill_manual(values=burn_cols) +
     labs(
         x="Maximum fire size class",
-        y="Percent of cells (with/without prescribed burns)",
+        y="Percent of fires in cells with/without prescribed burns",
         title="Fire size distribution by presence of prescribed burn",
         fill="",
-        #subtitle='"No fire" class not shown',
-        caption='Source: InFORM, IFPH\n"No fire" class not shown. Cells without fires included in total for percentage.'
+        caption='n = 4763\nSource: IFPH, InFORM'
     ) +
     theme_bw() +
     theme(legend.position="top")
