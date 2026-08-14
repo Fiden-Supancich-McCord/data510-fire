@@ -1,0 +1,49 @@
+---
+title: "Creating RDS files for clean data"
+author: "Spencer Fiden"
+date: "2026-08-12"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+grid <- read_csv("data/processed_grid/processed_grid.csv")
+time_grid <- st_read("../DATA-510/time_grid/time_grid.shp")
+```
+
+```{r}
+saveRDS(object = grid, file="./data/processed_grid/processed_grid.rds")
+saveRDS(object = time_grid, file="./data/processed_grid/time_grid.rds")
+```
+
+```{r}
+# Replace with your project data when ready:
+grid <- readRDS(here::here("data/processed_grid/processed_grid.rds"))
+
+nrow(panel)
+knitr::kable(panel)
+```
+
+```{r}
+time_grid2 <- readRDS(here::here("data/processed_grid/time_grid.rds"))
+head(time_grid2)
+```
+
+```{r}
+#| label: tbl-data-qc
+#| tbl-cap: "Example QC summary (replace with your panel)"
+#| echo: true
+
+# Replace with your project data when ready:
+# panel <- readRDS(here::here("data/processed/analysis_panel.rds"))
+# nrow(panel)
+knitr::kable(data.frame(
+  check = c("Rows", "Counties", "Date range"),
+  status = c("stub", "stub", "stub")
+))
+
+```

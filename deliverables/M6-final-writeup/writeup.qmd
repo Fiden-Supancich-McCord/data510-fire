@@ -118,7 +118,7 @@ indigenous_cols <- c(
 
 # Data and Data Engineering
 
-## Data Inventory
+## Data Invetory
 
 <!-- PASTE FINAL TEXT -->
 
@@ -254,7 +254,7 @@ indigenous_cols <- c(
 grid %>%
   ggplot(aes(fill=plnt_sm, geometry=geometry)) +
   geom_sf() +
-  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10)) +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10), option="mako") +
   theme_void() +
   labs(
     title="Plant sums (all species) across Oregon",
@@ -279,7 +279,6 @@ grid %>%
 : Species Distribution by Indigenous land designation status. {#tbl-species-dist-indigenous .striped .hover}
 
 ![Species abundance by Indigenous land designation status.](/images/species_abundance_scatterplot.png){#fig-species-abundance}
-
 
 ### Shannon Diversity
 

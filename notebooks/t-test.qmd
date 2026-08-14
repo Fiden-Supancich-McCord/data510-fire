@@ -214,6 +214,7 @@ tgdf %>%
     theme_bw()
 
 print(t.test(max_acres ~ as.factor(rx_csum > 0), data=tgdf))
+print(cohens_d(max_acres ~ as.factor(rx_csum > 0), data=tgdf))
 ```
 
 No significance. 
