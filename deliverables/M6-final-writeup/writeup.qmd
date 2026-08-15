@@ -75,6 +75,10 @@ indigenous_cols <- c(
   "Indigenous" = "#7a268A", 
   "Non-Indigenous" = "salmon"
 )
+wf_cols <- c(
+  "Previous wildfire" = "#a91701", 
+  "No previous wildfire" = "#f38a26"
+)
 ```
 
 # Title, Team, and Affiliations
@@ -82,7 +86,7 @@ indigenous_cols <- c(
 **Project title:** Oregon on Fire: Wildfire Severity, Prescribed Burns, and Species Distribution Across Indigenous and Non-Indigenous Oregon Lands
 
 | Name | Role | Willamette email |
-|:-----|:-----|:-----------------|
+|:--------|:-------|:----------|
 | Spencer Fiden | Owner Product Lead | nefiden@willamette.edu |
 | Amaya Supancich-McCord | Owner Product Lead | asupancichmccord@willamette.edu |
 
@@ -173,7 +177,7 @@ This project integrates multiple publicly available ecological and geospatial da
 
 ## Data Engineering 
 
-Because the datasets originated from independent organizations using different formats, coordinate systems, temporal ranges, and reporting standards, extensive preprocessing was required before statistical analyses could be performed. Figure 3 summarizes the overall analytical workflow.
+Because the datasets originated from independent organizations using different formats, coordinate systems, temporal ranges, and reporting standards, extensive preprocessing was required before statistical analyses could be performed. @fig-pipeline summarizes the overall analytical workflow.
 
 ![Data Engineering Pipeline](/images/short-pipeline-capstone.png){#fig-pipeline fig-alt="Diagram showing the data engineering pipeline."}
 
@@ -185,7 +189,7 @@ Each dataset underwent systematic quality assessment prior to integration. Initi
 The IFPH and InFORM data share a common unique fire identifier, which was used to join common fires. 817 records had matching identifiers in IFPH and InFORM; for these fires, IFPH values were preferred when both datasets were available, including the multipolygon geometry provided by IFPH. We excluded 866 records in the IFPH dataset that did not have counterparts in InFORM data from subsequent processing because they lacked the information necessary for our analysis. Fire records present only in InFORM were spatially placed using the provided coordinates and converted to point geometries; this included 10,686 records in Oregon from 2015-2025. Additionally, 27,538 records in InFORM within that time span lacked coordinates and were not included. However, these points were not necessarily within the spatial scope, as InFORM includes records from across the United States.
 ​
 
-Additional work was undertaken to construct serviceable fire-start and fire-end dates. Three fire-end variables were available in the InFORM data (control date-time, contain date-time, and fire out date), each with varying levels of missingness. If multiple existed, the latest recorded date was used to represent the fire-end date. 3443 point-based InFORM and 192 combined IFPH-InFORM polygon records were missing all three end-date variables and were therefore excluded from fire duration analyses; however, they were still included in fire size analyses.
+Additional work was undertaken to construct serviceable fire-start and fire-end dates. Three fire-end variables were available in the InFORM data (control date-time, contain date-time, and fire out date), each with varying levels of missingness. If multiple existed, the latest recorded date was used to represent the fire-end date. 3,443 point-based InFORM and 192 combined IFPH-InFORM polygon records were missing all three end-date variables and were therefore excluded from fire duration analyses; however, they were still included in fire size analyses.
 ​
 
 Several quality control procedures were implemented throughout preprocessing. We standardized coordinate reference systems to WGS 84 across all spatial datasets to ensure accurate spatial joins. We inspected variable ranges for implausible values, removing one wildfire record with a negative burned area, standardizing 1970-01-01 dates to NA, and correcting two years that were off by one century (e.g., 2121 was changed to 2021). When missing, the calendar year was imputed from the fire discovery date-time, which had no missingness. Other missing values were evaluated on a variable-by-variable basis, with variables exhibiting extensive or complete missingness (e.g., discovery acres, estimated cost to date, final acres, final fire report approved by unit, general fire behavior, incident short description, reimbursability indicator, POO jurisdictional parent unit, and percent contained) excluded from downstream analyses. Rather than imputing observations, missing values were excluded from modeling. This approach avoided introducing artificial observations while preserving the integrity of the original datasets.
@@ -200,7 +204,7 @@ For each grid cell, we calculated a more representative species count by combini
 ::: {style="font-size: 80%;"}
 
 | GBIF Species Common Name | Oregon Historic Vegetation Region(s) | Number of Cells with Designation |
-|:--|:--|:--|
+|:---|:---|--:|
 | Ponderosa Pine | Ponderosa pine, Ponderosa Pine-Lodgepole Pine, Douglas Fir-Ponderosa Pine | 3,431 |
 | Scouler’s Willow | Willows | 516 |
 | Oregon White Oak | White Oak Woodland, White Oak-Black Oak | 804 |
@@ -213,6 +217,20 @@ For each grid cell, we calculated a more representative species count by combini
 : GBIF Species & Oregon Historic Vegetation Region Inventory Table. {#tbl-gbif-histveg-cell-inventory .striped .hover}
 
 :::
+
+```{r}
+#| label: tbl-indigenous-n-cells
+#| tbl-cap: "Sample sizes for Indigenous and non-Indigenous designated cells."
+#| echo: false
+
+ind_n <- gdf %>% 
+  group_by(is_indigenous) %>%  
+  summarize(`Number of Cells`=n()) %>% 
+  mutate(`Indigenous Status`=ifelse(is_indigenous==0, "Non-Indigenous", "Indigenous"), .before=`Number of Cells`) %>% 
+  select(-is_indigenous)
+
+knitr::kable(ind_n)
+```
 
 ​We created a binary indicator identifying whether each grid cell intersected federally recognized Indigenous lands using LandMark. We similarly summarized wildfire variables at the grid-cell level. These included wildfire counts, maximum wildfire duration in hours, maximum wildfire size in acres, wildfire size class (a factor based on the National Wildfire Coordinating Group’s size classifications), and a count of prescribed burns with all of the above size and duration metrics associated with them. All cells also included a list of unique fire identifiers associated with the fires present in that cell for manual cross-referencing with the original dataset if needed. The resulting feature engineering process transformed over seventy thousand individual observations into a standardized analytical dataset suitable for comparative statistical modeling while preserving spatial relationships among the original datasets.
 
@@ -287,7 +305,7 @@ Are Indigenous land recognition status, the presence of fire-resistant and keyst
 
 ### Methods
 
-Random Forest classifiers were used to evaluate each factor's contribution to wildfire severity, including potential interactions between features. These models were run using time series data, as several metrics are time-based. The data included only cells that had had fires in that year to predict the severity of a fire rather than predict whether a fire occurred–the model assumes a fire will occur in a given cell. We engineered several features to represent a cell’s fire history in terms of both wildfires and prescribed burns. These included cumulative and rolling sums of fire counts and fire acreage. Rolling sums were right-aligned to include only fires from previous years and exclude the current year’s fires to prevent confounding with the target variable and to avoid assuming that prescribed burns that occurred within the same year necessarily occurred before a wildfire. For fire acreage, values were capped at 6,178, the number of acres in each cell. Limiting the range prevented extreme outliers from skewing the models and more accurately represented the state of an individual cell, which could at most be completely burned. The modeling range was limited to 2020-2025 when including prescribed burns as a feature, since the first prescribed burns in our record were in 2021. The rolling sums included the previous four years of fires so that years earlier in the data are not misleadingly skewed toward a smaller number of fires. To perform classification, maximum acres were split into three bins labeled “small”, “medium”, and “large”, respectively, using pandas’ `qcut` to create groups with roughly the same number of instances. For fires with maximum acres burned above 0, these groups were bound using the ranges in Table 4.
+Random Forest classifiers were used to evaluate each factor's contribution to wildfire severity, including potential interactions between features. These models were run using time series data, as several metrics are time-based. The data included only cells that had had fires in that year to predict the severity of a fire rather than predict whether a fire occurred–the model assumes a fire will occur in a given cell. We engineered several features to represent a cell’s fire history in terms of both wildfires and prescribed burns. These included cumulative and rolling sums of fire counts and fire acreage. Rolling sums were right-aligned to include only fires from previous years and exclude the current year’s fires to prevent confounding with the target variable and to avoid assuming that prescribed burns that occurred within the same year necessarily occurred before a wildfire. For fire acreage, values were capped at 6,178, the number of acres in each cell. Limiting the range prevented extreme outliers from skewing the models and more accurately represented the state of an individual cell, which could at most be completely burned. The modeling range was limited to 2020-2025 when including prescribed burns as a feature, since the first prescribed burns in our record were in 2021. The rolling sums included the previous four years of fires so that years earlier in the data are not misleadingly skewed toward a smaller number of fires. To perform classification, maximum acres were split into three bins labeled “small”, “medium”, and “large”, respectively, using pandas’ `qcut` to create groups with roughly the same number of instances. For cells with maximum acres burned above 0, these groups were bound using the ranges in @tbl-fire-size-bins.
 
 
 Additionally, Welch two-sample t-tests were used to determine whether previous prescribed burns and wildfire presence affected fire severity, using a binary indicator for whether the number of previous fires was greater than zero. Distribution visualizations (e.g., boxplots, bar plots) were also used to examine general trends in these areas.
@@ -331,7 +349,7 @@ grid %>%
 
 ### Species-Level Comparisons
 
-Comparison of individual plant groups revealed few consistent differences between Indigenous and non-Indigenous lands. Welch's t-tests indicated statistically significant differences for Western Redcedar and California Blackberry, which exhibited greater average abundance on non-Indigenous lands (Table 4). Mean differences for Ponderosa Pine, Scouler’s Willow, Oregon White Oak, Black Cottonwood, and Beargrass were not statistically significant. The non-parametric Mann-Whitney U tests produced somewhat different conclusions: significant differences between land-type categories were observed for Ponderosa Pine and Western Redcedar, with higher mean abundance on non-Indigenous lands, whereas the remaining species showed no statistically significant differences. The disagreement between the parametric and non-parametric tests likely reflects the highly skewed and zero-inflated nature of the abundance data, where mean-based and rank-based methods emphasize different aspects of the distributions. Overall, the analyses did not demonstrate a consistent pattern indicating a greater abundance of the measured plant groups on designated Indigenous lands. Instead, observed differences were species-specific and generally modest. To answer the research question, publicly available ecological data can serve as a marker for forest compositional diversity across land types, but they are not a comprehensive measure in this use case.
+Comparison of individual plant groups revealed few consistent differences between Indigenous and non-Indigenous lands. Welch's t-tests indicated statistically significant differences for Western Redcedar and California Blackberry, which exhibited greater average abundance on non-Indigenous lands (@tbl-species-dist-indigenous). Mean differences for Ponderosa Pine, Scouler’s Willow, Oregon White Oak, Black Cottonwood, and Beargrass were not statistically significant. The non-parametric Mann-Whitney U tests produced somewhat different conclusions: significant differences between land-type categories were observed for Ponderosa Pine and Western Redcedar, with higher mean abundance on non-Indigenous lands, whereas the remaining species showed no statistically significant differences. The disagreement between the parametric and non-parametric tests likely reflects the highly skewed and zero-inflated nature of the abundance data, where mean-based and rank-based methods emphasize different aspects of the distributions. Overall, the analyses did not demonstrate a consistent pattern indicating a greater abundance of the measured plant groups on designated Indigenous lands. Instead, observed differences were species-specific and generally modest. To answer the research question, publicly available ecological data can serve as a marker for forest compositional diversity across land types, but they are not a comprehensive measure in this use case.
 
 ::: {style="font-size: 80%;"}
 
@@ -407,7 +425,7 @@ gdf %>%
 
 ```{r}
 #| label: tbl-indigenous-n-acres
-#| tbl-cap: "Sample sizes for maximum fire size in Indigenous and non-Indigenous designated cells."
+#| tbl-cap: "Sample sizes for maximum fire size in Indigenous and non-Indigenous designated cells with fires that burned greater than 0 acres."
 #| echo: false
 
 ind_n_acres <- gdf %>% 
@@ -416,15 +434,49 @@ ind_n_acres <- gdf %>%
   summarize(`Number of Cells`=n()) %>% 
   mutate(`Indigenous Status`=ifelse(is_indigenous==0, "Non-Indigenous", "Indigenous"), .before=`Number of Cells`) %>% 
   select(-is_indigenous)
-# NOTE:
-# 226 Indigenous, 4913 non-indigenous
-# may be better to display in the actual plot? can also be separate table as seen here
 
 knitr::kable(ind_n_acres)
 ```
 
-Although maximum fire size distributions were broadly similar between land categories, designated Indigenous lands exhibited a higher median maximum fire size than non-Indigenous lands, with medians of 45 and 2.99 acres, respectively. At the same time, non-Indigenous lands contained substantially more very small fire events, reflected by the large number of lower-end outliers. These findings suggest that fire regimes differ between land categories, but they do not indicate that one land type consistently experiences larger or smaller wildfires. It should be noted, when engaging in any interpretation of these results, that there is a significantly greater number of non-Indigenous land cells than those that are Indigenous land designated. Differences in land types may also be attributed to environmental factors unrelated to land status. 
+Although maximum fire size distributions were broadly similar between land categories, designated Indigenous lands exhibited a higher median maximum fire size than non-Indigenous lands, with medians of 45 and 2.99 acres, respectively. At the same time, non-Indigenous lands contained substantially more very small fire events, reflected by the large number of lower-end outliers. These findings suggest that fire regimes differ between land categories, but they do not indicate that one land type consistently experiences larger or smaller wildfires. It should be noted, when engaging in any interpretation of these results, that there is a significantly greater number of non-Indigenous land cells than those that are Indigenous land designated (see @tbl-indigenous-n-cells). Differences in land types may also be attributed to environmental factors unrelated to land status. 
 
+```{r}
+#| label: fig-n-fires-map
+#| fig-cap: "Number of wildfires per cell across Oregon."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(geometry=geometry, fill=n_wldfr)) +
+  geom_sf(linewidth=0.05, color="black") +
+  scale_fill_viridis_c(option="inferno", transform=scales::pseudo_log_trans(base = 10), breaks=c(0, 1, 10, 100)) +
+  theme_void() +
+  labs(
+      fill="Number of \nwildfires",
+      title="Number of wildfires per grid cell",
+      caption="n = 10312\nSource: InFORM, IFPH"
+  )
+```
+
+```{r}
+#| label: fig-n-fires-map-indigenous
+#| fig-cap: "Number of wildfires per cell on federally recognized Indigenous land."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(geometry=geometry, fill=n_wldfr, alpha=is_ndgn)) +
+  geom_sf(linewidth=0.05, color="black") +
+  scale_fill_viridis_c(option="inferno", transform=scales::pseudo_log_trans(base = 10), breaks=c(0, 1, 10, 100)) +
+  scale_alpha_continuous(breaks=c(0, 1), range=c(0.2, 1), labels=c("Non-Indigenous", "Indigenous")) +
+  theme_void() +
+  labs(
+      fill="Number of \nwildfires",
+      alpha="Federally recognized \nIndigenous land",
+      title="Number of wildfires on federally recognized Indigenous land",
+      caption="n = 10312\nSource: InFORM, IFPH"
+  )
+```
 
 Comparisons of fire size classes showed that the overall distribution of wildfire sizes was similar between Indigenous and non-Indigenous lands. Maximum acres burned values were first compared between all Indigenous and non-Indigenous cells regardless of whether they had ever experienced a fire across all years. The coefficient for Indigenous status was not statistically significant (p = 0.39), and the estimated standard effect size was minuscule (Cohen's d = 0.05), indicating no practical difference in maximum fire size between the two land types, despite the large sample size. A similar comparison of fire severity, measured by maximum acres burned between Indigenous and non-Indigenous land types but only including cells that had exhibited a fire within their borders, produced fairly similar results. The coefficient for Indigenous status was not statistically significant (p = 0.49), and the estimated standard effect size was minuscule (Cohen's d = -0.04). Once again, this indicates no practical difference in maximum fire size between the two land types.
 
@@ -466,10 +518,6 @@ ind_n_dur <- gdf %>%
   summarize(`Number of Cells`=n()) %>% 
   mutate(`Indigenous Status`=ifelse(is_indigenous==0, "Non-Indigenous", "Indigenous"), .before=`Number of Cells`) %>% 
   select(-is_indigenous)
-
-# NOTE:
-# sample sizes: 161 indigenous, 4100 non-indigenous
-# may be better to display in the actual plot? can also be separate table as seen here
 
 knitr::kable(ind_n_dur)
 ```
@@ -559,13 +607,30 @@ tgdf %>%
     scale_fill_manual(values=burn_cols) +
     scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
     labs(
-        title="Presence of prescribed burns \nfor fires 2020-2025",
+        title="Presence of prescribed burns for fires 2020-2025",
         x="Had prescribed burns",
         y="Maximum acres burned",
         caption="Source: IFPH, InFORM"
     ) +
     theme_bw()
 
+```
+
+```{r}
+#| label: tbl-rx-acres
+#| tbl-cap: "Sample sizes for maximum fire acreage in cells with and without previous prescribed burns 2020-2025."
+#| echo: false
+
+prev_rx_acres <- tgdf %>% 
+  filter(year >= 2020) %>%
+  filter(n_fires > 0) %>%
+  mutate(
+    `Prescribed Burn` = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
+  ) %>%
+  group_by(`Prescribed Burn`) %>% 
+  summarize(`Number of Cells`=n())
+
+knitr::kable(prev_rx_acres)
 ```
 
 Welch's two-sample t-tests revealed significant associations between fire size and prescribed burns in a previous year. The alternative hypothesis that cells that have previously had a prescribed burn experience a smaller mean maximum acres burned is supported with the achieved p-value of 0.02, when filtered to only cells that had experienced a wildfire that year. However, the scale of the difference is very small (Cohen’s d = 0.14). When limiting to 2020-2025, as our data did not report any prescribed burns before 2021, the significance is even higher, supporting the same alternative hypothesis (p = 0.001). The difference is slightly larger but still small (Cohen’s d = 0.19).
@@ -581,7 +646,6 @@ tgdf %>%
     filter(year > 2021) %>%
     mutate(
         had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
-        has_rx = ifelse(rx_csum > 0, "Prescribed burns", "No prescribed burns"),
         is_ndgn = ifelse(is_ndgn==1, "Indigenous", "Not Indigenous")
     ) %>%
     filter(size_class_pretty != "No fire") %>%
@@ -647,6 +711,45 @@ knitr::kable(rx_size_class_annual)
 
 "Fire class distribution by presence of previous prescribed burn over time" displays a time series view of the previous findings, separated into size class categories as defined by the NWCG (@tbl-rx-size-class-annual). The data were limited to cells that experienced at least one wildfire in a given year, and split by whether the cell had a recorded prescribed burn in any previous year. In all years, the distribution of wildfires that had occurred in cells with previous prescribed burns was skewed toward lower-class fires than in cells without prescribed burns. A notable exception to this extreme skew is in 2024, when more than a quarter of fires in cells with previous prescribed burns were class G (above 5000 acres). This is due to an unprecedented fire season that occurred in 2024 (Acker, 2024). In addition, the grid cell methodology interacts with large polygons in the IFPH dataset such that a large fire covering many cells has its size recorded as the maximum acreage across all cells it intersects, meaning that multiple cells reflect the same fire record. As such, it should be noted that the large number of cells that experienced class G fires is not necessarily reflective of the number of class G fires. This trend is matched by the cells without previously prescribed burns. Because this project did not account for differences in climate, vegetation type, topography, ignition source, or prescribed burn intensity, these observed patterns should not be interpreted as evidence that prescribed burning directly caused the differences in fire-size distributions.
 
+```{r}
+#| label: fig-wf-acres
+#| fig-cap: "Distribution of fire size between cells that have or have not previously had wildfires."
+#| echo: false
+#| fig-width: 6
+#| fig-height: 7
+
+tgdf %>% 
+    filter(n_fires > 0) %>%
+    mutate(had_wf = ifelse(prev_fire_csum > 0, "Previous wildfire", "No previous wildfire")) %>%
+    ggplot(aes(had_wf, max_acres, fill=had_wf)) +
+    geom_boxplot(show.legend=FALSE) +
+    scale_fill_manual(values=wf_cols) +
+    scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
+    labs(
+        title="Fire size for cells that have or have not had previous wildfires",
+        x="Had previous wildfires",
+        y="Maximum acres burned",
+        caption="Source: IFPH, InFORM"
+    ) +
+    theme_bw()
+
+```
+
+```{r}
+#| label: tbl-wf-acres
+#| tbl-cap: "Sample sizes for maximum fire acreage in cells with and without previous wildfires."
+#| echo: false
+
+prev_wf_acres <- tgdf %>% 
+  filter(n_fires > 0) %>%
+  mutate(
+    `Previous Wildfire` = ifelse(prev_fire_csum > 0, "Previous wildfire", "No previous wildfire"),
+  ) %>%
+  group_by(`Previous Wildfire`) %>% 
+  summarize(`Number of Cells`=n())
+
+knitr::kable(prev_wf_acres)
+```
 
 Notably, we see greater effects when looking at previous wildfires than prescribed burns. A parallel test of fires between 2020 and 2025, comparing cells that have had at least one fire in the previous four years with those that have not, showed high significance (p < 2.2e-16). While still small, the scale of the difference between the categories was larger than for prescribed burns (Cohen’s d = 0.33). Although this finding is not causal, it reflects past findings that previous wildland fires reduce subsequent fire size by reducing available fuel (Parks, 2016). As shown in "Distribution of fire size between cells that have or have not previously experienced wildfires", previous fires do not eliminate the possibility of large fires in the future, as there are many outliers.
 
@@ -753,3 +856,125 @@ nocite: |
 ::: {#refs}
 :::
 
+# Additional Maps {.appendix}
+
+See record counts in @tbl-gbif-inventory and cell counts in @tbl-gbif-histveg-cell-inventory.
+
+```{r}
+#| label: fig-pinus-map
+#| fig-cap: "Ponderosa Pine occurrence sums."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(fill=n_pinus, geometry=geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10), option="mako") +
+  theme_void() +
+  labs(
+    title="Pinus Ponderosa sums across Oregon",
+    fill="Species sum"
+  )
+```
+
+```{r}
+#| label: fig-salix-map
+#| fig-cap: "Scouler's Willow occurrence sums."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(fill=n_salix, geometry=geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10), option="mako") +
+  theme_void() +
+  labs(
+    title="Scouler's Willow sums across Oregon",
+    fill="Species sum"
+  )
+```
+
+```{r}
+#| label: fig-quercus-map
+#| fig-cap: "Oregon White Oak occurrence sums."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(fill=n_qurcs, geometry=geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10), option="mako") +
+  theme_void() +
+  labs(
+    title="Oregon White Oak sums across Oregon",
+    fill="Species sum"
+  )
+```
+
+```{r}
+#| label: fig-populus-map
+#| fig-cap: "Black Cottonwood occurrence sums."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(fill=n_popls, geometry=geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10), option="mako") +
+  theme_void() +
+  labs(
+    title="Black Cottonwood sums across Oregon",
+    fill="Species sum"
+  )
+```
+
+```{r}
+#| label: fig-thuja-map
+#| fig-cap: "Western Redcedar occurrence sums."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(fill=n_thuja, geometry=geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10), option="mako") +
+  theme_void() +
+  labs(
+    title="Western Redcedar sums across Oregon",
+    fill="Species sum"
+  )
+```
+
+```{r}
+#| label: fig-xerophyllum-map
+#| fig-cap: "Beargrass occurrence sums."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(fill=n_xrphy, geometry=geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10), option="mako") +
+  theme_void() +
+  labs(
+    title="Beargrass sums across Oregon",
+    fill="Species sum"
+  )
+```
+
+```{r}
+#| label: fig-rubus-map
+#| fig-cap: "California Blackberry occurrence sums."
+#| echo: false
+#| fig-width: 7
+
+grid %>%
+  ggplot(aes(fill=n_rubus, geometry=geometry)) +
+  geom_sf() +
+  scale_fill_viridis_c(trans=scales::pseudo_log_trans(base = 10), option="mako") +
+  theme_void() +
+  labs(
+    title="California Blackberry sums across Oregon",
+    fill="Species sum"
+  )
+```

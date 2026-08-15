@@ -149,6 +149,7 @@ div.csl-indent {
   <li><a href="#conclusions-and-recommendations" id="toc-conclusions-and-recommendations" class="nav-link" data-scroll-target="#conclusions-and-recommendations"><span class="header-section-number">11</span> Conclusions and Recommendations</a></li>
   <li><a href="#reproducibility-and-references" id="toc-reproducibility-and-references" class="nav-link" data-scroll-target="#reproducibility-and-references"><span class="header-section-number">12</span> Reproducibility and References</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">13</span> References</a></li>
+  
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="../../writeup.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -192,9 +193,9 @@ div.csl-indent {
 <p><strong>Project title:</strong> Oregon on Fire: Wildfire Severity, Prescribed Burns, and Species Distribution Across Indigenous and Non-Indigenous Oregon Lands</p>
 <table class="table-hover caption-top table">
 <colgroup>
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 60%">
+<col style="width: 32%">
+<col style="width: 28%">
+<col style="width: 39%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -387,7 +388,7 @@ Table&nbsp;2: GBIF Species Inventory Table.
 </section>
 <section id="data-engineering" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="data-engineering"><span class="header-section-number">6.2</span> Data Engineering</h2>
-<p>Because the datasets originated from independent organizations using different formats, coordinate systems, temporal ranges, and reporting standards, extensive preprocessing was required before statistical analyses could be performed. Figure 3 summarizes the overall analytical workflow.</p>
+<p>Because the datasets originated from independent organizations using different formats, coordinate systems, temporal ranges, and reporting standards, extensive preprocessing was required before statistical analyses could be performed. <a href="#fig-pipeline" class="quarto-xref">Figure&nbsp;1</a> summarizes the overall analytical workflow.</p>
 <div id="fig-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Diagram showing the data engineering pipeline.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -402,7 +403,7 @@ Figure&nbsp;1: Data Engineering Pipeline
 <h3 data-number="6.2.1" class="anchored" data-anchor-id="data-cleaning-and-quality-assurance"><span class="header-section-number">6.2.1</span> Data Cleaning and Quality Assurance</h3>
 <p>Each dataset underwent systematic quality assessment prior to integration. Initial inspection identified differences in variable naming conventions, data types, coordinate reference systems, temporal coverage, and missing values. Date fields were standardized into consistent datetime formats, and categorical variables were recoded and leveled where appropriate. ​</p>
 <p>The IFPH and InFORM data share a common unique fire identifier, which was used to join common fires. 817 records had matching identifiers in IFPH and InFORM; for these fires, IFPH values were preferred when both datasets were available, including the multipolygon geometry provided by IFPH. We excluded 866 records in the IFPH dataset that did not have counterparts in InFORM data from subsequent processing because they lacked the information necessary for our analysis. Fire records present only in InFORM were spatially placed using the provided coordinates and converted to point geometries; this included 10,686 records in Oregon from 2015-2025. Additionally, 27,538 records in InFORM within that time span lacked coordinates and were not included. However, these points were not necessarily within the spatial scope, as InFORM includes records from across the United States. ​</p>
-<p>Additional work was undertaken to construct serviceable fire-start and fire-end dates. Three fire-end variables were available in the InFORM data (control date-time, contain date-time, and fire out date), each with varying levels of missingness. If multiple existed, the latest recorded date was used to represent the fire-end date. 3443 point-based InFORM and 192 combined IFPH-InFORM polygon records were missing all three end-date variables and were therefore excluded from fire duration analyses; however, they were still included in fire size analyses. ​</p>
+<p>Additional work was undertaken to construct serviceable fire-start and fire-end dates. Three fire-end variables were available in the InFORM data (control date-time, contain date-time, and fire out date), each with varying levels of missingness. If multiple existed, the latest recorded date was used to represent the fire-end date. 3,443 point-based InFORM and 192 combined IFPH-InFORM polygon records were missing all three end-date variables and were therefore excluded from fire duration analyses; however, they were still included in fire size analyses. ​</p>
 <p>Several quality control procedures were implemented throughout preprocessing. We standardized coordinate reference systems to WGS 84 across all spatial datasets to ensure accurate spatial joins. We inspected variable ranges for implausible values, removing one wildfire record with a negative burned area, standardizing 1970-01-01 dates to NA, and correcting two years that were off by one century (e.g., 2121 was changed to 2021). When missing, the calendar year was imputed from the fire discovery date-time, which had no missingness. Other missing values were evaluated on a variable-by-variable basis, with variables exhibiting extensive or complete missingness (e.g., discovery acres, estimated cost to date, final acres, final fire report approved by unit, general fire behavior, incident short description, reimbursability indicator, POO jurisdictional parent unit, and percent contained) excluded from downstream analyses. Rather than imputing observations, missing values were excluded from modeling. This approach avoided introducing artificial observations while preserving the integrity of the original datasets.</p>
 </section>
 <section id="spatial-integration-and-feature-engineering" class="level3" data-number="6.2.2">
@@ -418,60 +419,91 @@ Table&nbsp;3: GBIF Species &amp; Oregon Historic Vegetation Region Inventory Tab
 <div aria-describedby="tbl-gbif-histveg-cell-inventory-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table-striped table-hover caption-top table">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
+<col style="width: 36%">
+<col style="width: 36%">
+<col style="width: 27%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">GBIF Species Common Name</th>
 <th style="text-align: left;">Oregon Historic Vegetation Region(s)</th>
-<th style="text-align: left;">Number of Cells with Designation</th>
+<th style="text-align: right;">Number of Cells with Designation</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Ponderosa Pine</td>
 <td style="text-align: left;">Ponderosa pine, Ponderosa Pine-Lodgepole Pine, Douglas Fir-Ponderosa Pine</td>
-<td style="text-align: left;">3,431</td>
+<td style="text-align: right;">3,431</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Scouler’s Willow</td>
 <td style="text-align: left;">Willows</td>
-<td style="text-align: left;">516</td>
+<td style="text-align: right;">516</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Oregon White Oak</td>
 <td style="text-align: left;">White Oak Woodland, White Oak-Black Oak</td>
-<td style="text-align: left;">804</td>
+<td style="text-align: right;">804</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Black Cottonwood</td>
 <td style="text-align: left;">Black Cottonwood Riparian Woodland</td>
-<td style="text-align: left;">565</td>
+<td style="text-align: right;">565</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Western Redcedar</td>
 <td style="text-align: left;">Western Redcedar</td>
-<td style="text-align: left;">654</td>
+<td style="text-align: right;">654</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Beargrass</td>
 <td style="text-align: left;">N/A</td>
-<td style="text-align: left;">432</td>
+<td style="text-align: right;">432</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">California Blackberry</td>
 <td style="text-align: left;">N/A</td>
-<td style="text-align: left;">932</td>
+<td style="text-align: right;">932</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">No plants recorded</td>
 <td style="text-align: left;">N/A</td>
-<td style="text-align: left;">5,180</td>
+<td style="text-align: right;">5,180</td>
 </tr>
 </tbody>
 </table>
+</div>
+</figure>
+</div>
+</div>
+<div class="cell">
+<div id="tbl-indigenous-n-cells" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-indigenous-n-cells-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Sample sizes for Indigenous and non-Indigenous designated cells.
+</figcaption>
+<div aria-describedby="tbl-indigenous-n-cells-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Indigenous Status</th>
+<th style="text-align: right;">Number of Cells</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Non-Indigenous</td>
+<td style="text-align: right;">9962</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Indigenous</td>
+<td style="text-align: right;">350</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </figure>
 </div>
@@ -540,13 +572,13 @@ Table&nbsp;3: GBIF Species &amp; Oregon Historic Vegetation Region Inventory Tab
 <p>Are Indigenous land recognition status, the presence of fire-resistant and keystone species, and prescribed burns associated with different wildfire severity?</p>
 <section id="methods-2" class="level3" data-number="8.3.1">
 <h3 data-number="8.3.1" class="anchored" data-anchor-id="methods-2"><span class="header-section-number">8.3.1</span> Methods</h3>
-<p>Random Forest classifiers were used to evaluate each factor’s contribution to wildfire severity, including potential interactions between features. These models were run using time series data, as several metrics are time-based. The data included only cells that had had fires in that year to predict the severity of a fire rather than predict whether a fire occurred–the model assumes a fire will occur in a given cell. We engineered several features to represent a cell’s fire history in terms of both wildfires and prescribed burns. These included cumulative and rolling sums of fire counts and fire acreage. Rolling sums were right-aligned to include only fires from previous years and exclude the current year’s fires to prevent confounding with the target variable and to avoid assuming that prescribed burns that occurred within the same year necessarily occurred before a wildfire. For fire acreage, values were capped at 6,178, the number of acres in each cell. Limiting the range prevented extreme outliers from skewing the models and more accurately represented the state of an individual cell, which could at most be completely burned. The modeling range was limited to 2020-2025 when including prescribed burns as a feature, since the first prescribed burns in our record were in 2021. The rolling sums included the previous four years of fires so that years earlier in the data are not misleadingly skewed toward a smaller number of fires. To perform classification, maximum acres were split into three bins labeled “small”, “medium”, and “large”, respectively, using pandas’ <code>qcut</code> to create groups with roughly the same number of instances. For fires with maximum acres burned above 0, these groups were bound using the ranges in Table 4.</p>
+<p>Random Forest classifiers were used to evaluate each factor’s contribution to wildfire severity, including potential interactions between features. These models were run using time series data, as several metrics are time-based. The data included only cells that had had fires in that year to predict the severity of a fire rather than predict whether a fire occurred–the model assumes a fire will occur in a given cell. We engineered several features to represent a cell’s fire history in terms of both wildfires and prescribed burns. These included cumulative and rolling sums of fire counts and fire acreage. Rolling sums were right-aligned to include only fires from previous years and exclude the current year’s fires to prevent confounding with the target variable and to avoid assuming that prescribed burns that occurred within the same year necessarily occurred before a wildfire. For fire acreage, values were capped at 6,178, the number of acres in each cell. Limiting the range prevented extreme outliers from skewing the models and more accurately represented the state of an individual cell, which could at most be completely burned. The modeling range was limited to 2020-2025 when including prescribed burns as a feature, since the first prescribed burns in our record were in 2021. The rolling sums included the previous four years of fires so that years earlier in the data are not misleadingly skewed toward a smaller number of fires. To perform classification, maximum acres were split into three bins labeled “small”, “medium”, and “large”, respectively, using pandas’ <code>qcut</code> to create groups with roughly the same number of instances. For cells with maximum acres burned above 0, these groups were bound using the ranges in <a href="#tbl-fire-size-bins" class="quarto-xref">Table&nbsp;5</a>.</p>
 <p>Additionally, Welch two-sample t-tests were used to determine whether previous prescribed burns and wildfire presence affected fire severity, using a binary indicator for whether the number of previous fires was greater than zero. Distribution visualizations (e.g., boxplots, bar plots) were also used to examine general trends in these areas.</p>
 <div style="font-size: 80%;">
 <div id="tbl-fire-size-bins" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fire-size-bins-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;4: Binned fire size categories.
+Table&nbsp;5: Binned fire size categories.
 </figcaption>
 <div aria-describedby="tbl-fire-size-bins-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table-striped table-hover caption-top table">
@@ -602,12 +634,12 @@ Figure&nbsp;2: Plant occurrence sums.
 </div>
 <section id="species-level-comparisons" class="level3" data-number="9.1.1">
 <h3 data-number="9.1.1" class="anchored" data-anchor-id="species-level-comparisons"><span class="header-section-number">9.1.1</span> Species-Level Comparisons</h3>
-<p>Comparison of individual plant groups revealed few consistent differences between Indigenous and non-Indigenous lands. Welch’s t-tests indicated statistically significant differences for Western Redcedar and California Blackberry, which exhibited greater average abundance on non-Indigenous lands (Table 4). Mean differences for Ponderosa Pine, Scouler’s Willow, Oregon White Oak, Black Cottonwood, and Beargrass were not statistically significant. The non-parametric Mann-Whitney U tests produced somewhat different conclusions: significant differences between land-type categories were observed for Ponderosa Pine and Western Redcedar, with higher mean abundance on non-Indigenous lands, whereas the remaining species showed no statistically significant differences. The disagreement between the parametric and non-parametric tests likely reflects the highly skewed and zero-inflated nature of the abundance data, where mean-based and rank-based methods emphasize different aspects of the distributions. Overall, the analyses did not demonstrate a consistent pattern indicating a greater abundance of the measured plant groups on designated Indigenous lands. Instead, observed differences were species-specific and generally modest. To answer the research question, publicly available ecological data can serve as a marker for forest compositional diversity across land types, but they are not a comprehensive measure in this use case.</p>
+<p>Comparison of individual plant groups revealed few consistent differences between Indigenous and non-Indigenous lands. Welch’s t-tests indicated statistically significant differences for Western Redcedar and California Blackberry, which exhibited greater average abundance on non-Indigenous lands (<a href="#tbl-species-dist-indigenous" class="quarto-xref">Table&nbsp;6</a>). Mean differences for Ponderosa Pine, Scouler’s Willow, Oregon White Oak, Black Cottonwood, and Beargrass were not statistically significant. The non-parametric Mann-Whitney U tests produced somewhat different conclusions: significant differences between land-type categories were observed for Ponderosa Pine and Western Redcedar, with higher mean abundance on non-Indigenous lands, whereas the remaining species showed no statistically significant differences. The disagreement between the parametric and non-parametric tests likely reflects the highly skewed and zero-inflated nature of the abundance data, where mean-based and rank-based methods emphasize different aspects of the distributions. Overall, the analyses did not demonstrate a consistent pattern indicating a greater abundance of the measured plant groups on designated Indigenous lands. Instead, observed differences were species-specific and generally modest. To answer the research question, publicly available ecological data can serve as a marker for forest compositional diversity across land types, but they are not a comprehensive measure in this use case.</p>
 <div style="font-size: 80%;">
 <div id="tbl-species-dist-indigenous" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-species-dist-indigenous-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;5: Species Distribution by Indigenous land designation status.
+Table&nbsp;6: Species Distribution by Indigenous land designation status.
 </figcaption>
 <div aria-describedby="tbl-species-dist-indigenous-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table-striped table-hover caption-top table">
@@ -768,7 +800,7 @@ Figure&nbsp;8: Maximum acres burned across land designation
 <div id="tbl-indigenous-n-acres" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-indigenous-n-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;6: Sample sizes for maximum fire size in Indigenous and non-Indigenous designated cells.
+Table&nbsp;7: Sample sizes for maximum fire size in Indigenous and non-Indigenous designated cells with fires that burned greater than 0 acres.
 </figcaption>
 <div aria-describedby="tbl-indigenous-n-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -795,7 +827,35 @@ Table&nbsp;6: Sample sizes for maximum fire size in Indigenous and non-Indigenou
 </figure>
 </div>
 </div>
-<p>Although maximum fire size distributions were broadly similar between land categories, designated Indigenous lands exhibited a higher median maximum fire size than non-Indigenous lands, with medians of 45 and 2.99 acres, respectively. At the same time, non-Indigenous lands contained substantially more very small fire events, reflected by the large number of lower-end outliers. These findings suggest that fire regimes differ between land categories, but they do not indicate that one land type consistently experiences larger or smaller wildfires. It should be noted, when engaging in any interpretation of these results, that there is a significantly greater number of non-Indigenous land cells than those that are Indigenous land designated. Differences in land types may also be attributed to environmental factors unrelated to land status.</p>
+<p>Although maximum fire size distributions were broadly similar between land categories, designated Indigenous lands exhibited a higher median maximum fire size than non-Indigenous lands, with medians of 45 and 2.99 acres, respectively. At the same time, non-Indigenous lands contained substantially more very small fire events, reflected by the large number of lower-end outliers. These findings suggest that fire regimes differ between land categories, but they do not indicate that one land type consistently experiences larger or smaller wildfires. It should be noted, when engaging in any interpretation of these results, that there is a significantly greater number of non-Indigenous land cells than those that are Indigenous land designated (see <a href="#tbl-indigenous-n-cells" class="quarto-xref">Table&nbsp;4</a>). Differences in land types may also be attributed to environmental factors unrelated to land status.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-n-fires-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-n-fires-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-n-fires-map-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-n-fires-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Number of wildfires per cell across Oregon.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-n-fires-map-indigenous" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-n-fires-map-indigenous-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-n-fires-map-indigenous-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-n-fires-map-indigenous-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: Number of wildfires per cell on federally recognized Indigenous land.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 <p>Comparisons of fire size classes showed that the overall distribution of wildfire sizes was similar between Indigenous and non-Indigenous lands. Maximum acres burned values were first compared between all Indigenous and non-Indigenous cells regardless of whether they had ever experienced a fire across all years. The coefficient for Indigenous status was not statistically significant (p = 0.39), and the estimated standard effect size was minuscule (Cohen’s d = 0.05), indicating no practical difference in maximum fire size between the two land types, despite the large sample size. A similar comparison of fire severity, measured by maximum acres burned between Indigenous and non-Indigenous land types but only including cells that had exhibited a fire within their borders, produced fairly similar results. The coefficient for Indigenous status was not statistically significant (p = 0.49), and the estimated standard effect size was minuscule (Cohen’s d = -0.04). Once again, this indicates no practical difference in maximum fire size between the two land types.</p>
 </section>
 <section id="maximum-fire-duration-across-indigenous-land-categories" class="level3" data-number="9.2.2">
@@ -808,7 +868,7 @@ Table&nbsp;6: Sample sizes for maximum fire size in Indigenous and non-Indigenou
 <img src="writeup_files/figure-html/fig-max-duration-indigenous-1.png" class="img-fluid figure-img" width="576">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-max-duration-indigenous-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9: Maximum fire duration across land designation.
+Figure&nbsp;11: Maximum fire duration across land designation.
 </figcaption>
 </figure>
 </div>
@@ -818,7 +878,7 @@ Figure&nbsp;9: Maximum fire duration across land designation.
 <div id="tbl-indigenous-n-duration" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-indigenous-n-duration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;7: Sample sizes for maximum fire duration in Indigenous and non-Indigenous designated cells.
+Table&nbsp;8: Sample sizes for maximum fire duration in Indigenous and non-Indigenous designated cells.
 </figcaption>
 <div aria-describedby="tbl-indigenous-n-duration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -862,7 +922,7 @@ Table&nbsp;7: Sample sizes for maximum fire duration in Indigenous and non-Indig
 <img src="writeup_files/figure-html/fig-rx-indigenous-size-2025-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rx-indigenous-size-2025-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10: Fire size distribution by the presence of prescribed burn and Indigenous land designation status in 2025.
+Figure&nbsp;12: Fire size distribution by the presence of prescribed burn and Indigenous land designation status in 2025.
 </figcaption>
 </figure>
 </div>
@@ -872,7 +932,7 @@ Figure&nbsp;10: Fire size distribution by the presence of prescribed burn and In
 <div id="tbl-rx-indigenous-size-2025" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-rx-indigenous-size-2025-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;8: Sample sizes for maximum fire size class in Indigenous and non-Indigenous designated cells with and without previous prescribed burns in 2025.
+Table&nbsp;9: Sample sizes for maximum fire size class in Indigenous and non-Indigenous designated cells with and without previous prescribed burns in 2025.
 </figcaption>
 <div aria-describedby="tbl-rx-indigenous-size-2025-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -921,10 +981,41 @@ Table&nbsp;8: Sample sizes for maximum fire size class in Indigenous and non-Ind
 <img src="writeup_files/figure-html/fig-rx-acres-1.png" class="img-fluid figure-img" width="576">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rx-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11: Distribution of fire size between cells that have or have not previously had prescribed burns.
+Figure&nbsp;13: Distribution of fire size between cells that have or have not previously had prescribed burns.
 </figcaption>
 </figure>
 </div>
+</div>
+</div>
+<div class="cell">
+<div id="tbl-rx-acres" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-rx-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10: Sample sizes for maximum fire acreage in cells with and without previous prescribed burns 2020-2025.
+</figcaption>
+<div aria-describedby="tbl-rx-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Prescribed Burn</th>
+<th style="text-align: right;">Number of Cells</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">No previous prescribed burns</td>
+<td style="text-align: right;">7060</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Previous prescribed burns</td>
+<td style="text-align: right;">89</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
 </div>
 </div>
 <p>Welch’s two-sample t-tests revealed significant associations between fire size and prescribed burns in a previous year. The alternative hypothesis that cells that have previously had a prescribed burn experience a smaller mean maximum acres burned is supported with the achieved p-value of 0.02, when filtered to only cells that had experienced a wildfire that year. However, the scale of the difference is very small (Cohen’s d = 0.14). When limiting to 2020-2025, as our data did not report any prescribed burns before 2021, the significance is even higher, supporting the same alternative hypothesis (p = 0.001). The difference is slightly larger but still small (Cohen’s d = 0.19).</p>
@@ -936,7 +1027,7 @@ Figure&nbsp;11: Distribution of fire size between cells that have or have not pr
 <img src="writeup_files/figure-html/fig-rx-annual-size-class-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rx-annual-size-class-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12: Fire class distribution by presence of previous prescribed burn over time.
+Figure&nbsp;14: Fire class distribution by presence of previous prescribed burn over time.
 </figcaption>
 </figure>
 </div>
@@ -946,7 +1037,7 @@ Figure&nbsp;12: Fire class distribution by presence of previous prescribed burn 
 <div id="tbl-rx-size-class-annual" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-rx-size-class-annual-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;9: Sample sizes for maximum fire size class in cells with and without previous prescribed burns 2022-2025.
+Table&nbsp;11: Sample sizes for maximum fire size class in cells with and without previous prescribed burns 2022-2025.
 </figcaption>
 <div aria-describedby="tbl-rx-size-class-annual-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -1010,7 +1101,7 @@ Table&nbsp;9: Sample sizes for maximum fire size class in cells with and without
 <div id="tbl-size-class" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-size-class-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;10: Size Class of Fire by Acres Burned
+Table&nbsp;12: Size Class of Fire by Acres Burned
 </figcaption>
 <div aria-describedby="tbl-size-class-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table-striped table-hover caption-top table">
@@ -1055,7 +1146,52 @@ Table&nbsp;10: Size Class of Fire by Acres Burned
 </figure>
 </div>
 </div>
-<p>“Fire class distribution by presence of previous prescribed burn over time” displays a time series view of the previous findings, separated into size class categories as defined by the NWCG (<a href="#tbl-rx-size-class-annual" class="quarto-xref">Table&nbsp;9</a>). The data were limited to cells that experienced at least one wildfire in a given year, and split by whether the cell had a recorded prescribed burn in any previous year. In all years, the distribution of wildfires that had occurred in cells with previous prescribed burns was skewed toward lower-class fires than in cells without prescribed burns. A notable exception to this extreme skew is in 2024, when more than a quarter of fires in cells with previous prescribed burns were class G (above 5000 acres). This is due to an unprecedented fire season that occurred in 2024 (Acker, 2024). In addition, the grid cell methodology interacts with large polygons in the IFPH dataset such that a large fire covering many cells has its size recorded as the maximum acreage across all cells it intersects, meaning that multiple cells reflect the same fire record. As such, it should be noted that the large number of cells that experienced class G fires is not necessarily reflective of the number of class G fires. This trend is matched by the cells without previously prescribed burns. Because this project did not account for differences in climate, vegetation type, topography, ignition source, or prescribed burn intensity, these observed patterns should not be interpreted as evidence that prescribed burning directly caused the differences in fire-size distributions.</p>
+<p>“Fire class distribution by presence of previous prescribed burn over time” displays a time series view of the previous findings, separated into size class categories as defined by the NWCG (<a href="#tbl-rx-size-class-annual" class="quarto-xref">Table&nbsp;11</a>). The data were limited to cells that experienced at least one wildfire in a given year, and split by whether the cell had a recorded prescribed burn in any previous year. In all years, the distribution of wildfires that had occurred in cells with previous prescribed burns was skewed toward lower-class fires than in cells without prescribed burns. A notable exception to this extreme skew is in 2024, when more than a quarter of fires in cells with previous prescribed burns were class G (above 5000 acres). This is due to an unprecedented fire season that occurred in 2024 (Acker, 2024). In addition, the grid cell methodology interacts with large polygons in the IFPH dataset such that a large fire covering many cells has its size recorded as the maximum acreage across all cells it intersects, meaning that multiple cells reflect the same fire record. As such, it should be noted that the large number of cells that experienced class G fires is not necessarily reflective of the number of class G fires. This trend is matched by the cells without previously prescribed burns. Because this project did not account for differences in climate, vegetation type, topography, ignition source, or prescribed burn intensity, these observed patterns should not be interpreted as evidence that prescribed burning directly caused the differences in fire-size distributions.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-wf-acres" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-wf-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-wf-acres-1.png" class="img-fluid figure-img" width="576">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-wf-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;15: Distribution of fire size between cells that have or have not previously had wildfires.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div id="tbl-wf-acres" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-wf-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;13: Sample sizes for maximum fire acreage in cells with and without previous wildfires.
+</figcaption>
+<div aria-describedby="tbl-wf-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Previous Wildfire</th>
+<th style="text-align: right;">Number of Cells</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">No previous wildfire</td>
+<td style="text-align: right;">5215</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Previous wildfire</td>
+<td style="text-align: right;">3810</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
 <p>Notably, we see greater effects when looking at previous wildfires than prescribed burns. A parallel test of fires between 2020 and 2025, comparing cells that have had at least one fire in the previous four years with those that have not, showed high significance (p &lt; 2.2e-16). While still small, the scale of the difference between the categories was larger than for prescribed burns (Cohen’s d = 0.33). Although this finding is not causal, it reflects past findings that previous wildland fires reduce subsequent fire size by reducing available fuel (Parks, 2016). As shown in “Distribution of fire size between cells that have or have not previously experienced wildfires”, previous fires do not eliminate the possibility of large fires in the future, as there are many outliers.</p>
 </section>
 <section id="modeling" class="level3" data-number="9.3.2">
@@ -1068,7 +1204,7 @@ Table&nbsp;10: Size Class of Fire by Acres Burned
 <img src="./images/shap_summary_plot.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shap-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;13: SHAP values for the Random Forest classifier.
+Figure&nbsp;16: SHAP values for the Random Forest classifier.
 </figcaption>
 </figure>
 </div>
@@ -1079,7 +1215,7 @@ Figure&nbsp;13: SHAP values for the Random Forest classifier.
 <img src="./images/shap_summary_plot_plant.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shap-summary-plant-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;14: SHAP values for the Random Forest classifier with all plant species counts included separately.
+Figure&nbsp;17: SHAP values for the Random Forest classifier with all plant species counts included separately.
 </figcaption>
 </figure>
 </div>
@@ -1093,7 +1229,7 @@ Figure&nbsp;14: SHAP values for the Random Forest classifier with all plant spec
 <img src="./images/conf_matrix_rf_wf_acres.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-conf-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;15: Confusion matrix for the Random Forest classifier.
+Figure&nbsp;18: Confusion matrix for the Random Forest classifier.
 </figcaption>
 </figure>
 </div>
@@ -1105,7 +1241,7 @@ Figure&nbsp;15: Confusion matrix for the Random Forest classifier.
 <img src="./images/conf_matrix_rf_wf_acres_plant.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-conf-matrix-plant-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;16: Confusion matrix for the Random Forest classifier with all plant species counts included separately.
+Figure&nbsp;19: Confusion matrix for the Random Forest classifier with all plant species counts included separately.
 </figcaption>
 </figure>
 </div>
@@ -1132,7 +1268,7 @@ Figure&nbsp;16: Confusion matrix for the Random Forest classifier with all plant
 <img src="./images/noplant_plt.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-no-plant-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;17: Historical Non-Vegetation Boundaries Map
+Figure&nbsp;20: Historical Non-Vegetation Boundaries Map
 </figcaption>
 </figure>
 </div>
@@ -1236,7 +1372,109 @@ Tallamy, D. 2024. <span>“Keystone Native Plants: Marine West Coast Forests - E
 </div>
 </section>
 
-</main>
+
+<div id="quarto-appendix" class="default"><section id="additional-maps" class="level1 appendix" data-number="14"><h2 class="anchored quarto-appendix-heading"><span class="header-section-number">14</span> Additional Maps</h2><div class="quarto-appendix-contents">
+
+<p>See record counts in <a href="#tbl-gbif-inventory" class="quarto-xref">Table&nbsp;2</a> and cell counts in <a href="#tbl-gbif-histveg-cell-inventory" class="quarto-xref">Table&nbsp;3</a>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-pinus-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pinus-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-pinus-map-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pinus-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;21: Ponderosa Pine occurrence sums.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-salix-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-salix-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-salix-map-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-salix-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22: Scouler’s Willow occurrence sums.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-quercus-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-quercus-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-quercus-map-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quercus-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;23: Oregon White Oak occurrence sums.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-populus-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-populus-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-populus-map-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-populus-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24: Black Cottonwood occurrence sums.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-thuja-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-thuja-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-thuja-map-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-thuja-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;25: Western Redcedar occurrence sums.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-xerophyllum-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-xerophyllum-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-xerophyllum-map-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-xerophyllum-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;26: Beargrass occurrence sums.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-rubus-map" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rubus-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-rubus-map-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rubus-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;27: California Blackberry occurrence sums.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
