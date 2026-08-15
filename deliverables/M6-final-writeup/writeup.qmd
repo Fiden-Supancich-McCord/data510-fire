@@ -6,11 +6,12 @@ author:
   - "Amaya Supancich-McCord"
 date: today
 bibliography: refs.bib
+csl: apa-6th-edition.csl
 format:
-  
   pdf:
     toc: true
     number-sections: true
+    fig-pos: 'h'
 execute:
   echo: true
   warning: false
@@ -331,7 +332,7 @@ Model performance was evaluated using accuracy and F-1 scores to assess performa
 #| label: fig-all-plants-map
 #| fig-cap: "Plant occurrence sums."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(fill=plnt_sm, geometry=geometry)) +
@@ -364,7 +365,7 @@ Comparison of individual plant groups revealed few consistent differences betwee
 
 :::
 
-![Species abundance by Indigenous land designation status.](/images/species_abundance_scatterplot.png){#fig-species-abundance}
+![Species abundance by Indigenous land designation status.](/images/species_abundance_scatterplot.png){#fig-species-abundance width=80%}
 
 ### Shannon Diversity
 
@@ -383,13 +384,17 @@ The five-fold cross-validation produced an RMSE of 0.254 and an R² of 0.207. Th
 
 Residual diagnostics, however, indicated that several assumptions of ordinary least squares regression were not fully satisfied. Residual-versus-fitted plots (@fig-species-resid-fitted) showed clustering rather than random scatter, suggesting departures from linearity. Q-Q plots (@fig-species-qq) demonstrated deviations from normality, and scale-location plots (@fig-species-scalelocation) indicated unequal residual variance across fitted values. Cook's distance (@fig-species-cooks) identified several influential observations, although only a small number of records exerted disproportionate influence on the model. Consequently, while the regression provides useful evidence regarding variable associations, the results should be interpreted primarily as descriptive rather than strictly causal.
 
-![Forest compositional diversity residuals vs fitted.](/images/species_residvfitted_plot.png){#fig-species-resid-fitted}
+::: {#fig-species layout-ncol=2}
+![Residuals vs fitted.](/images/species_residvfitted_plot.png){#fig-species-resid-fitted}
 
-![Forest compositional diversity q-q residuals.](/images/species_qq_plot.png){#fig-species-qq}
+![Q-Q residuals.](/images/species_qq_plot.png){#fig-species-qq}
 
-![Forest compositional diversity scale location.](/images/species_scalelocation_plot.png){#fig-species-scalelocation}
+![Scale location.](/images/species_scalelocation_plot.png){#fig-species-scalelocation}
 
-![Forest compositional diversity Cook’s distance.](/images/species_cooks_plot.png){#fig-species-cooks}
+![Cook’s distance.](/images/species_cooks_plot.png){#fig-species-cooks}
+
+Forest compositional diversity measures.
+:::
 
 ## Research Question 2
 
@@ -399,8 +404,7 @@ Residual diagnostics, however, indicated that several assumptions of ordinary le
 #| label: fig-max-acres-indigenous
 #| fig-cap: "Maximum acres burned across land designation"
 #| echo: false
-#| fig-width: 6
-#| fig-height: 7
+#| fig-width: 5
 
 gdf %>%
     filter(max_acres > 0) %>%
@@ -420,6 +424,8 @@ gdf %>%
 
 ```
 
+::: {style="font-size: 80%;"}
+
 ```{r}
 #| label: tbl-indigenous-n-acres
 #| tbl-cap: "Sample sizes for maximum fire size in Indigenous and non-Indigenous designated cells with fires that burned greater than 0 acres."
@@ -435,13 +441,15 @@ ind_n_acres <- gdf %>%
 knitr::kable(ind_n_acres)
 ```
 
+:::
+
 Although maximum fire size distributions were broadly similar between land categories, designated Indigenous lands exhibited a higher median maximum fire size than non-Indigenous lands, with medians of 45 and 2.99 acres, respectively. At the same time, non-Indigenous lands contained substantially more very small fire events, reflected by the large number of lower-end outliers. These findings suggest that fire regimes differ between land categories, but they do not indicate that one land type consistently experiences larger or smaller wildfires. It should be noted, when engaging in any interpretation of these results, that there is a significantly greater number of non-Indigenous land cells than those that are Indigenous land designated (see @tbl-indigenous-n-cells). Differences in land types may also be attributed to environmental factors unrelated to land status. 
 
 ```{r}
 #| label: fig-n-fires-map
 #| fig-cap: "Number of wildfires per cell across Oregon."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(geometry=geometry, fill=n_wldfr)) +
@@ -459,7 +467,7 @@ grid %>%
 #| label: fig-n-fires-map-indigenous
 #| fig-cap: "Number of wildfires per cell on federally recognized Indigenous land."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(geometry=geometry, fill=n_wldfr, alpha=is_ndgn)) +
@@ -483,8 +491,8 @@ Comparisons of fire size classes showed that the overall distribution of wildfir
 #| label: fig-max-duration-indigenous
 #| fig-cap: "Maximum fire duration across land designation."
 #| echo: false
-#| fig-width: 6
-#| fig-height: 7
+#| fig-width: 5
+#| fig-height: 5
 
 gdf %>%
     filter(max_duration > 0) %>%
@@ -504,6 +512,8 @@ gdf %>%
 
 ```
 
+::: {style="font-size: 80%;"}
+
 ```{r}
 #| label: tbl-indigenous-n-duration
 #| tbl-cap: "Sample sizes for maximum fire duration in Indigenous and non-Indigenous designated cells."
@@ -518,6 +528,8 @@ ind_n_dur <- gdf %>%
 
 knitr::kable(ind_n_dur)
 ```
+
+:::
 
 Although maximum fire duration distributions were broadly similar between land categories, designated Indigenous lands exhibited a higher median maximum fire duration than non-Indigenous lands, with medians of 899 and 495 hours, respectively (approximately 37.5 and 20.6 days). At the same time, non-Indigenous lands had substantially more quickly contained fire events, reflected by the large number of lower-end outliers. These findings suggest that fire regimes differ between land categories, but they do not indicate that one consistently experiences longer wildfire durations than the other.
 
@@ -534,8 +546,8 @@ Maximum fire size by year was compared between cells that had previously had pre
 #| label: fig-rx-indigenous-size-2025
 #| fig-cap: "Fire size distribution by the presence of prescribed burn and Indigenous land designation status in 2025."
 #| echo: false
-#| fig-width: 7
-#| fig-height: 7
+#| fig-width: 5
+#| fig-height: 5
 
 tgdf %>%
   filter(year == 2025) %>%
@@ -568,6 +580,8 @@ tgdf %>%
 
 ```
 
+::: {style="font-size: 80%;"}
+
 ```{r}
 #| label: tbl-rx-indigenous-size-2025
 #| tbl-cap: "Sample sizes for maximum fire size class in Indigenous and non-Indigenous designated cells with and without previous prescribed burns in 2025."
@@ -586,14 +600,15 @@ rx_ind_size_2025 <- tgdf %>%
 knitr::kable(rx_ind_size_2025)
 ```
 
+:::
+
 Comparisons of fire size classes for 2025 showed that the overall distribution of wildfire sizes was similar between Indigenous and non-Indigenous lands, regardless of whether prescribed burns had occurred. Prescribed burning was associated with a greater proportion of small (Class A) fires, and a slight observable decrease in the proportion of higher class fires (Class C and above), across both land categories. These results suggest that prescribed fire may be associated with shifts toward a greater frequency of smaller fires.
 
 ```{r}
 #| label: fig-rx-acres
 #| fig-cap: "Distribution of fire size between cells that have or have not previously had prescribed burns."
 #| echo: false
-#| fig-width: 6
-#| fig-height: 7
+#| fig-width: 5
 
 tgdf %>% 
     filter(year >= 2020) %>%
@@ -613,6 +628,8 @@ tgdf %>%
 
 ```
 
+::: {style="font-size: 80%;"}
+
 ```{r}
 #| label: tbl-rx-acres
 #| tbl-cap: "Sample sizes for maximum fire acreage in cells with and without previous prescribed burns 2020-2025."
@@ -630,14 +647,18 @@ prev_rx_acres <- tgdf %>%
 knitr::kable(prev_rx_acres)
 ```
 
+:::
+
+{{< pagebreak >}}
+
 Welch's two-sample t-tests revealed significant associations between fire size and prescribed burns in a previous year. The alternative hypothesis that cells that have previously had a prescribed burn experience a smaller mean maximum acres burned is supported with the achieved p-value of 0.02, when filtered to only cells that had experienced a wildfire that year. However, the scale of the difference is very small (Cohen’s d = 0.14). When limiting to 2020-2025, as our data did not report any prescribed burns before 2021, the significance is even higher, supporting the same alternative hypothesis (p = 0.001). The difference is slightly larger but still small (Cohen’s d = 0.19).
 
 ```{r}
 #| label: fig-rx-annual-size-class
 #| fig-cap: "Fire class distribution by presence of previous prescribed burn over time."
 #| echo: false
-#| fig-width: 7
-#| fig-height: 6
+#| fig-width: 5
+#| fig-height: 4
 
 tgdf %>%
     filter(year > 2021) %>%
@@ -671,6 +692,8 @@ tgdf %>%
 # should indicate sample size for this as well somewhere
 ```
 
+::: {style="font-size: 80%;"}
+
 ```{r}
 #| label: tbl-rx-size-class-annual
 #| tbl-cap: "Sample sizes for maximum fire size class in cells with and without previous prescribed burns 2022-2025."
@@ -689,8 +712,6 @@ rx_size_class_annual <- tgdf %>%
 
 knitr::kable(rx_size_class_annual)
 ```
-
-::: {style="font-size: 80%;"}
 
 | Fire Class Category | Acres Burned |
 |:---|---:|
@@ -712,8 +733,8 @@ knitr::kable(rx_size_class_annual)
 #| label: fig-wf-acres
 #| fig-cap: "Distribution of fire size between cells that have or have not previously had wildfires."
 #| echo: false
-#| fig-width: 6
-#| fig-height: 7
+#| fig-width: 5
+#| fig-height: 4
 
 tgdf %>% 
     filter(n_fires > 0) %>%
@@ -732,6 +753,8 @@ tgdf %>%
 
 ```
 
+::: {style="font-size: 80%;"}
+
 ```{r}
 #| label: tbl-wf-acres
 #| tbl-cap: "Sample sizes for maximum fire acreage in cells with and without previous wildfires."
@@ -747,6 +770,8 @@ prev_wf_acres <- tgdf %>%
 
 knitr::kable(prev_wf_acres)
 ```
+
+:::
 
 Notably, we see greater effects when looking at previous wildfires than prescribed burns. A parallel test of fires between 2020 and 2025, comparing cells that have had at least one fire in the previous four years with those that have not, showed high significance (p < 2.2e-16). While still small, the scale of the difference between the categories was larger than for prescribed burns (Cohen’s d = 0.33). Although this finding is not causal, it reflects past findings that previous wildland fires reduce subsequent fire size by reducing available fuel (Parks, 2016). As shown in "Distribution of fire size between cells that have or have not previously experienced wildfires", previous fires do not eliminate the possibility of large fires in the future, as there are many outliers.
 
@@ -864,7 +889,7 @@ See record counts in @tbl-gbif-inventory and cell counts in @tbl-gbif-histveg-ce
 #| label: fig-pinus-map
 #| fig-cap: "Ponderosa Pine occurrence sums."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(fill=n_pinus, geometry=geometry)) +
@@ -881,7 +906,7 @@ grid %>%
 #| label: fig-salix-map
 #| fig-cap: "Scouler's Willow occurrence sums."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(fill=n_salix, geometry=geometry)) +
@@ -898,7 +923,7 @@ grid %>%
 #| label: fig-quercus-map
 #| fig-cap: "Oregon White Oak occurrence sums."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(fill=n_qurcs, geometry=geometry)) +
@@ -915,7 +940,7 @@ grid %>%
 #| label: fig-populus-map
 #| fig-cap: "Black Cottonwood occurrence sums."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(fill=n_popls, geometry=geometry)) +
@@ -932,7 +957,7 @@ grid %>%
 #| label: fig-thuja-map
 #| fig-cap: "Western Redcedar occurrence sums."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(fill=n_thuja, geometry=geometry)) +
@@ -949,7 +974,7 @@ grid %>%
 #| label: fig-xerophyllum-map
 #| fig-cap: "Beargrass occurrence sums."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(fill=n_xrphy, geometry=geometry)) +
@@ -966,7 +991,7 @@ grid %>%
 #| label: fig-rubus-map
 #| fig-cap: "California Blackberry occurrence sums."
 #| echo: false
-#| fig-width: 7
+#| fig-width: 5
 
 grid %>%
   ggplot(aes(fill=n_rubus, geometry=geometry)) +
