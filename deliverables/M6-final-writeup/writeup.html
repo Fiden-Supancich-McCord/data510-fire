@@ -124,8 +124,8 @@ div.csl-indent {
   <ul class="collapse">
   <li><a href="#landmark" id="toc-landmark" class="nav-link" data-scroll-target="#landmark"><span class="header-section-number">7.1</span> LandMark</a></li>
   <li><a href="#global-biodiversity-information-facility-gbif" id="toc-global-biodiversity-information-facility-gbif" class="nav-link" data-scroll-target="#global-biodiversity-information-facility-gbif"><span class="header-section-number">7.2</span> Global Biodiversity Information Facility (GBIF)</a></li>
-  <li><a href="#nifc-inform-fire-occurrence-data-records" id="toc-nifc-inform-fire-occurrence-data-records" class="nav-link" data-scroll-target="#nifc-inform-fire-occurrence-data-records"><span class="header-section-number">7.3</span> NIFC InFORM Fire Occurrence Data Records</a></li>
-  <li><a href="#nifc-interagency-wildland-fire-perimeter-history" id="toc-nifc-interagency-wildland-fire-perimeter-history" class="nav-link" data-scroll-target="#nifc-interagency-wildland-fire-perimeter-history"><span class="header-section-number">7.4</span> NIFC Interagency Wildland Fire Perimeter History</a></li>
+  <li><a href="#nifc-inform-fire-occurrence-data-records-inform" id="toc-nifc-inform-fire-occurrence-data-records-inform" class="nav-link" data-scroll-target="#nifc-inform-fire-occurrence-data-records-inform"><span class="header-section-number">7.3</span> NIFC InFORM Fire Occurrence Data Records (InFORM)</a></li>
+  <li><a href="#nifc-interagency-wildland-fire-perimeter-history-ifph" id="toc-nifc-interagency-wildland-fire-perimeter-history-ifph" class="nav-link" data-scroll-target="#nifc-interagency-wildland-fire-perimeter-history-ifph"><span class="header-section-number">7.4</span> NIFC Interagency Wildland Fire Perimeter History (IFPH)</a></li>
   <li><a href="#oregon-historic-vegetation" id="toc-oregon-historic-vegetation" class="nav-link" data-scroll-target="#oregon-historic-vegetation"><span class="header-section-number">7.5</span> Oregon Historic Vegetation</a></li>
   </ul></li>
   <li><a href="#methods-and-evaluation" id="toc-methods-and-evaluation" class="nav-link" data-scroll-target="#methods-and-evaluation"><span class="header-section-number">8</span> Methods and Evaluation</a>
@@ -187,16 +187,6 @@ div.csl-indent {
 </header>
 
 
-<!--
-  DATA 510 write-up skeleton (Week 5 Quarto lecture).
-
-  Copy this file to your DS3 repo:
-    deliverables/M4-writeup-draft/writeup.qmd
-
-  Week 5: paste prose from your M1 proposal into Introduction, Data, Ethics, Methods.
-  Week 7+: replace stubs with real results from notebooks/ and src/.
-  Week 12 (M4): methods and findings should be stable; render PDF + HTML for submission.
--->
 <section id="title-team-and-affiliations" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Title, Team, and Affiliations</h1>
 <p><strong>Project title:</strong> Oregon on Fire: Wildfire Severity, Prescribed Burns, and Species Distribution Across Indigenous and Non-Indigenous Oregon Lands</p>
@@ -231,32 +221,39 @@ div.csl-indent {
 </section>
 <section id="abstract" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Abstract</h1>
-<!-- PASTE FINAL TEXT -->
+<p>Increasing wildfire activity <span class="citation" data-cites="lundeburg2026">(<a href="#ref-lundeburg2026" role="doc-biblioref">Lundeberg 2026</a>)</span> throughout the western United States has renewed interest in understanding the ecological factors associated with wildfire severity, including the potential influence of Indigenous stewardship and prescribed fire. This project used publicly available ecological and wildfire datasets to evaluate forest compositional diversity and wildfire characteristics across federally recognized Indigenous and non-Indigenous lands in Oregon between 2015 and 2025. ​</p>
+<p>Results indicated relatively few consistent differences in plant abundance or forest compositional diversity, and no measurable improvement in the Shannon Diversity Index by land status. Similarly, wildfire severity metrics exhibited negligible practical differences between land categories despite distributional differences. Machine learning models achieved modest predictive performance, with previous wildfire history and vegetation characteristics consistently emerging as stronger predictors of wildfire severity than designated Indigenous land or prescribed burn history. Previous prescribed burns were significantly associated with a greater proportion of smaller wildfire events, although their observed effects remained small. ​</p>
+<p>These findings demonstrate both the utility and limitations of publicly available ecological datasets for landscape-style wildfire research and highlight the strong association between previous fire history and vegetation characteristics on wildfire severity. Collectively, this project demonstrates how reproducible geospatial data science workflows can integrate heterogeneous datasets to investigate landscape-scale questions regarding biodiversity, wildfire resilience, and land stewardship. While the available datasets do not fully capture the complexity of Oregon’s ecosystems or Indigenous stewardship practices, the resulting analytical framework provides a foundation for future research incorporating more comprehensive biodiversity inventories, additional environmental covariates, and expanded measures of wildfire resilience and severity.</p>
 </section>
 <section id="introduction-problem-and-research-questions" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Introduction: Problem and Research Questions</h1>
 <section id="problem" class="level2" data-number="3.1">
 <h2 data-number="3.1" class="anchored" data-anchor-id="problem"><span class="header-section-number">3.1</span> Problem</h2>
-<!-- PASTE FINAL TEXT -->
+<p>Wildfire activity has become an increasingly significant ecological, economic, and public safety concern throughout the western United States. In Oregon and across the broader Pacific Northwest, longer fire seasons, changing climatic conditions, expanding development within the wildland-urban interface, and more than a century of widespread fire suppression have contributed to larger and more severe wildfires that threaten ecosystems, infrastructure, and human communities <span class="citation" data-cites="abatzoglou2016 hessburg2021">(<a href="#ref-abatzoglou2016" role="doc-biblioref">Abatzoglou and Willams 2016</a>; <a href="#ref-hessburg2021" role="doc-biblioref">Hessburg et al. 2021</a>)</span>. Beyond their immediate impacts on human populations, wildfires influence forest compositional diversity, biodiversity, nutrient cycling, carbon storage, and long-term ecosystem resilience <span class="citation" data-cites="johnstone2016">(<a href="#ref-johnstone2016" role="doc-biblioref">Johnstone et al. 2016</a>)</span>. As wildfire frequency and severity continue to increase, identifying management strategies that promote healthier and more resilient forest ecosystems has become a priority for land managers, policymakers, Tribal governments, and conservation organizations <span class="citation" data-cites="hessburg2021">(<a href="#ref-hessburg2021" role="doc-biblioref">Hessburg et al. 2021</a>)</span>. ​</p>
+<p>For thousands of years, Indigenous communities throughout North America have actively shaped forest ecosystems through stewardship practices that include cultural burning, selective harvesting, habitat management, and long-term ecological observation <span class="citation" data-cites="coughlan2024">(<a href="#ref-coughlan2024" role="doc-biblioref">Coughlan et al. 2024</a>)</span>. Rather than seeking to eliminate fire from the landscape, many Indigenous stewardship systems incorporated intentional burning to reduce hazardous fuel accumulation, promote desired plant communities, maintain wildlife habitat, and sustain culturally important resources <span class="citation" data-cites="coughlan2024">(<a href="#ref-coughlan2024" role="doc-biblioref">Coughlan et al. 2024</a>)</span>. Historical fire exclusion policies implemented during the twentieth century substantially reduced the use of cultural burning throughout much of the western United States, contributing to changes in forest structure, fuel accumulation, and wildfire behavior <span class="citation" data-cites="hessburg2021">(<a href="#ref-hessburg2021" role="doc-biblioref">Hessburg et al. 2021</a>)</span>. Increasing recognition of Indigenous ecological knowledge has renewed interest in understanding how Indigenous stewardship practices, namely prescribed burns, may contribute to contemporary wildfire resilience and ecological restoration (i.e., reduced fire severity and increased biodiversity) <span class="citation" data-cites="coughlan2024">(<a href="#ref-coughlan2024" role="doc-biblioref">Coughlan et al. 2024</a>)</span>.</p>
 </section>
 <section id="research-questions" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="research-questions"><span class="header-section-number">3.2</span> Research Questions</h2>
-<!-- PASTE FINAL TEXT -->
+<p>Three primary research questions guide this project. Because the project relies exclusively on observational data, all analyses are intended to identify statistical associations rather than establish causal relationships. ​</p>
+<p>Research Question 1: Can publicly available ecological data be used to evaluate forest compositional diversity across federally recognized Indigenous and non-Indigenous lands across Oregon? This question evaluates whether there is an observable difference in the abundance of representative plant taxa and overall forest compositional diversity, as quantified by the Shannon Diversity Index. ​</p>
+<p>Research Question 2: Are federally recognized Indigenous lands associated with different wildfire characteristics than non-Indigenous lands? This question examines observed wildfire duration and size. ​</p>
+<p>Research Question 3: Are Indigenous land recognition status, the presence of fire-resistant and keystone species, and prescribed burns associated with lower wildfire severity? This question investigates the relative importance of vegetation composition, prescribed burning, and Indigenous land designation in explaining variation in wildfire severity metrics. ​</p>
+<p>While Indigenous Peoples’ relationships to the land exist regardless of federal boundaries, for this project, federal boundaries, as reported by LandMark, are used to distinguish between land types. For brevity, these land types are discussed as Indigenous and non-Indigenous, not to erase the Indigenous stewardship that occurs outside these boundaries.</p>
 </section>
 </section>
 <section id="impact-and-stakeholders" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Impact and Stakeholders</h1>
-<!-- PASTE FINAL TEXT -->
+<p>The findings of this project may be relevant to Tribal governments and Indigenous communities, land management agencies, conservation organizations, and environmental researchers involved in wildfire management, ecological conservation, and ecosystem stewardship. The reproducible geospatial workflows developed in this project demonstrate how publicly available biodiversity observations, wildfire occurrence records, prescribed fire inventories, and vegetation datasets can be integrated into standardized spatial units for statewide ecological analysis. This approach may support evidence-informed decision-making, identify landscape-scale patterns for further investigation, and help guide future monitoring and field-based research. For Tribal governments and Indigenous land managers, the project provides quantitative comparisons of biodiversity and wildfire characteristics across federally recognized Indigenous and non-Indigenous lands while recognizing that publicly available datasets cannot fully capture the cultural, historical, or ecological complexity of Indigenous stewardship practices. For land management and conservation agencies, the analytical framework illustrates how multiple environmental datasets can be synthesized to inform future restoration, wildfire mitigation, prescribed fire, biodiversity monitoring, and ecosystem resilience efforts.</p>
 </section>
 <section id="related-work-and-background" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Related Work and Background</h1>
-<!-- PASTE FINAL TEXT -->
+<p>While existing work has advanced understanding of Indigenous stewardship <span class="citation" data-cites="coughlan2024 coughlannd">(<a href="#ref-coughlan2024" role="doc-biblioref">Coughlan et al. 2024</a>; <a href="#ref-coughlannd" role="doc-biblioref">Coughlan et al. n.d.</a>)</span>, wildfire ecology <span class="citation" data-cites="coughlan2024 coughlannd lundeburg2026">(<a href="#ref-coughlan2024" role="doc-biblioref">Coughlan et al. 2024</a>; <a href="#ref-coughlannd" role="doc-biblioref">Coughlan et al. n.d.</a>; <a href="#ref-lundeburg2026" role="doc-biblioref">Lundeberg 2026</a>)</span>, and forest resilience <span class="citation" data-cites="lundeburg2026">(<a href="#ref-lundeburg2026" role="doc-biblioref">Lundeberg 2026</a>)</span>, our project addresses a quantitative gap by integrating geospatial wildfire, forest compositional diversity, biodiversity, and Indigenous land designation datasets to evaluate landscape-scale relationships across Oregon. Rather than focusing primarily on historical documentation <span class="citation" data-cites="lundeburg2026">(<a href="#ref-lundeburg2026" role="doc-biblioref">Lundeberg 2026</a>)</span>, policy recommendations <span class="citation" data-cites="coughlannd">(<a href="#ref-coughlannd" role="doc-biblioref">Coughlan et al. n.d.</a>)</span>, or ecological theory <span class="citation" data-cites="tallamy2024">(<a href="#ref-tallamy2024" role="doc-biblioref">Tallamy 2024</a>)</span>, we apply a reproducible data science framework to compare federally recognized Indigenous lands and non-Indigenous lands. This approach allows us to assess whether differences in forest diversity and ecological characteristics are associated with differences in wildfire severity outcomes while recognizing the observational nature of these relationships and the importance of Indigenous expertise in interpreting results.</p>
 </section>
 <section id="data-and-data-engineering" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Data and Data Engineering</h1>
 <section id="data-invetory" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="data-invetory"><span class="header-section-number">6.1</span> Data Invetory</h2>
-<!-- PASTE FINAL TEXT -->
+<p>This project integrates multiple publicly available ecological and geospatial datasets describing biodiversity, species abundance, wildfire occurrence, prescribed fire activity, historical vegetation, and federally recognized Indigenous lands throughout Oregon. Each dataset was selected to contribute complementary information necessary to evaluate forest compositional diversity and wildfire characteristics at a statewide scale. The following species were selected from the GBIF dataset due to their recorded influence on the Oregon ecosystem: Ponderosa Pine (Pinus ponderosa var. benthamiana) and Oregon White Oak (Quercus garryana) were selected due to their nature as fire-adapted tree species <span class="citation" data-cites="fryer2018 gucker2007">(<a href="#ref-fryer2018" role="doc-biblioref">Fryer, n.d.</a>; <a href="#ref-gucker2007" role="doc-biblioref">Gucker 2007</a>)</span>; Beargrass (Xerophyllum tenax), California Blackberry (Rubus ursinus), and Scouler’s Willow (Salix scouleriana) were identified as culturally important Indigenous plant species <span class="citation" data-cites="owlridge2008">(<a href="#ref-owlridge2008" role="doc-biblioref"><em>The Owl Ridge Trails Report</em> 2008</a>)</span>; Western Redcedar (Thuja plicata) and Black Cottonwood (Populus balsamifera subsp. Trichocarpa) were identified as keystone wildlife habitat species <span class="citation" data-cites="wsu osu2019">(<a href="#ref-wsu" role="doc-biblioref"><span>“Western Redcedar Dieback,”</span> n.d.</a>; <a href="#ref-osu2019" role="doc-biblioref"><span>“Black Cottonwood”</span> 2019</a>)</span>. Because no single dataset contained all required ecological variables, substantial data engineering was required to standardize data types, reconcile coordinate reference systems, and integrate observations into a unified analytical framework.</p>
 <div style="font-size: 80%;">
 <div id="tbl-data-inventory" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -390,7 +387,7 @@ Table&nbsp;2: GBIF Species Inventory Table.
 </section>
 <section id="data-engineering" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="data-engineering"><span class="header-section-number">6.2</span> Data Engineering</h2>
-<!-- PASTE FINAL TEXT -->
+<p>Because the datasets originated from independent organizations using different formats, coordinate systems, temporal ranges, and reporting standards, extensive preprocessing was required before statistical analyses could be performed. Figure 3 summarizes the overall analytical workflow.</p>
 <div id="fig-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Diagram showing the data engineering pipeline.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -403,10 +400,15 @@ Figure&nbsp;1: Data Engineering Pipeline
 </div>
 <section id="data-cleaning-and-quality-assurance" class="level3" data-number="6.2.1">
 <h3 data-number="6.2.1" class="anchored" data-anchor-id="data-cleaning-and-quality-assurance"><span class="header-section-number">6.2.1</span> Data Cleaning and Quality Assurance</h3>
-<!-- PASTE FINAL TEXT -->
+<p>Each dataset underwent systematic quality assessment prior to integration. Initial inspection identified differences in variable naming conventions, data types, coordinate reference systems, temporal coverage, and missing values. Date fields were standardized into consistent datetime formats, and categorical variables were recoded and leveled where appropriate. ​</p>
+<p>The IFPH and InFORM data share a common unique fire identifier, which was used to join common fires. 817 records had matching identifiers in IFPH and InFORM; for these fires, IFPH values were preferred when both datasets were available, including the multipolygon geometry provided by IFPH. We excluded 866 records in the IFPH dataset that did not have counterparts in InFORM data from subsequent processing because they lacked the information necessary for our analysis. Fire records present only in InFORM were spatially placed using the provided coordinates and converted to point geometries; this included 10,686 records in Oregon from 2015-2025. Additionally, 27,538 records in InFORM within that time span lacked coordinates and were not included. However, these points were not necessarily within the spatial scope, as InFORM includes records from across the United States. ​</p>
+<p>Additional work was undertaken to construct serviceable fire-start and fire-end dates. Three fire-end variables were available in the InFORM data (control date-time, contain date-time, and fire out date), each with varying levels of missingness. If multiple existed, the latest recorded date was used to represent the fire-end date. 3443 point-based InFORM and 192 combined IFPH-InFORM polygon records were missing all three end-date variables and were therefore excluded from fire duration analyses; however, they were still included in fire size analyses. ​</p>
+<p>Several quality control procedures were implemented throughout preprocessing. We standardized coordinate reference systems to WGS 84 across all spatial datasets to ensure accurate spatial joins. We inspected variable ranges for implausible values, removing one wildfire record with a negative burned area, standardizing 1970-01-01 dates to NA, and correcting two years that were off by one century (e.g., 2121 was changed to 2021). When missing, the calendar year was imputed from the fire discovery date-time, which had no missingness. Other missing values were evaluated on a variable-by-variable basis, with variables exhibiting extensive or complete missingness (e.g., discovery acres, estimated cost to date, final acres, final fire report approved by unit, general fire behavior, incident short description, reimbursability indicator, POO jurisdictional parent unit, and percent contained) excluded from downstream analyses. Rather than imputing observations, missing values were excluded from modeling. This approach avoided introducing artificial observations while preserving the integrity of the original datasets.</p>
 </section>
 <section id="spatial-integration-and-feature-engineering" class="level3" data-number="6.2.2">
 <h3 data-number="6.2.2" class="anchored" data-anchor-id="spatial-integration-and-feature-engineering"><span class="header-section-number">6.2.2</span> Spatial Integration and Feature Engineering</h3>
+<p>One of the primary contributions of this project is a reproducible spatial integration framework that combines heterogeneous datasets and geometries into standardized analytical units. All datasets were spatially joined using a common 5 km × 5 km analysis grid covering the state of Oregon, created using the US National Atlas Equal Area coordinate reference system. This grid provided a consistent spatial resolution for summarizing wildfire records, prescribed fire occurrence, vegetation characteristics, and Indigenous land designation. After its creation, the grid and all other spatial datasets were converted to the WGS 84 coordinate reference system, except InFORM and GBIF, which were already in WGS 84.​</p>
+<p>For each grid cell, we calculated a more representative species count by combining GBIF occurrence records with Historic Vegetation, increasing the plant occurrence count by one for any cell that intersected a relevant vegetation region. This operation was performed for Ponderosa Pine, Scouler’s Willow, Oregon White Oak, Black Cottonwood, and Western Rederar. California Blackberry and Beargrass were not included in the Historic Vegetation dataset, which focuses on broader patterns of dominant species, so their counts are based solely on GBIF records. Dual-tree categories were used for Ponderosa Pine and Oregon White Oak to include as many applicable regions as possible. Shannon Diversity Index values were subsequently calculated using the aggregated abundances to provide a quantitative measure of overall forest compositional diversity.</p>
 <div style="font-size: 80%;">
 <div id="tbl-gbif-histveg-cell-inventory" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -474,65 +476,72 @@ Table&nbsp;3: GBIF Species &amp; Oregon Historic Vegetation Region Inventory Tab
 </figure>
 </div>
 </div>
+<p>​We created a binary indicator identifying whether each grid cell intersected federally recognized Indigenous lands using LandMark. We similarly summarized wildfire variables at the grid-cell level. These included wildfire counts, maximum wildfire duration in hours, maximum wildfire size in acres, wildfire size class (a factor based on the National Wildfire Coordinating Group’s size classifications), and a count of prescribed burns with all of the above size and duration metrics associated with them. All cells also included a list of unique fire identifiers associated with the fires present in that cell for manual cross-referencing with the original dataset if needed. The resulting feature engineering process transformed over seventy thousand individual observations into a standardized analytical dataset suitable for comparative statistical modeling while preserving spatial relationships among the original datasets.</p>
+<p>In addition to the grid dataset, which included fire counts and metrics from 2015 to 2025, we created a second dataset that aggregates fire metrics annually. The federally recognized Indigenous land binary variable was held constant across our time span, as land borders have not changed during that period. Although the GBIF records had associated dates, the vegetation columns were treated as constant because the Historic Vegetation was not time-bound, and the resulting combined columns were treated as proxies for general forest compositional diversity rather than a yearly species census, given the uneven distribution of observations. The base grid was duplicated so each grid cell index was present for every year in the time span, and a unique row identifier was created by combining the year and grid cell index. For each year, the same set of fire metrics and counts were created using only fire records from that year. Further metrics were calculated from the time-series data, including rolling and cumulative sums of fire counts for wildfires and prescribed burns.</p>
 </section>
 </section>
 </section>
 <section id="ethics-and-responsible-use" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Ethics and Responsible Use</h1>
-<!-- PASTE FINAL TEXT -->
+<p>This project uses only publicly available ecological and geospatial datasets and does not involve personally identifiable information or human subjects data. Nevertheless, because several datasets concern designated Indigenous lands, biodiversity observations, and environmental resources, ethical data stewardship remains a central consideration. ​</p>
+<p>Analyses follow the CARE Principles for Indigenous Data Governance (Collective Benefit, Authority to Control, Responsibility, and Ethics) <span class="citation" data-cites="perreault2025">(<a href="#ref-perreault2025" role="doc-biblioref">Perreault and Goodridge 2025</a>)</span>, recognizing that publicly available datasets cannot fully capture Indigenous knowledge systems, stewardship practices, or cultural relationships with the land. Results are therefore interpreted as observational rather than causal, avoiding broad generalizations across Indigenous nations or deficit-based comparisons of land management practices. Findings are reported at the landscape level to characterize ecological patterns rather than draw cultural conclusions. ​</p>
+<p>Across all datasets, applicable licensing, attribution, and data-sharing requirements are followed, sensitive metadata (such as observer names, recorder names, rights-holder information, and other unnecessary identifying metadata) are excluded from analysis and redistribution where appropriate, and project findings are presented to support collaborative wildfire stewardship while respecting Indigenous rights, data sovereignty, and responsible data use.</p>
 <section id="landmark" class="level2" data-number="7.1">
 <h2 data-number="7.1" class="anchored" data-anchor-id="landmark"><span class="header-section-number">7.1</span> LandMark</h2>
-<!-- PASTE FINAL TEXT -->
+<p>The LandMark dataset provides global spatial and governance information concerning Indigenous Peoples’ and community lands, incorporating contributed and third-party datasets describing territorial boundaries and community-level information. Although the dataset does not contain direct personal identifiers, it includes information about Indigenous communities and therefore requires heightened ethical consideration. The LandMark Terms of Service require users to protect and respect the legal and customary rights of Indigenous Peoples and local communities and prohibit uses that may negatively affect these communities. While commercial-use provisions do not apply to this project, we intend to uphold the underlying principle of equitable benefit sharing by ensuring that findings are communicated in ways that may support the communities represented by the data. LandMark data are generally licensed under the Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0) license, permitting redistribution and derivative works provided appropriate attribution is maintained, and derivatives are shared under the same license.</p>
 </section>
 <section id="global-biodiversity-information-facility-gbif" class="level2" data-number="7.2">
 <h2 data-number="7.2" class="anchored" data-anchor-id="global-biodiversity-information-facility-gbif"><span class="header-section-number">7.2</span> Global Biodiversity Information Facility (GBIF)</h2>
-<!-- PASTE FINAL TEXT -->
+<p>GBIF aggregates biodiversity occurrence records from publishers worldwide, including species observations, museum specimens, geospatial coordinates, observation metadata, and contributor information. Some occurrence records include metadata identifying observers, collectors, identifiers, rights holders, or data publisher representatives. Although these fields are available within the raw dataset, they are not used in this project and will be excluded from any redistributed analytical datasets as part of a data minimization strategy. GBIF datasets are published under standardized Creative Commons licenses (CC0, CC BY, or CC BY-NC), with individual publishers selecting the applicable license for their records. Accordingly, all publisher-specific licensing terms, attribution requirements, and restrictions on commercial use will be respected. Dataset DOIs, citations, and publisher acknowledgments will be retained in accordance with GBIF’s recommended citation practices.</p>
 </section>
-<section id="nifc-inform-fire-occurrence-data-records" class="level2" data-number="7.3">
-<h2 data-number="7.3" class="anchored" data-anchor-id="nifc-inform-fire-occurrence-data-records"><span class="header-section-number">7.3</span> NIFC InFORM Fire Occurrence Data Records</h2>
-<!-- PASTE FINAL TEXT -->
+<section id="nifc-inform-fire-occurrence-data-records-inform" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="nifc-inform-fire-occurrence-data-records-inform"><span class="header-section-number">7.3</span> NIFC InFORM Fire Occurrence Data Records (InFORM)</h2>
+<p>The NIFC InFORM Fire Occurrence Data Records (InFORM) dataset contains operational wildfire occurrence information and does not include a documented framework for collecting or processing personal data. No formal license accompanies the dataset; consequently, permission should be requested before redistribution or other uses beyond standard research applications. In the absence of an explicit open-data license, this project will not assume unrestricted redistribution rights, will avoid commercial redistribution without authorization, and will preserve source attribution and source throughout the analytical workflow.</p>
 </section>
-<section id="nifc-interagency-wildland-fire-perimeter-history" class="level2" data-number="7.4">
-<h2 data-number="7.4" class="anchored" data-anchor-id="nifc-interagency-wildland-fire-perimeter-history"><span class="header-section-number">7.4</span> NIFC Interagency Wildland Fire Perimeter History</h2>
-<!-- PASTE FINAL TEXT -->
+<section id="nifc-interagency-wildland-fire-perimeter-history-ifph" class="level2" data-number="7.4">
+<h2 data-number="7.4" class="anchored" data-anchor-id="nifc-interagency-wildland-fire-perimeter-history-ifph"><span class="header-section-number">7.4</span> NIFC Interagency Wildland Fire Perimeter History (IFPH)</h2>
+<p>The NIFC Interagency Wildland Fire Perimeter History (IFPH) dataset consists of historical wildfire perimeter polygons and associated environmental metadata. The dataset is described as being free for strategic use, permitting its use for planning, research, and analytical purposes. Because downstream redistribution terms are not explicitly defined, appropriate attribution will be maintained, and any additional federal geospatial data-use requirements will be reviewed before publicly redistributing derivative datasets.</p>
 </section>
 <section id="oregon-historic-vegetation" class="level2" data-number="7.5">
 <h2 data-number="7.5" class="anchored" data-anchor-id="oregon-historic-vegetation"><span class="header-section-number">7.5</span> Oregon Historic Vegetation</h2>
-<!-- PASTE FINAL TEXT -->
+<p>The Oregon Historic Vegetation dataset contains polygon-based geospatial features describing reconstructed historical vegetation communities and associated ecological characteristics. The dataset is released under the Creative Commons CC0 1.0 Public Domain Dedication, allowing unrestricted reuse, redistribution, and creation of derivative works without a legal requirement for attribution. Although attribution is not required under the license, this project will continue to cite the dataset and document its source for scientific transparency and reproducibility.</p>
 </section>
 </section>
 <section id="methods-and-evaluation" class="level1" data-number="8">
 <h1 data-number="8"><span class="header-section-number">8</span> Methods and Evaluation</h1>
 <section id="research-question-1" class="level2" data-number="8.1">
 <h2 data-number="8.1" class="anchored" data-anchor-id="research-question-1"><span class="header-section-number">8.1</span> Research Question 1</h2>
-<!-- PASTE FINAL TEXT -->
+<p>Can we use publicly available ecological data to evaluate forest compositional diversity across federally recognized Indigenous and non-Indigenous lands across Oregon?</p>
 <section id="methods" class="level3" data-number="8.1.1">
 <h3 data-number="8.1.1" class="anchored" data-anchor-id="methods"><span class="header-section-number">8.1.1</span> Methods</h3>
-<!-- PASTE FINAL TEXT -->
+<p>To evaluate whether designated Indigenous lands are associated with greater forest compositional diversity than non-Indigenous lands, we conducted two complementary analyses. First, we compared the abundance of seven representative plant groups between Indigenous and non-Indigenous lands. Second, we modeled overall forest compositional diversity using the Shannon Diversity Index.</p>
+<p>Species abundance was measured for seven taxa: Ponderosa Pine (Pinus ponderosa var. Benthamiana), Scouler’s Willow (Salix scouleriana), Oregon White Oak (Quercus garryana), Black Cottonwood (Populus balsamifera subsp. Trichocarpa), Western Redcedar (Thuja plicata), Beargrass (Xerophyllum tenax), and California Blackberry (Rubus ursinus). For each species, an independent two-sample Welch’s t-test compared mean abundance between Indigenous and non-Indigenous lands. Welch’s test was selected because it does not require equal sample sizes and is more robust than the Student’s t-test when variances may differ. Levene’s tests were conducted to evaluate the homogeneity of variance. Although equal variances were generally supported across all species, plant abundance data contained many zero values and exhibited strongly skewed distributions. Consequently, Mann-Whitney U tests were also performed as a non-parametric sensitivity analysis to evaluate whether conclusions remained consistent when distributional assumptions were relaxed. Because statistical significance alone does not indicate practical importance, Cohen’s d was calculated for each comparison to quantify the magnitude of observed differences between Indigenous and non-Indigenous lands.</p>
+<p>Overall forest compositional diversity was quantified using the Shannon Diversity Index, which combines species richness (the total number of different species in a community) and relative abundance (a measure of how equally individual organisms are distributed among those species) into a single diversity metric. Two linear regression models were developed. The baseline model predicted Shannon diversity using only the seven plant abundance variables. The full model included the same plant abundance variables with Indigenous status as an additional predictor. This comparison helped determine whether Indigenous status was associated with variation in diversity beyond differences in species counts. Model performance was compared using an analysis of variance (ANOVA), coefficient of determination (R²), and root mean squared error (RMSE).</p>
 </section>
 <section id="evaluation" class="level3" data-number="8.1.2">
 <h3 data-number="8.1.2" class="anchored" data-anchor-id="evaluation"><span class="header-section-number">8.1.2</span> Evaluation</h3>
-<!-- PASTE FINAL TEXT -->
+<p>Multiple validation procedures were implemented. Model generalizability was evaluated using five-fold cross-validation. The dataset was randomly partitioned into five equally sized subsets. During each iteration, four subsets were used for model training while the remaining subset was used for testing. Average RMSE and R² across the five folds were reported. Residual diagnostics were also examined to evaluate the assumptions of linear regression. Residual diagnostics were also examined to evaluate linear regression assumptions. Residual-versus-fitted plots assessed linearity, Q-Q plots evaluated residual normality, scale-location plots assessed homoscedasticity, and Cook’s distance identified influential observations. Together, these procedures evaluated both predictive performance and the appropriateness of the linear modeling assumptions.</p>
 </section>
 </section>
 <section id="research-question-2" class="level2" data-number="8.2">
 <h2 data-number="8.2" class="anchored" data-anchor-id="research-question-2"><span class="header-section-number">8.2</span> Research Question 2</h2>
-<!-- PASTE FINAL TEXT -->
+<p>Are federally recognized Indigenous lands associated with different wildfire severity than non-Indigenous lands?</p>
 <section id="methods-1" class="level3" data-number="8.2.1">
 <h3 data-number="8.2.1" class="anchored" data-anchor-id="methods-1"><span class="header-section-number">8.2.1</span> Methods</h3>
-<!-- PASTE FINAL TEXT -->
+<p>Welch two-sample t-tests were used to compare wildfire characteristics of fires on federally recognized Indigenous land with those on other lands. Wildfire severity was compared using cells’ wildfire count, maximum size in acres, maximum size class, and maximum duration using the aggregate wildfire metrics from the processed grid. Wildfire characteristics were evaluated both overall (including cells that had not experienced wildfires) and by comparing only fires (including only cells where at least one wildfire occurred between 2015 and 2025). Because this analysis did not require time-related metrics, we used cumulative counts across all years.</p>
 </section>
 <section id="evaluation-1" class="level3" data-number="8.2.2">
 <h3 data-number="8.2.2" class="anchored" data-anchor-id="evaluation-1"><span class="header-section-number">8.2.2</span> Evaluation</h3>
-<!-- PASTE FINAL TEXT -->
+<p>We evaluated significance using p-values from t-tests and the magnitude of differences using Cohen’s d.&nbsp;Cohen’s d was calculated for each comparison to quantify the magnitude of observed differences between Indigenous and non-Indigenous lands, because statistical significance alone does not indicate practical importance.</p>
 </section>
 </section>
 <section id="research-question-3" class="level2" data-number="8.3">
 <h2 data-number="8.3" class="anchored" data-anchor-id="research-question-3"><span class="header-section-number">8.3</span> Research Question 3</h2>
-<!-- PASTE FINAL TEXT -->
+<p>Are Indigenous land recognition status, the presence of fire-resistant and keystone species, and prescribed burns associated with different wildfire severity?</p>
 <section id="methods-2" class="level3" data-number="8.3.1">
 <h3 data-number="8.3.1" class="anchored" data-anchor-id="methods-2"><span class="header-section-number">8.3.1</span> Methods</h3>
-<!-- PASTE FINAL TEXT -->
+<p>Random Forest classifiers were used to evaluate each factor’s contribution to wildfire severity, including potential interactions between features. These models were run using time series data, as several metrics are time-based. The data included only cells that had had fires in that year to predict the severity of a fire rather than predict whether a fire occurred–the model assumes a fire will occur in a given cell. We engineered several features to represent a cell’s fire history in terms of both wildfires and prescribed burns. These included cumulative and rolling sums of fire counts and fire acreage. Rolling sums were right-aligned to include only fires from previous years and exclude the current year’s fires to prevent confounding with the target variable and to avoid assuming that prescribed burns that occurred within the same year necessarily occurred before a wildfire. For fire acreage, values were capped at 6,178, the number of acres in each cell. Limiting the range prevented extreme outliers from skewing the models and more accurately represented the state of an individual cell, which could at most be completely burned. The modeling range was limited to 2020-2025 when including prescribed burns as a feature, since the first prescribed burns in our record were in 2021. The rolling sums included the previous four years of fires so that years earlier in the data are not misleadingly skewed toward a smaller number of fires. To perform classification, maximum acres were split into three bins labeled “small”, “medium”, and “large”, respectively, using pandas’ <code>qcut</code> to create groups with roughly the same number of instances. For fires with maximum acres burned above 0, these groups were bound using the ranges in Table 4.</p>
+<p>Additionally, Welch two-sample t-tests were used to determine whether previous prescribed burns and wildfire presence affected fire severity, using a binary indicator for whether the number of previous fires was greater than zero. Distribution visualizations (e.g., boxplots, bar plots) were also used to examine general trends in these areas.</p>
 <div style="font-size: 80%;">
 <div id="tbl-fire-size-bins" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -569,7 +578,7 @@ Table&nbsp;4: Binned fire size categories.
 </section>
 <section id="evaluation-2" class="level3" data-number="8.3.2">
 <h3 data-number="8.3.2" class="anchored" data-anchor-id="evaluation-2"><span class="header-section-number">8.3.2</span> Evaluation</h3>
-<!-- PASTE FINAL TEXT -->
+<p>Model performance was evaluated using accuracy and F-1 scores to assess performance across uneven category sizes, and optimized using ROC-AUC scores. Additionally, confusion matrices and classification reports were used to evaluate model performance on a per-class basis. The significance of theWelch two-sample t-tests findings was evaluated by the p-value resulting from the t-tests, and the scale of any difference was evaluated with Cohen’s d.</p>
 </section>
 </section>
 </section>
@@ -577,7 +586,6 @@ Table&nbsp;4: Binned fire size categories.
 <h1 data-number="9"><span class="header-section-number">9</span> Results and Visualizations</h1>
 <section id="research-question-1-1" class="level2" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="research-question-1-1"><span class="header-section-number">9.1</span> Research Question 1</h2>
-<!-- PASTE FINAL TEXT -->
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-all-plants-map" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -594,7 +602,7 @@ Figure&nbsp;2: Plant occurrence sums.
 </div>
 <section id="species-level-comparisons" class="level3" data-number="9.1.1">
 <h3 data-number="9.1.1" class="anchored" data-anchor-id="species-level-comparisons"><span class="header-section-number">9.1.1</span> Species-Level Comparisons</h3>
-<!-- PASTE FINAL TEXT -->
+<p>Comparison of individual plant groups revealed few consistent differences between Indigenous and non-Indigenous lands. Welch’s t-tests indicated statistically significant differences for Western Redcedar and California Blackberry, which exhibited greater average abundance on non-Indigenous lands (Table 4). Mean differences for Ponderosa Pine, Scouler’s Willow, Oregon White Oak, Black Cottonwood, and Beargrass were not statistically significant. The non-parametric Mann-Whitney U tests produced somewhat different conclusions: significant differences between land-type categories were observed for Ponderosa Pine and Western Redcedar, with higher mean abundance on non-Indigenous lands, whereas the remaining species showed no statistically significant differences. The disagreement between the parametric and non-parametric tests likely reflects the highly skewed and zero-inflated nature of the abundance data, where mean-based and rank-based methods emphasize different aspects of the distributions. Overall, the analyses did not demonstrate a consistent pattern indicating a greater abundance of the measured plant groups on designated Indigenous lands. Instead, observed differences were species-specific and generally modest. To answer the research question, publicly available ecological data can serve as a marker for forest compositional diversity across land types, but they are not a comprehensive measure in this use case.</p>
 <div style="font-size: 80%;">
 <div id="tbl-species-dist-indigenous" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -688,11 +696,14 @@ Figure&nbsp;3: Species abundance by Indigenous land designation status.
 </section>
 <section id="shannon-diversity" class="level3" data-number="9.1.2">
 <h3 data-number="9.1.2" class="anchored" data-anchor-id="shannon-diversity"><span class="header-section-number">9.1.2</span> Shannon Diversity</h3>
-<!-- PASTE FINAL TEXT -->
+<p>Shannon Diversity Index values – calculated on the plant count per species present per cell – were first compared directly between Indigenous and non-Indigenous lands. It’s imperative to mention that the use of Shannon’s Diversity Index in this situation does not align with its typical assumptions of randomly sampled individuals from an independent large sample in which all species are represented. Consequently, the calculated values do not align with its typical range; only 10 cells (9.697e-4%) fall within the expected 1.5-3.5 (inclusive) range, with all others falling significantly below this threshold. The estimated standardized effect size was minuscule (Cohen’s d = 0.052), indicating virtually no practical difference in overall compositional diversity between the two land types. Regression analysis reached a similar conclusion; the baseline model, which included only plant abundance variables, explained under a quarter of the observed variation in Shannon diversity (R² = 0.233). Several species were statistically significant predictors of diversity, with California Blackberry, Scouler’s Willow, Black Cottonwood, and Beargrass showing positive associations, while Western Redcedar and Ponderosa Pine exhibited small negative associations. Oregon White Oak was not a statistically significant predictor.</p>
+<p>Adding Indigenous status to the regression model produced essentially no improvement in predictive performance. The coefficient for Indigenous status was not statistically significant (p = 0.769), and model fit remained virtually unchanged (R² = 0.233). Likewise, comparison of the baseline and full models using ANOVA found no statistically significant improvement after adding Indigenous status (F = 0.086, p = 0.769). These findings suggest that differences in Indigenous land designation status do not substantially explain variation in forest compositional diversity.</p>
+<p>Because of the limited scope of species explored and the community-contributed, observation-based nature of the vegetation data, biodiversity metrics and diversity indices used in this project should be interpreted as proxies based on available observations rather than comprehensive measures of Oregon’s true biodiversity.</p>
 </section>
 <section id="model-validation" class="level3" data-number="9.1.3">
 <h3 data-number="9.1.3" class="anchored" data-anchor-id="model-validation"><span class="header-section-number">9.1.3</span> Model Validation</h3>
-<!-- PASTE FINAL TEXT -->
+<p>The five-fold cross-validation produced an RMSE of 0.254 and an R² of 0.207. These values were reasonably close to the full model’s in-sample performance (R² = 0.233; RMSE = 0.246), indicating that predictive performance declined modestly when evaluated on held-out data but did not show a substantial loss of generalization. The small reduction in explanatory power compared with the training model suggests there is little overfitting.</p>
+<p>Residual diagnostics, however, indicated that several assumptions of ordinary least squares regression were not fully satisfied. Residual-versus-fitted plots (<a href="#fig-species-resid-fitted" class="quarto-xref">Figure&nbsp;4</a>) showed clustering rather than random scatter, suggesting departures from linearity. Q-Q plots (<a href="#fig-species-qq" class="quarto-xref">Figure&nbsp;5</a>) demonstrated deviations from normality, and scale-location plots (<a href="#fig-species-scalelocation" class="quarto-xref">Figure&nbsp;6</a>) indicated unequal residual variance across fitted values. Cook’s distance (<a href="#fig-species-cooks" class="quarto-xref">Figure&nbsp;7</a>) identified several influential observations, although only a small number of records exerted disproportionate influence on the model. Consequently, while the regression provides useful evidence regarding variable associations, the results should be interpreted primarily as descriptive rather than strictly causal.</p>
 <div id="fig-species-resid-fitted" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-species-resid-fitted-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -739,7 +750,6 @@ Figure&nbsp;7: Forest compositional diversity Cook’s distance.
 <h2 data-number="9.2" class="anchored" data-anchor-id="research-question-2-1"><span class="header-section-number">9.2</span> Research Question 2</h2>
 <section id="maximum-acres-burned-across-indigenous-land-categories" class="level3" data-number="9.2.1">
 <h3 data-number="9.2.1" class="anchored" data-anchor-id="maximum-acres-burned-across-indigenous-land-categories"><span class="header-section-number">9.2.1</span> Maximum Acres Burned Across Indigenous Land Categories</h3>
-<!-- PASTE FINAL TEXT -->
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-max-acres-indigenous" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -785,10 +795,11 @@ Table&nbsp;6: Sample sizes for maximum fire size in Indigenous and non-Indigenou
 </figure>
 </div>
 </div>
+<p>Although maximum fire size distributions were broadly similar between land categories, designated Indigenous lands exhibited a higher median maximum fire size than non-Indigenous lands, with medians of 45 and 2.99 acres, respectively. At the same time, non-Indigenous lands contained substantially more very small fire events, reflected by the large number of lower-end outliers. These findings suggest that fire regimes differ between land categories, but they do not indicate that one land type consistently experiences larger or smaller wildfires. It should be noted, when engaging in any interpretation of these results, that there is a significantly greater number of non-Indigenous land cells than those that are Indigenous land designated. Differences in land types may also be attributed to environmental factors unrelated to land status.</p>
+<p>Comparisons of fire size classes showed that the overall distribution of wildfire sizes was similar between Indigenous and non-Indigenous lands. Maximum acres burned values were first compared between all Indigenous and non-Indigenous cells regardless of whether they had ever experienced a fire across all years. The coefficient for Indigenous status was not statistically significant (p = 0.39), and the estimated standard effect size was minuscule (Cohen’s d = 0.05), indicating no practical difference in maximum fire size between the two land types, despite the large sample size. A similar comparison of fire severity, measured by maximum acres burned between Indigenous and non-Indigenous land types but only including cells that had exhibited a fire within their borders, produced fairly similar results. The coefficient for Indigenous status was not statistically significant (p = 0.49), and the estimated standard effect size was minuscule (Cohen’s d = -0.04). Once again, this indicates no practical difference in maximum fire size between the two land types.</p>
 </section>
 <section id="maximum-fire-duration-across-indigenous-land-categories" class="level3" data-number="9.2.2">
 <h3 data-number="9.2.2" class="anchored" data-anchor-id="maximum-fire-duration-across-indigenous-land-categories"><span class="header-section-number">9.2.2</span> Maximum Fire Duration Across Indigenous Land Categories</h3>
-<!-- PASTE FINAL TEXT -->
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-max-duration-indigenous" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -834,28 +845,15 @@ Table&nbsp;7: Sample sizes for maximum fire duration in Indigenous and non-Indig
 </figure>
 </div>
 </div>
+<p>Although maximum fire duration distributions were broadly similar between land categories, designated Indigenous lands exhibited a higher median maximum fire duration than non-Indigenous lands, with medians of 899 and 495 hours, respectively (approximately 37.5 and 20.6 days). At the same time, non-Indigenous lands had substantially more quickly contained fire events, reflected by the large number of lower-end outliers. These findings suggest that fire regimes differ between land categories, but they do not indicate that one consistently experiences longer wildfire durations than the other.</p>
+<p>As with acreage, maximum duration values were first compared directly between Indigenous and non-Indigenous cells regardless of whether they had ever exhibited a fire within their borders across all years. The coefficient for Indigenous status was not statistically significant (p = 0.15), and the estimated standard effect size was minuscule (Cohen’s d = -0.09), indicating no practical difference in maximum fire duration. Maximum duration values compared between only Indigenous and non-Indigenous cells that had exhibited a fire within their borders produced fairly similar results. The coefficient for Indigenous status and effect size were identical to those calculated for all indiscriminate cells, once again indicating no practical difference in maximum duration. As a caveat when interpreting the results discussed, unlike maximum acres burned, which has no missing values, the maximum duration category has 778 missing values.</p>
 </section>
 </section>
 <section id="research-question-3-1" class="level2" data-number="9.3">
 <h2 data-number="9.3" class="anchored" data-anchor-id="research-question-3-1"><span class="header-section-number">9.3</span> Research Question 3</h2>
-<!-- PASTE FINAL TEXT -->
 <section id="comparison-of-means-and-distribution" class="level3" data-number="9.3.1">
 <h3 data-number="9.3.1" class="anchored" data-anchor-id="comparison-of-means-and-distribution"><span class="header-section-number">9.3.1</span> Comparison of Means and Distribution</h3>
-<!-- PASTE FINAL TEXT -->
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-rx-acres" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-rx-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="writeup_files/figure-html/fig-rx-acres-1.png" class="img-fluid figure-img" width="576">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rx-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10: Distribution of fire size between cells that have or have not previously had prescribed burns.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
+<p>Maximum fire size by year was compared between cells that had previously had prescribed burns and those that had not. When assessing all cells in all years (including cells that did not have a fire in a given year and whose maximum fire size is therefore 0 acres), the coefficient was not statistically significant (p = 0.42), and the effect size was minuscule (Cohen’s d = -0.06). When limited to cells that had experienced a fire in that year, therefore looking at fire severity rather than fire presence, there is a nearly significant difference in fire size (p = 0.057). However, the effect size is still small (Cohen’s d = 0.16). Because prescribed burns were only recorded starting in 2021, the sample was limited to 2020-2025 to remove variation occurring before prescribed burn records. In this case, the findings are more significant (p = 0.006), and the scale of difference is slightly larger, although still small (Cohen’s d = 0.21).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-rx-indigenous-size-2025" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -864,7 +862,7 @@ Figure&nbsp;10: Distribution of fire size between cells that have or have not pr
 <img src="writeup_files/figure-html/fig-rx-indigenous-size-2025-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rx-indigenous-size-2025-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11: Fire size distribution by the presence of prescribed burn and Indigenous land designation status in 2025.
+Figure&nbsp;10: Fire size distribution by the presence of prescribed burn and Indigenous land designation status in 2025.
 </figcaption>
 </figure>
 </div>
@@ -914,6 +912,22 @@ Table&nbsp;8: Sample sizes for maximum fire size class in Indigenous and non-Ind
 </figure>
 </div>
 </div>
+<p>Comparisons of fire size classes for 2025 showed that the overall distribution of wildfire sizes was similar between Indigenous and non-Indigenous lands, regardless of whether prescribed burns had occurred. Prescribed burning was associated with a greater proportion of small (Class A) fires, and a slight observable decrease in the proportion of higher class fires (Class C and above), across both land categories. These results suggest that prescribed fire may be associated with shifts toward a greater frequency of smaller fires.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-rx-acres" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rx-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="writeup_files/figure-html/fig-rx-acres-1.png" class="img-fluid figure-img" width="576">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rx-acres-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11: Distribution of fire size between cells that have or have not previously had prescribed burns.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Welch’s two-sample t-tests revealed significant associations between fire size and prescribed burns in a previous year. The alternative hypothesis that cells that have previously had a prescribed burn experience a smaller mean maximum acres burned is supported with the achieved p-value of 0.02, when filtered to only cells that had experienced a wildfire that year. However, the scale of the difference is very small (Cohen’s d = 0.14). When limiting to 2020-2025, as our data did not report any prescribed burns before 2021, the significance is even higher, supporting the same alternative hypothesis (p = 0.001). The difference is slightly larger but still small (Cohen’s d = 0.19).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-rx-annual-size-class" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -922,17 +936,81 @@ Table&nbsp;8: Sample sizes for maximum fire size class in Indigenous and non-Ind
 <img src="writeup_files/figure-html/fig-rx-annual-size-class-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rx-annual-size-class-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12: Fire class distribution by presence of prescribed burn with Indigenous land designation status included as a support variable.
+Figure&nbsp;12: Fire class distribution by presence of previous prescribed burn over time.
 </figcaption>
 </figure>
 </div>
+</div>
+</div>
+<div class="cell">
+<div id="tbl-rx-size-class-annual" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-rx-size-class-annual-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;9: Sample sizes for maximum fire size class in cells with and without previous prescribed burns 2022-2025.
+</figcaption>
+<div aria-describedby="tbl-rx-size-class-annual-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Year</th>
+<th style="text-align: left;">Prescribed Burn</th>
+<th style="text-align: right;">Number of Cells</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2022</td>
+<td style="text-align: left;">No previous prescribed burns</td>
+<td style="text-align: right;">949</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2022</td>
+<td style="text-align: left;">Previous prescribed burns</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2023</td>
+<td style="text-align: left;">No previous prescribed burns</td>
+<td style="text-align: right;">763</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2023</td>
+<td style="text-align: left;">Previous prescribed burns</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2024</td>
+<td style="text-align: left;">No previous prescribed burns</td>
+<td style="text-align: right;">1469</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2024</td>
+<td style="text-align: left;">Previous prescribed burns</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2025</td>
+<td style="text-align: left;">No previous prescribed burns</td>
+<td style="text-align: right;">1496</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2025</td>
+<td style="text-align: left;">Previous prescribed burns</td>
+<td style="text-align: right;">62</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
 </div>
 </div>
 <div style="font-size: 80%;">
 <div id="tbl-size-class" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-size-class-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;9: Size Class of Fire by Acres Burned
+Table&nbsp;10: Size Class of Fire by Acres Burned
 </figcaption>
 <div aria-describedby="tbl-size-class-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table-striped table-hover caption-top table">
@@ -977,10 +1055,12 @@ Table&nbsp;9: Size Class of Fire by Acres Burned
 </figure>
 </div>
 </div>
+<p>“Fire class distribution by presence of previous prescribed burn over time” displays a time series view of the previous findings, separated into size class categories as defined by the NWCG (<a href="#tbl-rx-size-class-annual" class="quarto-xref">Table&nbsp;9</a>). The data were limited to cells that experienced at least one wildfire in a given year, and split by whether the cell had a recorded prescribed burn in any previous year. In all years, the distribution of wildfires that had occurred in cells with previous prescribed burns was skewed toward lower-class fires than in cells without prescribed burns. A notable exception to this extreme skew is in 2024, when more than a quarter of fires in cells with previous prescribed burns were class G (above 5000 acres). This is due to an unprecedented fire season that occurred in 2024 (Acker, 2024). In addition, the grid cell methodology interacts with large polygons in the IFPH dataset such that a large fire covering many cells has its size recorded as the maximum acreage across all cells it intersects, meaning that multiple cells reflect the same fire record. As such, it should be noted that the large number of cells that experienced class G fires is not necessarily reflective of the number of class G fires. This trend is matched by the cells without previously prescribed burns. Because this project did not account for differences in climate, vegetation type, topography, ignition source, or prescribed burn intensity, these observed patterns should not be interpreted as evidence that prescribed burning directly caused the differences in fire-size distributions.</p>
+<p>Notably, we see greater effects when looking at previous wildfires than prescribed burns. A parallel test of fires between 2020 and 2025, comparing cells that have had at least one fire in the previous four years with those that have not, showed high significance (p &lt; 2.2e-16). While still small, the scale of the difference between the categories was larger than for prescribed burns (Cohen’s d = 0.33). Although this finding is not causal, it reflects past findings that previous wildland fires reduce subsequent fire size by reducing available fuel (Parks, 2016). As shown in “Distribution of fire size between cells that have or have not previously experienced wildfires”, previous fires do not eliminate the possibility of large fires in the future, as there are many outliers.</p>
 </section>
 <section id="modeling" class="level3" data-number="9.3.2">
 <h3 data-number="9.3.2" class="anchored" data-anchor-id="modeling"><span class="header-section-number">9.3.2</span> Modeling</h3>
-<!-- PASTE FINAL TEXT -->
+<p>A Random Forest classifier using the designated Indigenous land indicator, sum of all plant species occurrences, and a count of all previous prescribed burns, limited to cells with maximum fire acreage greater than 0 between 2020 and 2025, achieved an accuracy of 0.437 after hyperparameter tuning using Optuna. For comparison, a classifier that always selected “small” for fire size (the largest category) would have an accuracy of 0.398. The SHAP values, a measure of each feature’s average impact on model output magnitude, show that this model relied heavily on plant sum for its classifications.</p>
 <!--- note: including these as straight up images because we should not be running models in here! --->
 <div id="fig-shap-summary" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -992,6 +1072,7 @@ Figure&nbsp;13: SHAP values for the Random Forest classifier.
 </figcaption>
 </figure>
 </div>
+<p>Another Random Forest classifier using the same metrics but adding wildfire metrics (rolling sum from the previous four years for wildfire count and wildfire acreage capped at 6,178 per year) achieved an accuracy of 0.459 after hyperparameter tuning. Plant sum was still the most important variable in SHAP value analysis, followed by the two wildfire metrics.</p>
 <div id="fig-shap-summary-plant" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-shap-summary-plant-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1002,6 +1083,10 @@ Figure&nbsp;14: SHAP values for the Random Forest classifier with all plant spec
 </figcaption>
 </figure>
 </div>
+<p>When the plant summary was separated into its seven distinct species and added to the previous model, the model performed slightly better with an accuracy of 0.473. However, plant counts did not change notably over our time series; species counts, especially because certain species occur in very few cells, may represent areas that are more or less susceptible to wildfires based on factors we may not be able to observe in our data. This is not to say that the presence of a given species is not impacting wildfire severity. Still, it is likely (especially given the model’s low performance) that other factors associated with certain plant species or their occurrence records are also impacting fire severity. The rolling sum of previous wildfires and their acreage are also among the top features for this model.</p>
+</section>
+<section id="model-validation-1" class="level3" data-number="9.3.3">
+<h3 data-number="9.3.3" class="anchored" data-anchor-id="model-validation-1"><span class="header-section-number">9.3.3</span> Model Validation</h3>
 <div id="fig-conf-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-conf-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1012,6 +1097,8 @@ Figure&nbsp;15: Confusion matrix for the Random Forest classifier.
 </figcaption>
 </figure>
 </div>
+<p>The confusion matrix shows that the first model (using prescribed burn, Indigenous designation, and plant sum as features) most frequently classified fires as small and was frequently wrong, with an F1-score of 0.54 for that category. It performed the worst in the medium category with an F1-score of 0.01, and slightly better for large fires with an F1-score of 0.45, although it still misclassified many of them as “small”.</p>
+<p>The model with added wildfire metrics also frequently classified fires as small and was somewhat more accurate, with an F1-score of 0.57. Similarly, it performed very poorly with medium fires (F1 = 0.1) and better with large fires (F1 = 0.46). Overall, its improvements across categories are small but relatively evenly distributed.</p>
 <div id="fig-conf-matrix-plant" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-conf-matrix-plant-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1022,6 +1109,7 @@ Figure&nbsp;16: Confusion matrix for the Random Forest classifier with all plant
 </figcaption>
 </figure>
 </div>
+<p>Finally, the model that included all plant species separately predicted small fires with a slightly lower F1-score (F1 = 0.55). However, it correctly classified medium fires at a higher rate than either previous model (F1 = 0.16) and identified large fires at a closer rate to small fires than either previous model (F1 = 0.52).</p>
 </section>
 </section>
 </section>
@@ -1029,11 +1117,15 @@ Figure&nbsp;16: Confusion matrix for the Random Forest classifier with all plant
 <h1 data-number="10"><span class="header-section-number">10</span> Discussion, Limitations, and Future Work</h1>
 <section id="discussion" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="discussion"><span class="header-section-number">10.1</span> Discussion</h2>
-<!-- PASTE FINAL TEXT -->
+<p>This project evaluated whether publicly available vegetation and wildfire datasets could be used to examine differences in forest compositional diversity and wildfire characteristics across federally recognized Indigenous and non-Indigenous lands in Oregon. Across the three research questions, Indigenous land designation alone explained relatively little variation in either forest compositional diversity or wildfire. Instead, local vegetation characteristics, previous wildfire history, and, to a lesser extent, prescribed burn history emerged as stronger predictors of wildfire metrics.</p>
+<p>For forest compositional diversity, species-level analyses identified only modest and inconsistent differences between land categories. While Western Redcedar and California Blackberry showed greater abundance on non-Indigenous lands under parametric testing, non-parametric testing produced different significant species, illustrating the sensitivity of conclusions to highly skewed, zero-inflated ecological data. Similarly, Shannon Diversity Index comparisons and regression modeling demonstrated that Indigenous land designation status contributed essentially no additional explanatory power beyond vegetation composition. These findings suggest that differences in local environment types better explain variation in observed compositional diversity than other features within the available datasets.</p>
+<p>Wildfire analysis produced similarly modest differences between land type categories. Although designated Indigenous lands generally exhibited slightly larger median fire sizes and durations, statistical testing of means found negligible effect sizes and practically no meaningful differences in maximum fire acreage or duration. These results indicate that wildfire behavior is broadly comparable across land categories. At the same time, the observed distributional differences suggest that fire regimes may vary across these regions in ways that are not adequately captured by our metrics, emphasizing the complexity of wildfire processes.</p>
+<p>Machine learning analysis further reinforced this conclusion. Random Forest and XGBoost classifiers showed that previous wildfire frequency, previous wildfire acreage, and vegetation characteristics were substantially more influential predictors of wildfire size than Indigenous status or prescribed burn history. Although the observed effect sizes remained small, prescribed burns were associated with a greater proportion of smaller wildfire events and statistically different fire sizes. Together, these findings suggest that prescribed fire may contribute to moderating wildfire behavior, but is unlikely to be sufficient as a standalone predictor of wildfire severity.</p>
+<p>Overall, this project demonstrates both the value and limitations of publicly available environmental datasets. While these data are sufficient to identify broad landscape-scale patterns and evaluate relative predictor importance, they are not suited to drawing causal conclusions regarding Indigenous stewardship or individual management practices. Rather, the findings emphasize that wildfire behavior is driven by multiple interacting ecological processes, with previous fire history and vegetation characteristics exerting a stronger measurable influence than land designation alone, within the available datasets.</p>
 </section>
 <section id="limitations" class="level2" data-number="10.2">
 <h2 data-number="10.2" class="anchored" data-anchor-id="limitations"><span class="header-section-number">10.2</span> Limitations</h2>
-<!-- PASTE FINAL TEXT -->
+<p>A major limitation of this project is that our biodiversity measures do not fully represent Oregon’s ecological diversity, which should be considered when interpreting the findings. In addition to restricting the scope of the GBIF data to seven ecologically significant species, the GBIF dataset relies heavily on community-contributed observations (e.g., iNaturalist), resulting in substantially greater sampling effort in more populated areas, particularly along the Oregon coast, than in rural or densely forested regions. Furthermore, areas outside the natural range of the selected species are expected to have few or no observations, creating additional gaps in biodiversity coverage. Because the project primarily assesses forest fires, the chosen species are traditionally found in forested areas; therefore, notable gaps exist, especially in non-heavily forested areas such as those historically categorized as open water or brush. Consequently, the biodiversity metrics and diversity indices used in this project should be interpreted as proxies based on available observations rather than comprehensive measures of Oregon’s true biodiversity.</p>
 <div id="fig-no-plant-map" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-no-plant-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1045,15 +1137,23 @@ Figure&nbsp;17: Historical Non-Vegetation Boundaries Map
 </figure>
 </div>
 <!-- could make this map actually render here? but we'd have to read in the hist-veg data as well which is a little annoying -->
+<p>Another limitation in the applicability of our vegetation datasets is that our Historic Vegetation dataset depicts native plant cover prior to widespread Euro-American settlement; that is, it represents data records spanning 1851-1910 and 1930. This further limits our biodiversity and vegetation-based modeling, as these mapped areas may not accurately correlate with modern ranges. However, the primary goal of including this data was to differentiate between areas missing GBIF plant records because they fall outside the applicable ecological sphere, rather than because of GBIF’s rural-area, survey-based missingness.</p>
+<p>Further, the fire data have missingness in individual records and many records that do not exist across IFPH and InFORM. While IFPH values accurately reflected the calculations made using the sf package framework based on multipolygon data provided in IFPH, InFORM acreage values in matching records did not always align. This inconsistency may reflect differences in how fires were tracked between the two geometry types, potentially limiting the accuracy of values present only in the InFORM dataset. In addition, real-world fire occurrences can be messy (e.g., multiple fires can converge into a single fire) in ways that do not lend themselves to tabular data. Structured data science methods do not necessarily reflect the complexity of some of these occurrences. This may be impacting the discrepancies between IFPH and InFORM records, as a complex fire may be recorded differently when its perimeter is recorded.</p>
+<p>Additional limitations were encountered when attempting to calculate an encompassing metric for calculating fire severity. This was primarily because many contextually compatible metrics, including fire-end date, management level, estimated cost to date, discovery acres, and final acres, had complete or high levels of missingness.</p>
+<p>It is also likely that prescribed burns that occurred within this scope were not officially recorded, as going through official channels may incur financial and personnel time costs and possible legal ramifications.</p>
 </section>
 <section id="future-work" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="future-work"><span class="header-section-number">10.3</span> Future Work</h2>
-<!-- PASTE FINAL TEXT -->
+<p>Future research would benefit from incorporating standardized vegetation surveys, broader measures of biodiversity, and additional environmental covariates, including climate, forest type, elevation, management history, and comprehensive fire severity measures. Expanding analyses beyond species abundance to include community composition and functional diversity, while integrating more comprehensive biodiversity datasets, would provide a stronger foundation for evaluating relationships between Indigenous stewardship, ecosystem characteristics, and wildfire resilience. Future work should explore generalized linear or non-linear modeling approaches that better accommodate skewed ecological data. We also recommend that interested parties consider additional wildfire metrics, such as estimated cost or management level, if they wish to explore finer modeling tuning options, as well as introducing normalization methods. Future work conducted collaboratively with Tribal Nations could provide a richer understanding of Indigenous stewardship and its ecological outcomes.</p>
 </section>
 </section>
 <section id="conclusions-and-recommendations" class="level1" data-number="11">
 <h1 data-number="11"><span class="header-section-number">11</span> Conclusions and Recommendations</h1>
-<!-- PASTE FINAL TEXT -->
+<p>This project integrated publicly available biodiversity, wildfire, vegetation, and land ownership datasets to evaluate forest compositional diversity and wildfire characteristics across federally recognized Indigenous and non-Indigenous lands in Oregon. Across all three research questions, Indigenous land designation alone was not a strong predictor of forest compositional diversity nor wildfire severity. Differences across land categories were generally small, with negligible practical effect sizes despite several statistically significant comparisons.</p>
+<p>Rather, vegetation composition, previous wildfire history, and prescribed burn history consistently explained more variation than Indigenous status. Regression analyses showed that land designation did not account for significant variation in Shannon diversity Index values. At the same time, machine learning models identified previous wildfire frequency and previous wildfire acreage as the strongest predictors of wildfire size. Prescribed burns were associated with modest increases in the proportion of smaller wildfire events.</p>
+<p>These findings demonstrate that publicly available ecological datasets with disparate spatial data types can support large-scale analyses of wildfire and biodiversity, while also highlighting important limitations arising from sampling bias, incomplete environmental variables, and the complexity of wildfire dynamics. Rather than suggesting that land designation alone determines wildfire resilience, the results indicate that interacting ecological and historical factors beyond ownership boundaries shape outcomes.</p>
+<p>Future work incorporating climate, topography, forest structure, standardized vegetation inventories, and more detailed records of prescribed fire implementation would provide a more comprehensive understanding of the relationships among vegetation, management practices, and wildfire severity. Such improvements would strengthen future studies’ ability to evaluate how Indigenous stewardship and ecological management contribute to long-term wildfire resilience.</p>
+<p>We would recommend that the responsible parties work toward the following data and monitoring goals to support future improved endeavors: improve statewide reporting and accessibility of prescribed burn datasets, including burn objectives, treatment intensity, and timing; increase biodiversity monitoring across Oregon to reduce geographic and observational biases present in community-science datasets; continue integrating multiple public datasets into unified analytical pipelines to support reproducible, landscape-scale wildfire research.</p>
 </section>
 <section id="reproducibility-and-references" class="level1" data-number="12">
 <h1 data-number="12"><span class="header-section-number">12</span> Reproducibility and References</h1>
@@ -1067,6 +1167,9 @@ Figure&nbsp;17: Historical Non-Vegetation Boundaries Map
 <div id="ref-abatzoglou2016" class="csl-entry" role="listitem">
 Abatzoglou, J. T., and A. P. Willams. 2016. <span>“Impact of Anthropogenic Climate Change on Wildfire Across Western US Forests | Pnas.”</span> <em>Proceedings of the National Academy of Sciences of the United States of America</em>. <a href="https://www.pnas.org/doi/10.1073/pnas.1607171113">https://www.pnas.org/doi/10.1073/pnas.1607171113</a>.
 </div>
+<div id="ref-acker2024" class="csl-entry" role="listitem">
+Acker, L. 2016-10-28. <span>“Oregon’s Record-Breaking 2024 Fire Season Is Finally over - Oregonlive.com.”</span> <em>Oregon Live</em>, 2016-10-28. <a href="https://www.pnas.org/doi/10.1073/pnas.1607171113">https://www.pnas.org/doi/10.1073/pnas.1607171113</a>.
+</div>
 <div id="ref-osu2019" class="csl-entry" role="listitem">
 <span>“Black Cottonwood.”</span> 2019. <em>College of Agricultural Sciences</em>, September 20. <a href="https://horticulture.oregonstate.edu/oregon-vegetables/black-cottonwood#">https://horticulture.oregonstate.edu/oregon-vegetables/black-cottonwood#</a>.
 </div>
@@ -1075,6 +1178,9 @@ Coughlan, M. R., J. D. Johnston, K. M. Derr, D. G. Lewis, and B. R. Johnson. 202
 </div>
 <div id="ref-coughlan2023" class="csl-entry" role="listitem">
 Coughlan, M., N. Serio, H. Loeb, D. Lewis, and S. Thompson. 2023. <span>“Indigenous Fire Stewardship for Fire Management and Ecological Restoration in the Pacific Northwest Ecosystem Workforce Program.”</span> <em>Northwest Fire Science Consortium</em>. <a href="https://www.nwfirescience.org/sites/default/files/publications/SynthesisReport_IFS_Full_Accessible_oct30.pdf">https://www.nwfirescience.org/sites/default/files/publications/SynthesisReport_IFS_Full_Accessible_oct30.pdf</a>.
+</div>
+<div id="ref-coughlannd" class="csl-entry" role="listitem">
+Coughlan, M., N. Serio, H. Loeb, D. Lewis, and S. Thompson. n.d. <em>Ndigenous Fire Stewardship for Fire Management and Ecological Restoration in the Pacific Northwest Ecosystem Workforce Program</em>. n.d. <a href="https://www.nwfirescience.org/sites/default/files/publications/SynthesisReport_IFS_Full_Accessible_oct30.pdf">https://www.nwfirescience.org/sites/default/files/publications/SynthesisReport_IFS_Full_Accessible_oct30.pdf</a>.
 </div>
 <div id="ref-fryer2018" class="csl-entry" role="listitem">
 Fryer, J. L. n.d. <span>“Pinus Ponderosa Var. Benthamiana, p. Ponderosa Var. Ponderosa, Pacific Ponderosa Pine, Columbia Ponderosa Pine.”</span> <em>US Forest Service Research and Development</em>. <a href="https://research.fs.usda.gov/feis/species-reviews/pinponp">https://research.fs.usda.gov/feis/species-reviews/pinponp</a>.
@@ -1103,8 +1209,14 @@ Hessburg, P. F., S. J. Prichard, K. Hagmann, N. Povak, and F. K. Lake. 2021. <sp
 <div id="ref-ifph" class="csl-entry" role="listitem">
 <em>InterAgencyFirePerimeterHistory AllYears View [Data Set]</em>. 2025. National Interagency Fire Center. <a href="https://data-nifc.opendata.arcgis.com/datasets/nifc::interagencyfireperimeterhistory-allyears-view/about">https://data-nifc.opendata.arcgis.com/datasets/nifc::interagencyfireperimeterhistory-allyears-view/about</a>.
 </div>
+<div id="ref-johnstone2016" class="csl-entry" role="listitem">
+Johnstone, J. F., C. D. Allen, J. F. Franklin, et al. 2016. <span>“Changing Disturbance Regimes, Ecological Memory, and Forest Resilience.”</span> <em>Frontiers in Ecology and the Environment</em>, 369–78. <a href="https://doi.org/10.1002/fee.1311">https://doi.org/10.1002/fee.1311</a>.
+</div>
 <div id="ref-lundeburg2026" class="csl-entry" role="listitem">
 Lundeberg, S. 2026. <span>“Study: Old-Growth Forests Face Highest Wildfire Risk in Areas That Once Burned Frequently.”</span> <em>Philomath News, Oregon State University</em>. <a href="https://philomathnews.com/study-old-growth-forests-face-highest-wildfire-risk-in-areas-that-once-burned-frequently/">https://philomathnews.com/study-old-growth-forests-face-highest-wildfire-risk-in-areas-that-once-burned-frequently/</a>.
+</div>
+<div id="ref-parks2016" class="csl-entry" role="listitem">
+Parks, S. A., and Gucker C. L. 2016-05. <span>“Effectiveness and Longevity of Wildland Fire as a Fuel Treatment.”</span> <em>The Northern Rockies Fire Science Network</em>, 2016-05. <a href="https://nrfirescience.org/sites/default/files/NRFSN_ResearchBrief1_FireAsFuelTrt.pdf">https://nrfirescience.org/sites/default/files/NRFSN_ResearchBrief1_FireAsFuelTrt.pdf</a>.
 </div>
 <div id="ref-perreault2025" class="csl-entry" role="listitem">
 Perreault, M. L., and L. D. Goodridge. 2025. <span>“Indigenous Data Protection in Wastewater Surveillance: Balancing Public Health Monitoring with Privacy Rights.”</span> <em>Genomic Psychiatry</em>, 22–27. <a href="https://doi.org/10.61373/gp025p.0008">https://doi.org/10.61373/gp025p.0008</a>.
