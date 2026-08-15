@@ -8,10 +8,7 @@ date: today
 bibliography: refs.bib
 csl: apa-6th-edition.csl
 format:
-  html:
-    toc: true
-    toc-depth: 2
-    number-sections: true
+  
   pdf:
     toc: true
     number-sections: true
@@ -822,7 +819,7 @@ For forest compositional diversity, species-level analyses identified only modes
 Wildfire analysis produced similarly modest differences between land type categories. Although designated Indigenous lands generally exhibited slightly larger median fire sizes and durations, statistical testing of means found negligible effect sizes and practically no meaningful differences in maximum fire acreage or duration. These results indicate that wildfire behavior is broadly comparable across land categories. At the same time, the observed distributional differences suggest that fire regimes may vary across these regions in ways that are not adequately captured by our metrics, emphasizing the complexity of wildfire processes.
 
 
-Machine learning analysis further reinforced this conclusion. Random Forest and XGBoost classifiers showed that previous wildfire frequency, previous wildfire acreage, and vegetation characteristics were substantially more influential predictors of wildfire size than Indigenous status or prescribed burn history. Although the observed effect sizes remained small, prescribed burns were associated with a greater proportion of smaller wildfire events and statistically different fire sizes. Together, these findings suggest that prescribed fire may contribute to moderating wildfire behavior, but is unlikely to be sufficient as a standalone predictor of wildfire severity.
+Machine learning analysis further reinforced this conclusion. Random Forest classifiers showed that previous wildfire frequency, previous wildfire acreage, and vegetation characteristics were substantially more influential predictors of wildfire size than Indigenous status or prescribed burn history. Although the observed effect sizes remained small, prescribed burns were associated with a greater proportion of smaller wildfire events and statistically different fire sizes. Together, these findings suggest that prescribed fire may contribute to moderating wildfire behavior, but is unlikely to be sufficient as a standalone predictor of wildfire severity.
 
 
 Overall, this project demonstrates both the value and limitations of publicly available environmental datasets. While these data are sufficient to identify broad landscape-scale patterns and evaluate relative predictor importance, they are not suited to drawing causal conclusions regarding Indigenous stewardship or individual management practices. Rather, the findings emphasize that wildfire behavior is driven by multiple interacting ecological processes, with previous fire history and vegetation characteristics exerting a stronger measurable influence than land designation alone, within the available datasets.
