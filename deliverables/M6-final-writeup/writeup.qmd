@@ -8,6 +8,10 @@ date: today
 bibliography: refs.bib
 csl: apa-6th-edition.csl
 format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
   pdf:
     toc: true
     number-sections: true
@@ -405,6 +409,7 @@ Forest compositional diversity measures.
 #| fig-cap: "Maximum acres burned across land designation"
 #| echo: false
 #| fig-width: 5
+#| fig-height: 5
 
 gdf %>%
     filter(max_acres > 0) %>%
@@ -505,7 +510,7 @@ gdf %>%
     labs(
         x="",
         y="Maximum fire duration by cell (hours)",
-        title="Maximum fire duration for Indigenous \nvs non-Indigenous land",
+        title="Maximum fire duration by land type",
         caption="n = 4261\nSource: InFORM, IFPH, LandMark"
     ) +
     theme(axis.text=element_text(size=10))
@@ -570,8 +575,8 @@ tgdf %>%
   scale_fill_manual(values=burn_cols) +
   labs(
     x="Maximum fire size class",
-    y="Percent of fires in cells with/without prescribed burns",
-    title="Fire size distribution by presence of prescribed burn and \nIndigenous land designation in 2025",
+    y="Percent of cells",
+    title="Fire size distribution by presence of prescribed burn \nand Indigenous land designation in 2025",
     fill="",
     caption='n = 1558\nSource: IFPH, InFORM'
   ) +
@@ -609,6 +614,7 @@ Comparisons of fire size classes for 2025 showed that the overall distribution o
 #| fig-cap: "Distribution of fire size between cells that have or have not previously had prescribed burns."
 #| echo: false
 #| fig-width: 5
+#| fig-height: 6
 
 tgdf %>% 
     filter(year >= 2020) %>%
@@ -620,7 +626,7 @@ tgdf %>%
     scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
     labs(
         title="Presence of prescribed burns for fires 2020-2025",
-        x="Had prescribed burns",
+        x="Prescribed burn history",
         y="Maximum acres burned",
         caption="Source: IFPH, InFORM"
     ) +
@@ -648,8 +654,6 @@ knitr::kable(prev_rx_acres)
 ```
 
 :::
-
-{{< pagebreak >}}
 
 Welch's two-sample t-tests revealed significant associations between fire size and prescribed burns in a previous year. The alternative hypothesis that cells that have previously had a prescribed burn experience a smaller mean maximum acres burned is supported with the achieved p-value of 0.02, when filtered to only cells that had experienced a wildfire that year. However, the scale of the difference is very small (Cohen’s d = 0.14). When limiting to 2020-2025, as our data did not report any prescribed burns before 2021, the significance is even higher, supporting the same alternative hypothesis (p = 0.001). The difference is slightly larger but still small (Cohen’s d = 0.19).
 
@@ -727,7 +731,7 @@ knitr::kable(rx_size_class_annual)
 
 :::
 
-"Fire class distribution by presence of previous prescribed burn over time" displays a time series view of the previous findings, separated into size class categories as defined by the NWCG (@tbl-rx-size-class-annual). The data were limited to cells that experienced at least one wildfire in a given year, and split by whether the cell had a recorded prescribed burn in any previous year. In all years, the distribution of wildfires that had occurred in cells with previous prescribed burns was skewed toward lower-class fires than in cells without prescribed burns. A notable exception to this extreme skew is in 2024, when more than a quarter of fires in cells with previous prescribed burns were class G (above 5000 acres). This is due to an unprecedented fire season that occurred in 2024 (Acker, 2024). In addition, the grid cell methodology interacts with large polygons in the IFPH dataset such that a large fire covering many cells has its size recorded as the maximum acreage across all cells it intersects, meaning that multiple cells reflect the same fire record. As such, it should be noted that the large number of cells that experienced class G fires is not necessarily reflective of the number of class G fires. This trend is matched by the cells without previously prescribed burns. Because this project did not account for differences in climate, vegetation type, topography, ignition source, or prescribed burn intensity, these observed patterns should not be interpreted as evidence that prescribed burning directly caused the differences in fire-size distributions.
+"Fire class distribution by presence of previous prescribed burn over time" displays a time series view of the previous findings, separated into size class categories as defined by the NWCG (@tbl-size-class). The data were limited to cells that experienced at least one wildfire in a given year, and split by whether the cell had a recorded prescribed burn in any previous year. In all years, the distribution of wildfires that had occurred in cells with previous prescribed burns was skewed toward lower-class fires than in cells without prescribed burns. A notable exception to this extreme skew is in 2024, when more than a quarter of fires in cells with previous prescribed burns were class G (above 5000 acres). This is due to an unprecedented fire season that occurred in 2024 (Acker, 2024). In addition, the grid cell methodology interacts with large polygons in the IFPH dataset such that a large fire covering many cells has its size recorded as the maximum acreage across all cells it intersects, meaning that multiple cells reflect the same fire record. As such, it should be noted that the large number of cells that experienced class G fires is not necessarily reflective of the number of class G fires. This trend is matched by the cells without previously prescribed burns. Because this project did not account for differences in climate, vegetation type, topography, ignition source, or prescribed burn intensity, these observed patterns should not be interpreted as evidence that prescribed burning directly caused the differences in fire-size distributions.
 
 ```{r}
 #| label: fig-wf-acres
@@ -744,8 +748,8 @@ tgdf %>%
     scale_fill_manual(values=wf_cols) +
     scale_y_continuous(trans=scales::pseudo_log_trans(base = 10), labels=scales::comma) +
     labs(
-        title="Fire size for cells that have or have not had previous wildfires",
-        x="Had previous wildfires",
+        title="Fire size by cell wildfire history",
+        x="Wildfire history",
         y="Maximum acres burned",
         caption="Source: IFPH, InFORM"
     ) +
@@ -777,31 +781,31 @@ Notably, we see greater effects when looking at previous wildfires than prescrib
 
 ### Modeling
 
-![SHAP values for a Random Forest classifier with prescribed burn, Indigenous designation, and plant sum.](/images/shap_summary_ndgn_plnt_rx.png){#fig-shap-summary}
+![SHAP values for a Random Forest classifier with prescribed burn, Indigenous designation, and plant sum.](/images/shap_summary_ndgn_plnt_rx.png){#fig-shap-summary width=70%}
 
 A Random Forest classifier using the designated Indigenous land indicator, sum of all plant species occurrences, and a count of all previous prescribed burns, limited to cells with maximum fire acreage greater than 0 between 2020 and 2025, achieved an accuracy of 0.437 after hyperparameter tuning using Optuna. For comparison, a classifier that always selected “small” for fire size (the largest category) would have an accuracy of 0.398. The SHAP values, a measure of each feature’s average impact on model output magnitude, show that this model relied heavily on plant sum for its classifications.
 
-![SHAP values for Random Forest classifier with added wildfire metrics.](/images/shap_summary_ndgn_plnt_rx_wf.png){#fig-shap-summary-wf}
+![SHAP values for Random Forest classifier with added wildfire metrics.](/images/shap_summary_ndgn_plnt_rx_wf.png){#fig-shap-summary-wf width=70%}
 
 Another Random Forest classifier using the same metrics but adding wildfire metrics (rolling sum from the previous four years for wildfire count and wildfire acreage capped at 6,178 per year) achieved an accuracy of 0.459 after hyperparameter tuning. Plant sum was still the most important variable in SHAP value analysis, followed by the two wildfire metrics.
 
-![SHAP values for the Random Forest classifier with all plant species counts included separately.](/images/shap_summary_ndgn_plnt_rx_wf_p.png){#fig-shap-summary-plant}
+![SHAP values for the Random Forest classifier with all plant species counts included separately.](/images/shap_summary_ndgn_plnt_rx_wf_p.png){#fig-shap-summary-plant width=80%}
 
 When the plant summary was separated into its seven distinct species and added to the previous model, the model performed slightly better with an accuracy of 0.473. However, plant counts did not change notably over our time series; species counts, especially because certain species occur in very few cells, may represent areas that are more or less susceptible to wildfires based on factors we may not be able to observe in our data. This is not to say that the presence of a given species is not impacting wildfire severity. Still, it is likely (especially given the model's low performance) that other factors associated with certain plant species or their occurrence records are also impacting fire severity. The rolling sum of previous wildfires and their acreage are also among the top features for this model.
 
 
 ### Model Validation
 
-![Confusion matrix for the Random Forest classifier.](/images/conf_matrix_ndgn_plnt_rx.png){#fig-conf-matrix}
+![Confusion matrix for the Random Forest classifier.](/images/conf_matrix_ndgn_plnt_rx.png){#fig-conf-matrix width=60%}
 
 The confusion matrix shows that the first model (using prescribed burn, Indigenous designation, and plant sum as features) most frequently classified fires as small and was frequently wrong, with an F1-score of 0.54 for that category. It performed the worst in the medium category with an F1-score of 0.01, and slightly better for large fires with an F1-score of 0.45, although it still misclassified many of them as “small”.
 
-![Confusion matrix for the Random Forest classifier with wildfire metrics.](/images/conf_matrix_ndgn_plnt_rx_wf.png){#fig-conf-matrix}
+![Confusion matrix for the Random Forest classifier with wildfire metrics.](/images/conf_matrix_ndgn_plnt_rx_wf.png){#fig-conf-matrix width=60%}
 
 
 The model with added wildfire metrics also frequently classified fires as small and was somewhat more accurate, with an F1-score of 0.57. Similarly, it performed very poorly with medium fires (F1 = 0.1) and better with large fires (F1 = 0.46). Overall, its improvements across categories are small but relatively evenly distributed.
 
-![Confusion matrix for the Random Forest classifier with all plant species counts included separately.](/images/conf_matrix_ndgn_plnt_rx_wf_p.png){#fig-conf-matrix-plant}
+![Confusion matrix for the Random Forest classifier with all plant species counts included separately.](/images/conf_matrix_ndgn_plnt_rx_wf_p.png){#fig-conf-matrix-plant width=60%}
 
 Finally, the model that included all plant species separately predicted small fires with a slightly lower F1-score (F1 = 0.55). However, it correctly classified medium fires at a higher rate than either previous model (F1 = 0.16) and identified large fires at a closer rate to small fires than either previous model (F1 = 0.52).
 
@@ -827,7 +831,7 @@ Overall, this project demonstrates both the value and limitations of publicly av
 
 A major limitation of this project is that our biodiversity measures do not fully represent Oregon's ecological diversity, which should be considered when interpreting the findings. In addition to restricting the scope of the GBIF data to seven ecologically significant species, the GBIF dataset relies heavily on community-contributed observations (e.g., iNaturalist), resulting in substantially greater sampling effort in more populated areas, particularly along the Oregon coast, than in rural or densely forested regions. Furthermore, areas outside the natural range of the selected species are expected to have few or no observations, creating additional gaps in biodiversity coverage. Because the project primarily assesses forest fires, the chosen species are traditionally found in forested areas; therefore, notable gaps exist, especially in non-heavily forested areas such as those historically categorized as open water or brush. Consequently, the biodiversity metrics and diversity indices used in this project should be interpreted as proxies based on available observations rather than comprehensive measures of Oregon's true biodiversity.
 
-![Historical Non-Vegetation Boundaries Map](/images/noplant_plt.jpeg){#fig-no-plant-map}
+![Historical Non-Vegetation Boundaries Map](/images/noplant_plt.jpeg){#fig-no-plant-map width=80%}
 
 <!-- could make this map actually render here? but we'd have to read in the hist-veg data as well which is a little annoying -->
 
@@ -885,9 +889,11 @@ nocite: |
 
 See record counts in @tbl-gbif-inventory and cell counts in @tbl-gbif-histveg-cell-inventory.
 
+::: {#fig-species-maps layout-ncol=2}
+
 ```{r}
 #| label: fig-pinus-map
-#| fig-cap: "Ponderosa Pine occurrence sums."
+#| fig-cap: "Ponderosa Pine."
 #| echo: false
 #| fig-width: 5
 
@@ -904,7 +910,7 @@ grid %>%
 
 ```{r}
 #| label: fig-salix-map
-#| fig-cap: "Scouler's Willow occurrence sums."
+#| fig-cap: "Scouler's Willow."
 #| echo: false
 #| fig-width: 5
 
@@ -921,7 +927,7 @@ grid %>%
 
 ```{r}
 #| label: fig-quercus-map
-#| fig-cap: "Oregon White Oak occurrence sums."
+#| fig-cap: "Oregon White Oak."
 #| echo: false
 #| fig-width: 5
 
@@ -938,7 +944,7 @@ grid %>%
 
 ```{r}
 #| label: fig-populus-map
-#| fig-cap: "Black Cottonwood occurrence sums."
+#| fig-cap: "Black Cottonwood."
 #| echo: false
 #| fig-width: 5
 
@@ -955,7 +961,7 @@ grid %>%
 
 ```{r}
 #| label: fig-thuja-map
-#| fig-cap: "Western Redcedar occurrence sums."
+#| fig-cap: "Western Redcedar."
 #| echo: false
 #| fig-width: 5
 
@@ -972,7 +978,7 @@ grid %>%
 
 ```{r}
 #| label: fig-xerophyllum-map
-#| fig-cap: "Beargrass occurrence sums."
+#| fig-cap: "Beargrass."
 #| echo: false
 #| fig-width: 5
 
@@ -989,7 +995,7 @@ grid %>%
 
 ```{r}
 #| label: fig-rubus-map
-#| fig-cap: "California Blackberry occurrence sums."
+#| fig-cap: "California Blackberry."
 #| echo: false
 #| fig-width: 5
 
@@ -1003,3 +1009,5 @@ grid %>%
     fill="Species sum"
   )
 ```
+
+:::
