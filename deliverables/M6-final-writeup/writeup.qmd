@@ -752,28 +752,31 @@ Notably, we see greater effects when looking at previous wildfires than prescrib
 
 ### Modeling
 
+![SHAP values for a Random Forest classifier with prescribed burn, Indigenous designation, and plant sum.](/images/shap_summary_ndgn_plnt_rx.png){#fig-shap-summary}
+
 A Random Forest classifier using the designated Indigenous land indicator, sum of all plant species occurrences, and a count of all previous prescribed burns, limited to cells with maximum fire acreage greater than 0 between 2020 and 2025, achieved an accuracy of 0.437 after hyperparameter tuning using Optuna. For comparison, a classifier that always selected “small” for fire size (the largest category) would have an accuracy of 0.398. The SHAP values, a measure of each feature’s average impact on model output magnitude, show that this model relied heavily on plant sum for its classifications.
 
-<!--- note: including these as straight up images because we should not be running models in here! --->
-
-![SHAP values for the Random Forest classifier.](/images/shap_summary_plot.png){#fig-shap-summary}
+![SHAP values for Random Forest classifier with added wildfire metrics.](/images/shap_summary_ndgn_plnt_rx_wf.png){#fig-shap-summary-wf}
 
 Another Random Forest classifier using the same metrics but adding wildfire metrics (rolling sum from the previous four years for wildfire count and wildfire acreage capped at 6,178 per year) achieved an accuracy of 0.459 after hyperparameter tuning. Plant sum was still the most important variable in SHAP value analysis, followed by the two wildfire metrics.
 
-![SHAP values for the Random Forest classifier with all plant species counts included separately.](/images/shap_summary_plot_plant.png){#fig-shap-summary-plant}
+![SHAP values for the Random Forest classifier with all plant species counts included separately.](/images/shap_summary_ndgn_plnt_rx_wf_p.png){#fig-shap-summary-plant}
 
 When the plant summary was separated into its seven distinct species and added to the previous model, the model performed slightly better with an accuracy of 0.473. However, plant counts did not change notably over our time series; species counts, especially because certain species occur in very few cells, may represent areas that are more or less susceptible to wildfires based on factors we may not be able to observe in our data. This is not to say that the presence of a given species is not impacting wildfire severity. Still, it is likely (especially given the model's low performance) that other factors associated with certain plant species or their occurrence records are also impacting fire severity. The rolling sum of previous wildfires and their acreage are also among the top features for this model.
 
+
 ### Model Validation
 
-![Confusion matrix for the Random Forest classifier.](/images/conf_matrix_rf_wf_acres.png){#fig-conf-matrix}
+![Confusion matrix for the Random Forest classifier.](/images/conf_matrix_ndgn_plnt_rx.png){#fig-conf-matrix}
 
 The confusion matrix shows that the first model (using prescribed burn, Indigenous designation, and plant sum as features) most frequently classified fires as small and was frequently wrong, with an F1-score of 0.54 for that category. It performed the worst in the medium category with an F1-score of 0.01, and slightly better for large fires with an F1-score of 0.45, although it still misclassified many of them as “small”.
+
+![Confusion matrix for the Random Forest classifier with wildfire metrics.](/images/conf_matrix_ndgn_plnt_rx_wf.png){#fig-conf-matrix}
 
 
 The model with added wildfire metrics also frequently classified fires as small and was somewhat more accurate, with an F1-score of 0.57. Similarly, it performed very poorly with medium fires (F1 = 0.1) and better with large fires (F1 = 0.46). Overall, its improvements across categories are small but relatively evenly distributed.
 
-![Confusion matrix for the Random Forest classifier with all plant species counts included separately.](/images/conf_matrix_rf_wf_acres_plant.png){#fig-conf-matrix-plant}
+![Confusion matrix for the Random Forest classifier with all plant species counts included separately.](/images/conf_matrix_ndgn_plnt_rx_wf_p.png){#fig-conf-matrix-plant}
 
 Finally, the model that included all plant species separately predicted small fires with a slightly lower F1-score (F1 = 0.55). However, it correctly classified medium fires at a higher rate than either previous model (F1 = 0.16) and identified large fires at a closer rate to small fires than either previous model (F1 = 0.52).
 
