@@ -11,7 +11,7 @@ format:
   pdf:
     toc: true
     number-sections: true
-    fig-pos: 'h'
+    fig-pos: 'H'
 execute:
   echo: true
   warning: false
