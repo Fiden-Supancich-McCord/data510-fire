@@ -4,7 +4,7 @@
 
 | Field | Value |
 |-------|-------|
-| Owner team | Amaya Supancich-McCord & Spencer Fiden |
+| Owner team | Amaya Supancich-McCord (https://asupancichmccord.github.io/) & Spencer Fiden |
 | Owner Product Lead | Spencer Fiden |
 | Peer Stakeholder POs | Brooke Proctor, Serenna Walter, & Siera Edwards |
 | Studio Session | 1 |
