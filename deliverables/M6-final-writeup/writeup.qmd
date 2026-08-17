@@ -140,7 +140,7 @@ While existing work has advanced understanding of Indigenous stewardship [@cough
 
 # Data and Data Engineering
 
-## Data Invetory
+## Data Inventory
 
 This project integrates multiple publicly available ecological and geospatial datasets describing biodiversity, species abundance, wildfire occurrence, prescribed fire activity, historical vegetation, and federally recognized Indigenous lands throughout Oregon. Each dataset was selected to contribute complementary information necessary to evaluate forest compositional diversity and wildfire characteristics at a statewide scale. The following species were selected from the GBIF dataset due to their recorded influence on the Oregon ecosystem: Ponderosa Pine (Pinus ponderosa var. benthamiana) and Oregon White Oak (Quercus garryana) were selected due to their nature as fire-adapted tree species [@fryer2018; @gucker2007]; Beargrass (Xerophyllum tenax), California Blackberry (Rubus ursinus), and Scouler’s Willow (Salix scouleriana) were identified as culturally important Indigenous plant species [@owlridge2008]; Western Redcedar (Thuja plicata) and Black Cottonwood (Populus balsamifera subsp. Trichocarpa) were identified as keystone wildlife habitat species [@wsu; @osu2019]. Because no single dataset contained all required ecological variables, substantial data engineering was required to standardize data types, reconcile coordinate reference systems, and integrate observations into a unified analytical framework.
 
