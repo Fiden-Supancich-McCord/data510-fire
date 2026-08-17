@@ -170,7 +170,7 @@ This project integrates multiple publicly available ecological and geospatial da
 | Beargrass | Xerophyllum tenax | 1,879 |
 | California Blackberry | Rubus ursinus | 3,715 |
 
-: GBIF Species Inventory Table. {#tbl-gbif-inventory .striped .hover}
+: GBIF species inventory table. {#tbl-gbif-inventory .striped .hover}
 
 :::
 
@@ -178,7 +178,7 @@ This project integrates multiple publicly available ecological and geospatial da
 
 Because the datasets originated from independent organizations using different formats, coordinate systems, temporal ranges, and reporting standards, extensive preprocessing was required before statistical analyses could be performed. @fig-pipeline summarizes the overall analytical workflow.
 
-![Data Engineering Pipeline](/images/short-pipeline-capstone.png){#fig-pipeline fig-alt="Diagram showing the data engineering pipeline."}
+![Data engineering pipeline.](/images/short-pipeline-capstone.png){#fig-pipeline fig-alt="Diagram showing the data engineering pipeline."}
 
 ### Data Cleaning and Quality Assurance
 
@@ -213,7 +213,7 @@ For each grid cell, we calculated a more representative species count by combini
 | California Blackberry | N/A | 932 |
 | No plants recorded | N/A | 5,180 |
 
-: GBIF Species & Oregon Historic Vegetation Region Inventory Table. {#tbl-gbif-histveg-cell-inventory .striped .hover}
+: GBIF species & Oregon Historic Vegetation region inventory table. {#tbl-gbif-histveg-cell-inventory .striped .hover}
 
 :::
 
@@ -362,7 +362,7 @@ Comparison of individual plant groups revealed few consistent differences betwee
 | Beargrass        | 0.17165228 | 0.1171429 | 0.1510516 | 0.3628868174 |
 | California Blackberry | 0.35555109 | 0.1657143 | 2.297990e-05 | 0.8777980018 |
 
-: Species Distribution by Indigenous land designation status. {#tbl-species-dist-indigenous .striped .hover}
+: Species distribution by Indigenous land designation status. {#tbl-species-dist-indigenous .striped .hover}
 
 :::
 
@@ -403,7 +403,7 @@ Forest compositional diversity measures.
 
 ```{r}
 #| label: fig-max-acres-indigenous
-#| fig-cap: "Maximum acres burned across land designation"
+#| fig-cap: "Maximum acres burned across land designation."
 #| echo: false
 #| fig-width: 5
 #| fig-height: 5
@@ -724,7 +724,7 @@ knitr::kable(rx_size_class_annual)
 | Class F | 1,000 ≤ X < 5,000 acres |
 | Class G | ≥ 5,000 acres |
 
-: Size Class of Fire by Acres Burned {#tbl-size-class .striped .hover}
+: Size class of fire by acres burned. {#tbl-size-class .striped .hover}
 
 :::
 
@@ -828,7 +828,7 @@ Overall, this project demonstrates both the value and limitations of publicly av
 
 A major limitation of this project is that our biodiversity measures do not fully represent Oregon's ecological diversity, which should be considered when interpreting the findings. In addition to restricting the scope of the GBIF data to seven ecologically significant species, the GBIF dataset relies heavily on community-contributed observations (e.g., iNaturalist), resulting in substantially greater sampling effort in more populated areas, particularly along the Oregon coast, than in rural or densely forested regions. Furthermore, areas outside the natural range of the selected species are expected to have few or no observations, creating additional gaps in biodiversity coverage. Because the project primarily assesses forest fires, the chosen species are traditionally found in forested areas; therefore, notable gaps exist, especially in non-heavily forested areas such as those historically categorized as open water or brush. Consequently, the biodiversity metrics and diversity indices used in this project should be interpreted as proxies based on available observations rather than comprehensive measures of Oregon's true biodiversity.
 
-![Historical Non-Vegetation Boundaries Map](/images/noplant_plt.jpeg){#fig-no-plant-map width=80%}
+![Historical non-vegetation boundaries map.](/images/noplant_plt.jpeg){#fig-no-plant-map width=80%}
 
 <!-- could make this map actually render here? but we'd have to read in the hist-veg data as well which is a little annoying -->
 
