@@ -149,7 +149,7 @@ This project integrates multiple publicly available ecological and geospatial da
 | Source | Role | License | Scope | Type | Size |
 |:--|:--|:--|:--|:--|:--|
 | LandMark | Indigenous & community land boundaries | Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0) | Global, current record | Simple features multipolygons | 11 OR records; ~2.1 GB total (global) |
-| Global Biodiversity Information Facility (GBIF) | Species occurence records for biodiversity/vegetation metrics | Open-data framework using CC0, CC BY, and CC BY-NC licenses | Oregon, 2015-2025 | Tabular with coordinates | 23,571 records; ~14.6 MB |
+| Global Biodiversity Information Facility (GBIF) | Species occurrence records for biodiversity/vegetation metrics | Open-data framework using CC0, CC BY, and CC BY-NC licenses | Oregon, 2015-2025 | Tabular with coordinates | 23,571 records; ~14.6 MB |
 | State of Oregon Historic Vegetation | Complementary vegetation record to distinguish between environment types | Creative Commons CC0 1.0 (public domain dedication) | Oregon, compiled historic record (1851-1910 and 1930) | Simple features multipolygons | 43,628 records; ~160 MB |
 | NIFC InFORM Fire Occurrence Data Records (InFORM) | Fire occurrence records, including wildfires and prescribed burns | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1922-2026 | Tabular with coordinates | 1,221,418 records; ~580 MB |
 | NIFC Interagency Wildland Fire Perimeter History (IFPH) | Fire occurrence records, including wildfires and one prescribed burn | No formal open-data license identified; use and redistribution require careful consideration and source attribution | USA, 1668-2025 (includes historic record) | Simple features multipolygons | 4,263 OR records, ~760 MB total (national) |
@@ -868,8 +868,10 @@ We would recommend that the responsible parties work toward the following data a
 **Reproduce main results:**
 
 ```bash
-cd https://github.com/Fiden-Supancich-McCord/data510-fire/tree/main
-quarto render deliverables/M4-writeup-draft/writeup.qmd
+cd data510-fire
+quarto render src/rf-clean.qmd
+quarto render src/t-test.qmd
+quarto render deliverables/M6-final-writeup/writeup.qmd
 ```
 
 # References
