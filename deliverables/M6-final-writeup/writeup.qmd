@@ -453,7 +453,7 @@ Although maximum fire size distributions were broadly similar between land categ
 #| echo: false
 #| fig-width: 5
 
-grid %>%
+n_fires_map <- grid %>%
   ggplot(aes(geometry=geometry, fill=n_wldfr)) +
   geom_sf(linewidth=0.05, color="black") +
   scale_fill_viridis_c(option="inferno", transform=scales::pseudo_log_trans(base = 10), breaks=c(0, 1, 10, 100)) +
@@ -463,6 +463,10 @@ grid %>%
       title="Number of wildfires per grid cell",
       caption="n = 10312\nSource: InFORM, IFPH"
   )
+
+n_fires_map
+
+ggsave("images/n_fires_map_final.png", n_fires_map, width=5, height=3)
 ```
 
 ```{r}
@@ -546,12 +550,12 @@ Maximum fire size by year was compared between cells that had previously had pre
 
 ```{r}
 #| label: fig-rx-indigenous-size-2025
-#| fig-cap: "Fire size distribution by the presence of prescribed burn and Indigenous land designation status in 2025."
+#| fig-cap: "Fire size distribution by prescribed burn history and Indigenous land designation status in 2025."
 #| echo: false
 #| fig-width: 5
 #| fig-height: 5
 
-tgdf %>%
+rx_indigenous_size_2025 <- tgdf %>%
   filter(year == 2025) %>%
   filter(size_class_pretty != "No fire") %>%
   mutate(
@@ -573,13 +577,16 @@ tgdf %>%
   labs(
     x="Maximum fire size class",
     y="Percent of cells",
-    title="Fire size distribution by presence of prescribed burn \nand Indigenous land designation in 2025",
+    title="Fire size distribution by prescribed burn history\nand Indigenous land designation in 2025",
     fill="",
     caption='n = 1558\nSource: IFPH, InFORM'
   ) +
   theme_bw() +
   theme(legend.position="top")
 
+rx_indigenous_size_2025
+
+ggsave("images/rx_indigenous_size_2025_final.png", rx_indigenous_size_2025, width=5, height=5)
 ```
 
 ::: {style="font-size: 80%;"}
@@ -661,7 +668,7 @@ Welch's two-sample t-tests revealed significant associations between fire size a
 #| fig-width: 5
 #| fig-height: 4
 
-tgdf %>%
+rx_annual_size_class <- tgdf %>%
     filter(year > 2021) %>%
     mutate(
         had_rx = ifelse(prev_rx > 0, "Previous prescribed burns", "No previous prescribed burns"),
@@ -683,14 +690,16 @@ tgdf %>%
     labs(
         x="Maximum fire size class",
         y="Percent of fires in cells with/without prescribed burns",
-        title="Fire size distribution by presence of prescribed burn",
+        title="Fire size distribution by prescribed burn history",
         fill="",
         caption='n = 4763\nSource: IFPH, InFORM'
     ) +
     theme_bw() +
     theme(legend.position="top")
 
-# should indicate sample size for this as well somewhere
+rx_annual_size_class
+
+#ggsave("images/rx_annual_size_class_final.png", rx_annual_size_class, width=5, height=4)
 ```
 
 ::: {style="font-size: 80%;"}
